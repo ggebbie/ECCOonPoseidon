@@ -2,9 +2,9 @@
 
 [[AWS]]
 deps = ["Base64", "Compat", "Dates", "Downloads", "GitHub", "HTTP", "IniFile", "JSON", "MbedTLS", "Mocking", "OrderedCollections", "Retry", "Sockets", "URIs", "UUIDs", "XMLDict"]
-git-tree-sha1 = "5a202ba4941a6bdbe901df5e6e591cd4dedb348f"
+git-tree-sha1 = "07d944e4d9946c2061f97c1564d1b7ae8ea8f189"
 uuid = "fbe9abb3-538b-5e4e-ba9e-bc94f4f92ebc"
-version = "1.60.3"
+version = "1.61.0"
 
 [[AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -213,9 +213,7 @@ version = "2.4.4"
 
 [[ECCOtour]]
 deps = ["DelimitedFiles", "Dierckx", "Distributions", "FFTW", "Interpolations", "JLD2", "LaTeXStrings", "LinearAlgebra", "MAT", "MITgcmTools", "MeshArrays", "NetCDF", "PyPlot", "Revise", "Statistics", "StatsBase"]
-git-tree-sha1 = "44783c5451c53b0ebbb1c2a460032bd5543693d3"
-repo-rev = "main"
-repo-url = "git@github.com:ggebbie/ECCOtour.jl.git"
+path = "dev/ECCOtour"
 uuid = "414fb998-b5a0-4a85-b76f-da39d21445ca"
 version = "0.1.0"
 

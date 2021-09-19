@@ -4,7 +4,8 @@ authors = ["G Jake Gebbie"]
 [deps]
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
 ECCOtour = "414fb998-b5a0-4a85-b76f-da39d21445ca"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 
 [compat]
 DrWatson = "2.4.4"
-julia = "1.6.0"
+julia = "1.6.0,1.6.2"
