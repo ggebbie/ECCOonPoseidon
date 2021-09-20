@@ -13,7 +13,7 @@ Select `u` to clone from url\
 Enter ` https://github.com/ggebbie/ECCOonPoseidon` as url to clone \
 Select `y` in response to `remote.pushDefault' to "origin"?` \
 Clone to your favorite location and rename project if necessary \
-Go to any directory in the project: `C-x C-f ECCOonPoseidon`\
+Go to any directory in the project: e.g., `C-x C-f ECCOonPoseidon/scripts`\
 Then activate the project and initialize a julia session: `C-c C-a`
 
 * from the Julia REPL
@@ -29,13 +29,26 @@ Type backspace to return to command mode.
 
 * Using an editor like Atom/Juno or Visual Studio Code, activate the environment on one of the frame panels. The default environment is @v1.x and should be changed.
 
-# Running a script (not interactively)
+# Running a script
 
-`cd ECCOonPoseidon`\
-`julia --project=@. scripts/experiment_divergence.jl`
+Add DrWatson to your default enviroment.
+One way is to open the REPL and type:\
+`]` \
+`add DrWatson`\
+`cd BASEDIR/ECCOonPoseidon`, where BASEDIR is where you cloned the repository.\
+`activate .`\
+`instantiate`\
+`exit()`
+
+Alternatively, see the instructions under Reproducibility.
+
+From a shell, use the following commands to run a script:\
+`cd BASEDIR/ECCOonPoseidon/scripts`, where `BASEDIR` is where you cloned the repository.\
+`julia filter_interannual.jl southpac`, one example where the script takes one argument.
 
 # Directory structure
 - `scripts`: production-ready scripts
+- `src`: definitions of poseidon-specific variables and functions
 
 # Reproducibility
 

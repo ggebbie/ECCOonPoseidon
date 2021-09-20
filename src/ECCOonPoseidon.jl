@@ -14,8 +14,6 @@ function rectangle(region::String)
         # southpac definitions: move to `src`?
         latrect = (-90, -15) # immutable
         lonrect = [150,-67] # mutable for wraparound 
-        dlat = 10
-        dlon = 10
     elseif region == "test"
         latrect = (0, 10)
         lonrect = [0, 10]

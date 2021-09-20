@@ -2,7 +2,8 @@
 #  Keep the interannual energy in a given region.
 #  Diagnostic plots have been removed from this version.
 #
-#  Script argument: region (in future, must be defined in `src/ECCOonPoseidon.jl`)
+#  Script argument: region (must be defined in `src/ECCOonPoseidon.jl`)
+#  If no arguments are passed, then interannual variability is removed everywhere.
 
 using DrWatson
 @quickactivate "ECCOonPoseidon"
@@ -48,6 +49,10 @@ region = "test"
 if keepregion
     latrect, lonrect = rectangle(region)
 
+    # should dlat, dlon go into src?
+    dlat = 10
+    dlon = 10
+    
     lonmid =  (lonrect[1]+lonrect[2])/2
     centerlon!(λC,lonmid)
     centerlon!(λG,lonmid)
