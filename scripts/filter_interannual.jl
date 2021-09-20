@@ -1,36 +1,64 @@
-#  Instead use this to remove the interannual frequency energy in surface forcing fields.
+#  Remove the interannual frequency energy in surface forcing fields.
+#  Keep the interannual energy in a given region.
 #  Diagnostic plots have been removed from this version.
-#  First steps: 1. go into ECCOtour project directory. 2. go into julia REPL package mode with `]`. 3. `activate .` 4. Backspace to return to command mode in REPL.
+#
+#  Script argument: region (in future, must be defined in `src/ECCOonPoseidon.jl`)
+
+using DrWatson
+@quickactivate "ECCOonPoseidon"
+
+println(
+"""
+Currently active project is: $(projectname())
+Path of active project: $(projectdir())
+"""
+)
 
 using Revise
 using ECCOtour
 using Statistics, PyPlot, Distributions, FFTW, LinearAlgebra, StatsBase
 using MeshArrays, MITgcmTools
 
-workdir = pwd()
-push!(LOAD_PATH, workdir)
-cd(workdir)
+if isempty(ARGS)
+    keepregion = false
+    println("ARGS empty")
+    expname  = "nointerannual"
+else
+    # withhold one region from filtering
+    keepregion = true
+    expname  = "interannual_"*ARGS[1]
+end
+println("Experiment: ",expname)
+
+# This could be put into src code for scientific project.
+inputdir = "/batou/eccodrive/files/Version4/Release4/other/flux-forced/forcing/"
+outputdir="/batou/eccodrive/files/Version4/Release4/other/flux-forced-"*expname*"/forcing/"
 
 # get MIT GCM native grid
-path_grid="../inputs/GRID_LLC90/"
-γ = setupLLCgrid(path_grid)
-
-# depth [meters]
-D=γ.read(γ.path*"Depth.data",MeshArray(γ,Float64))
+γ = setupLLCgrid(datadir("grid/"))
 
 # read lat, lon at center of grid cell
 (ϕC,λC) = latlonC(γ)
 # on the vector (Staggered) grid
-#(ϕG,λG) = latlonG(γ)
+(ϕG,λG) = latlonG(γ)
+ 
+## Define region of interest where interannual fluxes are kept.
 
-# Read one flux at one point to get information about number of time points.
-# read directly from poseidon
-inputdir = "/poseidon/eccodrive/files/Version4/Release4/other/flux-forced/forcing/"
-expname  = "nointerannual"
-outputdir="/batou/eccodrive/files/Version4/Release4/other/flux-forced-"*expname*"/forcing/"
+# southpac definitions: move to `src`?
+latrect = (-90, -15) # immutable
+lonrect = [150,-67] # mutable for wraparound 
+dlat = 10
+dlon = 10
+
+if lonrect[1] > lonrect[2] # then handle wraparound
+    lonrect[2] += 360  # shift one way, could've shifted the opposite way
+end
+lonmid =  (lonrect[1]+lonrect[2])/2
+centerlon!(λC,lonmid)
+centerlon!(λG,lonmid)
 
 if !isdir(outputdir)
-    mkdir(outputdir)
+    mkpath(outputdir)
 end
 midname = "_6hourlyavg_"
 varnames = ("atmPload","oceFWflx","oceQsw","oceSflux","oceSPflx","oceTAUE","oceTAUN","oceTAUX",
@@ -76,11 +104,52 @@ Ecycle,Fcycle = seasonal_matrices(fcycle,t14day)
 Thann = 100.0 # days
 
 # Is it possible to solve for regional mask before the variable loop? Yes, if the variables are on the same grid. (Double check that they all apply to the center of a grid cell.)
+#maskN, maskS, maskW, maskE = regional_mask(ϕC,λC,latrect,lonrect,dlat,dlon)
+# clash with `mask` name
+if keepregion
+    msk = regional_mask(ϕC,λC,latrect,lonrect,dlat,dlon)
+
+    # check the spatial pattern of the mask
+    # Set up Cartesian grid for interpolation.
+    λCregpoles,λGregpoles,ϕCregpoles,ϕGregpoles,nx,ny,nyarc,nyantarc,farc,iarc,jarc,warc,fantarc,iantarc,jantarc,wantarc =
+        factors4regularpoles(γ)
+    msk_regpoles =  var2regularpoles(msk,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
+
+    figure()
+    clf()
+    cmap_seismic =get_cmap("seismic")
+    lims = range(0.0,step=0.05,stop=1.0)
+    contourf(λCregpoles,ϕCregpoles,msk_regpoles',lims,cmap=cmap_seismic)
+    colorbar(label="weight",orientation="vertical",ticks=lims)
+    mkpath(plotsdir())
+    outfname = plotsdir("southpac_mask.eps")
+    xlbl = "longitude "*L"[\degree E]"
+    ylbl = "latitude "*L"[\degree N]"
+    titlelbl = "Southpac Mask"
+    title(titlelbl)
+    xlabel(xlbl)
+    ylabel(ylbl)
+    savefig(outfname)
+end
+
+#vname = varnames[1] # for interactive use
 for vname ∈ varnames
     filein = inputdir*vname*midname
     fileout = outputdir*vname*midname
     println(filein)
 
+    if keepregion
+        # some tracers have a staggered grid.
+        # will have to re-do the mask unfortunately to be sure.
+        if vname == "oceTAUX"
+            msk = regional_mask(ϕC,λG,latrect,lonrect,dlat,dlon)
+        elseif vname == "oceTAUY"
+            msk = regional_mask(ϕG,λC,latrect,lonrect,dlat,dlon)
+        else
+            msk = regional_mask(ϕC,λC,latrect,lonrect,dlat,dlon)
+        end
+    end
+    
     # use this F to decompose controllable/uncontrollable parts
     # i.e., 6 hourly to 14 day
     flux_14day = matrixfilter(F6to14,filein,years,γ)
@@ -100,7 +169,14 @@ for vname ∈ varnames
     # hanning filter for all locations.
     # output is interannual signal.
     flux_14day_lopass = hannfilter(flux_14day_noseasonal,t14day,t14day,Thann,γ)
-    
+
+    #use function that takes forcing field and multiplies each entry by a number
+    #from 0 to 1 (1 being removed entirely) based on a provided lat/lon box and sponge layer widths
+    # pre-compute mask before looping over all variables.
+    if keepregion
+        apply_regional_mask!(flux_14day_lopass,1.0 .- msk)
+    end
+
     # put tflux_14day_lopass on to 6hr
     # check for NaN's in output
     nancount_lopass = sum(nancount_gcmarray(flux_14day_lopass))
@@ -115,6 +191,33 @@ for vname ∈ varnames
     # write the hi-pass filtered tflux
     # need to get it on the 6hr timesteps
     # need to write it for every year
-    matrixspray(E14to6,-flux_14day_lopass_regional,filein,fileout,years,γ) #changed rmfield to _regional
+    matrixspray(E14to6,-flux_14day_lopass,filein,fileout,years,γ) #changed rmfield to _regional
 
+end
+
+# MV DIAGS TO DIFFERENT SCRIPT/FUNCTION
+# make a figure to see a spatial map of flux, oceTAUN, oceTAUE are most interesting
+diags = false
+if diags 
+    filename1 = "/poseidon/ecco.jpl.nasa.gov/drive/files/Version4/Release4/other/flux-forced/forcing/oceTAUN_6hourlyavg_2000"
+    field1 = read_bin(filename1,Float32,γ)
+    filename2 = "/poseidon/ecco.jpl.nasa.gov/drive/files/Version4/Release4/other/flux-forced-interannual_southpac/oceTAUN_6hourlyavg_2000"
+    field2 = read_bin(filename2,Float32,γ)
+
+    # translate to regularpoles
+    field_regpoles =  var2regularpoles(field2[:,100]-field1[:,100],γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
+
+    figure()
+    clf()
+    lims = range(-0.1,step=0.005,stop=0.1)
+    contourf(λCregpoles,ϕCregpoles,field_regpoles',lims,cmap=cmap_seismic)
+    colorbar(label="wind stress",orientation="vertical",ticks=lims)
+    outfname = outputdir*"delta_oceTAUN-2000-1.eps"
+    xlbl = "longitude "*L"[\degree E]"
+    ylbl = "latitude "*L"[\degree N]"
+    titlelbl = L"\tau_y, "*"interannual_southpac - iter129, yr 2000, time 100, "*L"[N/m^2]"
+    title(titlelbl)
+    xlabel(xlbl)
+    ylabel(ylbl)
+    savefig(outfname)
 end
