@@ -3,7 +3,7 @@
 # ggebbie, 20-Sep-2021
 
 # put on regularpoles grid, save as NetCDF
-include("mdsio2regularpoles.jl")
+include("mdsiofiles2regularpoles.jl")
 
 # put NetCDF on sigma1
 include("netcdffiles2sigma1.jl")
