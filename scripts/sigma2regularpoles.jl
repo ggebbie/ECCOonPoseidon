@@ -17,20 +17,21 @@ using MeshArrays, MITgcmTools
 expt = ARGS[1]
 ##########################################
 
+include("config_exp.jl")
+
+include("config_regularpoles.jl")
+
+# file root names
 Frootlist = ("state_3d_set1","state_3d_set2","state_2d_set1","state_2d_set2")
 #Froot = "state_3d_set2"
 #Froot = "state_2d_set1"
 #Froot = "state_2d_set2"
 ###################################
 
-include("config_exp.jl")
-
-include("config_regularpoles.jl")
-
 # Froot= Frootlist[1] # for interactive use
 for Froot in Frootlist
-    filelist = searchdir(diagpath,Froot)
-    filelist = searchdir(diagpath,Froot) 
+    pathin = sig1dir(expt)
+    filelist = searchdir(pathin,"") # anything in directory
     datafilelist  = filter(x -> occursin("data",x),filelist)
 
     global tt = 0
@@ -40,7 +41,6 @@ for Froot in Frootlist
         println("filename ",Fname)
 
         year,month = timestamp_monthly_v4r4(tt)
-
         fileoutput = diagpath*Fname
 
         if month < 10
@@ -50,7 +50,6 @@ for Froot in Frootlist
         end
 
         filein = Fname[1:end-5]
-        pathin = diagpath
 
         @time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
 

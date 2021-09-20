@@ -5,20 +5,15 @@
 #  Script argument: region (must be defined in `src/ECCOonPoseidon.jl`)
 #  If no arguments are passed, then interannual variability is removed everywhere.
 
-using DrWatson
-@quickactivate "ECCOonPoseidon"
-
-println(
-"""
-Currently active project is: $(projectname())
-Path of active project: $(projectdir())
-"""
-)
+include("intro.jl")
 
 using Revise
 using ECCOtour, ECCOonPoseidon
 using Statistics, PyPlot, Distributions, FFTW, LinearAlgebra, StatsBase
 using MeshArrays, MITgcmTools
+
+# for interactive use, ARGS may be set this way:
+# push!(empty!(ARGS), "southpac")
 
 if isempty(ARGS)
     keepregion = false
@@ -33,8 +28,8 @@ end
 println("Experiment: ",expname)
 
 # This could be put into src code for scientific project.
-inputdir = poseidonfluxdir()
-outputdir = poseidonfluxdir(expname)
+inputdir = fluxdir()
+outputdir = fluxdir(expname)
 
 # get MIT GCM native grid
 γ = setupLLCgrid(datadir("grid/"))

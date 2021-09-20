@@ -1,50 +1,34 @@
 # map regularpoles output to sigma 1 surfaces.
 # ggebbie, 25-May-2021
 
+include("intro.jl")
+
 using Revise 
 using MITgcmTools, MeshArrays, Statistics
-using Reemergence, JLD2, Dierckx, Interpolations
-
-##########################################
-# list of experiments on poseidon
-# THIS IS USER INPUT
-exppath = "/batou/ECCOv4r4/MITgcm/exps/"
-runpath,diagpath,regpolespath = listexperiments(exppath);
+using ECCOtour, ECCOonPoseidon #,JLD2 , Dierckx, Interpolations
 
 ## SELECT EXPERIMENTS TO COMPARE #################################
-# manually choose from available experiments listed above.
-expt = "iter129_bulkformula"
-# print output here
-path_out = regpolespath[expt]
+# manually choose from available experiment
+# for interactive use, ARGS may be set this way:
+# push!(empty!(ARGS), "nointerannual")
+expt = ARGS[1]
+##########################################
 
-## DEFINE THE LIST OF SIGMA1 VALUES.
-sig1grid = sigma1grid()
+include("config_exp.jl")
 
 # the state_3d monthly-average diagnostic output on regularpoles grid
 varroot = ("EVEL","EVELMASS","EVELSTAR","NVEL","NVELMASS","NVELSTAR","PHIHYD","RHOAnoma","SALT","THETA")
-nv = length(varroot)
 
 # if splorder is larger than the number of points in a profile,
 # then it will default to linear interpolation
 #splorder = 3 # spline order
 splorder = 100 # spline order
 
-################################################################
-# get MITgcm / ECCOv4r4 LLC grid and depth information. Store in γ.
-path_grid="../inputs/GRID_LLC90/"
-γ = setupLLCgrid(path_grid)
-nf = length(γ.fSize)
-
-# get standard levels of MITgcm
-z = depthlevels(γ)
-pstdz = pressurelevels(z)
-p₀ = 1000 # dbar
-
-# name of file inside diagspath
-# Look at /batou ... exps/run/data.diagnostics for this info.
-
 # first filter for state_3d_set1
-regpolesroot = regpolespath[expt]
+regpolesroot = regpolesdir(expt)
+if !isdir(regpolesroot)
+    mkpath(regpolesroot)
+end
 
 # get specific file names, one for each variable
 fileroots = Dict{String,String}()

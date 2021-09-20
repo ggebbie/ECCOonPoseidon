@@ -29,7 +29,12 @@ Type backspace to return to command mode.
 
 * Using an editor like Atom/Juno or Visual Studio Code, activate the environment on one of the frame panels. The default environment is @v1.x and should be changed.
 
-# Running a script
+
+# Directory structure
+- `scripts`: production-ready scripts
+- `src`: definitions of poseidon-specific variables and functions
+
+# Running scripts
 
 Add DrWatson to your default enviroment.
 One way is to open the REPL and type:\
@@ -46,9 +51,24 @@ From a shell, use the following commands to run a script:\
 `cd BASEDIR/ECCOonPoseidon/scripts`, where `BASEDIR` is where you cloned the repository.\
 `julia filter_interannual.jl southpac`, one example where the script takes one argument.
 
-# Directory structure
-- `scripts`: production-ready scripts
-- `src`: definitions of poseidon-specific variables and functions
+Scripts are available for preprocessing, postprocessing, and scientific analysis.
+
+- Preprocessing
+filter_interannual.jl \
+
+- Postprocessing
+map2regularpolesDepth.jl \
+mdsiofiles2regularpoles.jl \
+netcdffiles2regularpoles.jl \
+regularpoles2sigma1.jl \
+state2sigma1.jl \
+
+- Scientific Analysis
+argotrends.jl \
+experiment_divergence.jl \
+plot_divergence.jl \
+trends.jl \
+trends_plot.jl\
 
 # Reproducibility
 

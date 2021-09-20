@@ -1,3 +1,4 @@
+# WARNING: THIS SCRIPT IS OUT OF DATE
 # Special case: Take EVEL* NVEL* from nctiles_monthly and map onto regular grid. 
 
 # 1. read monthly-average fields
