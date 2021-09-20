@@ -15,7 +15,7 @@ Path of active project: $(projectdir())
 )
 
 using Revise
-using ECCOtour
+using ECCOtour, ECCOonPoseidon
 using Statistics, PyPlot, Distributions, FFTW, LinearAlgebra, StatsBase
 using MeshArrays, MITgcmTools
 
@@ -25,14 +25,15 @@ if isempty(ARGS)
     expname  = "nointerannual"
 else
     # withhold one region from filtering
+    region = ARGS[1]
     keepregion = true
     expname  = "interannual_"*ARGS[1]
 end
 println("Experiment: ",expname)
 
 # This could be put into src code for scientific project.
-inputdir = "/batou/eccodrive/files/Version4/Release4/other/flux-forced/forcing/"
-outputdir="/batou/eccodrive/files/Version4/Release4/other/flux-forced-"*expname*"/forcing/"
+inputdir = poseidonfluxdir()
+outputdir = poseidonfluxdir(expname)
 
 # get MIT GCM native grid
 γ = setupLLCgrid(datadir("grid/"))
@@ -43,19 +44,14 @@ outputdir="/batou/eccodrive/files/Version4/Release4/other/flux-forced-"*expname*
 (ϕG,λG) = latlonG(γ)
  
 ## Define region of interest where interannual fluxes are kept.
+region = "test"
+if keepregion
+    latrect, lonrect = rectangle(region)
 
-# southpac definitions: move to `src`?
-latrect = (-90, -15) # immutable
-lonrect = [150,-67] # mutable for wraparound 
-dlat = 10
-dlon = 10
-
-if lonrect[1] > lonrect[2] # then handle wraparound
-    lonrect[2] += 360  # shift one way, could've shifted the opposite way
+    lonmid =  (lonrect[1]+lonrect[2])/2
+    centerlon!(λC,lonmid)
+    centerlon!(λG,lonmid)
 end
-lonmid =  (lonrect[1]+lonrect[2])/2
-centerlon!(λC,lonmid)
-centerlon!(λG,lonmid)
 
 if !isdir(outputdir)
     mkpath(outputdir)
