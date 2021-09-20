@@ -49,26 +49,32 @@ Alternatively, see the instructions under Reproducibility.
 
 From a shell, use the following commands to run a script:\
 `cd BASEDIR/ECCOonPoseidon/scripts`, where `BASEDIR` is where you cloned the repository.\
-`julia filter_interannual.jl southpac`, one example where the script takes one argument.
+
+
+Preprocess the forcing fields with:\
+`julia filter_interannual.jl southpac`, one example where the script takes one argument (surface region).
+
+Postprocess the experimental output with:\
+`julia postprocess.jl nointerannual`, one example where the script takes one argument (experiment name).
 
 Scripts are available for preprocessing, postprocessing, and scientific analysis.
 
-- Preprocessing
-filter_interannual.jl \
+- Preprocessing \
+filter_interannual.jl 
 
-- Postprocessing
+- Postprocessing\
 map2regularpolesDepth.jl \
 mdsiofiles2regularpoles.jl \
 netcdffiles2regularpoles.jl \
 regularpoles2sigma1.jl \
-state2sigma1.jl \
+state2sigma1.jl 
 
 - Scientific Analysis
 argotrends.jl \
 experiment_divergence.jl \
 plot_divergence.jl \
 trends.jl \
-trends_plot.jl\
+trends_plot.jl
 
 # Reproducibility
 
