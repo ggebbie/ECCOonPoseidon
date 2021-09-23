@@ -6,4 +6,4 @@
 include("mdsiofiles2regularpoles.jl")
 
 # put NetCDF on sigma1
-include("netcdffiles2sigma1.jl")
+include("regularpoles2sigma1.jl")

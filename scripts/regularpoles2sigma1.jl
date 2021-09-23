@@ -17,7 +17,9 @@ expt = ARGS[1]
 include("config_exp.jl")
 
 # the state_3d monthly-average diagnostic output on regularpoles grid
-varroot = ("EVEL","EVELMASS","EVELSTAR","NVEL","NVELMASS","NVELSTAR","PHIHYD","RHOAnoma","SALT","THETA")
+# some are not available
+#varroot = ("EVEL","EVELMASS","EVELSTAR","NVEL","NVELMASS","NVELSTAR","PHIHYD","RHOAnoma","SALT","THETA")
+varroot = ("PHIHYD","RHOAnoma","SALT","THETA")
 
 # if splorder is larger than the number of points in a profile,
 # then it will default to linear interpolation
@@ -26,9 +28,7 @@ splorder = 100 # spline order
 
 # first filter for state_3d_set1
 regpolesroot = regpolesdir(expt)
-if !isdir(regpolesroot)
-    mkpath(regpolesroot)
-end
+!isdir(regpolesroot) ?  mkpath(regpolesroot) : nothing
 
 # get specific file names, one for each variable
 fileroots = Dict{String,String}()
@@ -54,5 +54,4 @@ for tt = 1:312 # must be a better way
 
     # Read from filelist, map to sigma-1, write to file
     netcdf2sigma1(regpolesroot,regpolesroot,ncfilenames,γ,pstdz,sig1grid,splorder)
-
 end
