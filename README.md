@@ -1,6 +1,6 @@
 # ECCOonPoseidon
 
-Analysis of ECCO version 4 release 4 using output from Poseidon @ WHOI
+Analysis of ECCO version 4 release 4 using output from Poseidon @ WHOI. A scientific project that relies heavily on the [ECCOtour](https://github.com/ggebbie/ECCOtour.jl), MITgcmTools, and MeshArrays Julia packages.
 
 # Getting started
 
