@@ -7,4 +7,4 @@ include("state2sigma1.jl")
 # put on regularpoles grid, save as NetCDF
 # fails because mdsiofiles wants a meta file that 
 # doesn't exist. 
-include("mdsiofiles2regularpoles")
+include("mdsio2regularpoles")

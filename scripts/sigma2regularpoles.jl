@@ -10,16 +10,11 @@ using Revise
 using ECCOtour, ECCOonPoseidon
 using MeshArrays, MITgcmTools
 
-## SELECT EXPERIMENTS TO COMPARE #################################
-# manually choose from available experiment
-# for interactive use, ARGS may be set this way:
-# push!(empty!(ARGS), "iter129_fluxforced")
-expt = ARGS[1]
-##########################################
-
 include("config_exp.jl")
-
 include("config_regularpoles.jl")
+
+# DEFINE THE LIST OF SIGMA1 VALUES.
+sig1grid = sigma1grid()
 
 # file root names
 Frootlist = ("state_3d_set1","state_3d_set2","state_2d_set1","state_2d_set2")

@@ -1,11 +1,14 @@
+# Check that the output has been copied to batou from poseidon
+!isdir(exprootdir(expt)) ? error("Experiment missing") : nothing
+
+diagpath = diagdir(expt)
+
 # print output here
 path_out = sig1dir(expt)
-diagpath = diagdir(expt)
+!isdir(path_out) ? mkdir(path_out) : nothing;
+
 pathout = regpolesdir(expt)
 !isdir(pathout) ? mkdir(pathout) : nothing;
-
-# DEFINE THE LIST OF SIGMA1 VALUES.
-sig1grid = sigma1grid()
 
 ################################################################
 # get MITgcm / ECCOv4r4 LLC grid and depth information. Store in γ.

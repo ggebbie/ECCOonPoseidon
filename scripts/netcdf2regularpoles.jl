@@ -11,7 +11,6 @@ using Reemergence
 using MeshArrays, MITgcmTools
 using NetCDF
 
-
 exppath = "/batou/ECCOv4r4/MITgcm/exps/"
 runpath,diagpath,regpolespath = listexperiments(exppath);
 varnames = ("EVEL","EVELMASS","EVELSTAR","NVEL","NVELMASS","NVELSTAR","WVELMASS","WVELSTAR","oceTAUN","oceTAUE")

@@ -4,31 +4,33 @@ Analysis of ECCO version 4 release 4 using output from Poseidon @ WHOI
 
 # Getting started
 
-* from Emacs editor (one possible method)
+Clone with `git clone https://github.com/ggebbie/ECCOonPoseidon` \
+Or `git clone git@github.com:ggebbie/ECCOonPoseidon` with SSH keys.
 
-Install julia-mode, julia-repl, and magit \
-Skip the next 5 steps if you have already cloned the repository \
-`M-x magit-clone` \
-Select `u` to clone from url\
-Enter ` https://github.com/ggebbie/ECCOonPoseidon` as url to clone \
-Select `y` in response to `remote.pushDefault' to "origin"?` \
-Clone to your favorite location and rename project if necessary \
-Go to any directory in the project: e.g., `C-x C-f ECCOonPoseidon/scripts`\
-Then activate the project and initialize a julia session: `C-c C-a`
+# Requirements
+- Julia 1.6
+- matplotlib
 
-* from the Julia REPL
+Install a Julia-specific version of Python with Matplotlib through the Julia REPL:\
+`ENV["PYTHON"] = ""`\
+`# make sure python command is available, not just python 3`\
+`using Pkg`\
+`pkg"add PyCall"`\
+`Pkg.build("PyCall")`\
+`using Conda`\
+`Conda.add("matplotlib")`
 
-`;`\
-`git clone https://github.com/ggebbie/ECCOonPoseidon # only do this the first time on each machine`\
-`cd ECCOonPoseidon`\
-`]`\
-`activate .`\
-`instantiate # only do this the first time on each machine`\
-To verify you are in the project environment, `]` should return `(ECCOonPoseidon) pkg>`\
-Type backspace to return to command mode.
-
-* Using an editor like Atom/Juno or Visual Studio Code, activate the environment on one of the frame panels. The default environment is @v1.x and should be changed.
-
+- Add DrWatson to your default enviroment.
+One method from the Julia REPL:\
+`]` \
+`add DrWatson`\
+Backspace to leave package manager\
+`;` enter shell mode\ 
+`cd BASEDIR/ECCOonPoseidon` where BASEDIR is the location of the project
+Backspace to leave shell \
+`]` \
+`activate .` \
+`instantiate`
 
 # Directory structure
 - `scripts`: production-ready scripts
@@ -36,20 +38,8 @@ Type backspace to return to command mode.
 
 # Running scripts
 
-Add DrWatson to your default enviroment.
-One way is to open the REPL and type:\
-`]` \
-`add DrWatson`\
-`cd BASEDIR/ECCOonPoseidon`, where BASEDIR is where you cloned the repository.\
-`activate .`\
-`instantiate`\
-`exit()`
-
-Alternatively, see the instructions under Reproducibility.
-
-From a shell, use the following commands to run a script:\
+Scripts are available for preprocessing, postprocessing, and scientific analysis. From a shell, use the following commands to run a script:\
 `cd BASEDIR/ECCOonPoseidon/scripts`, where `BASEDIR` is where you cloned the repository.\
-
 
 Preprocess the forcing fields with:\
 `julia filter_interannual.jl southpac`, one example where the script takes one argument (surface region).
@@ -57,15 +47,13 @@ Preprocess the forcing fields with:\
 Postprocess the experimental output with:\
 `julia postprocess.jl nointerannual`, one example where the script takes one argument (experiment name).
 
-Scripts are available for preprocessing, postprocessing, and scientific analysis.
-
 - Preprocessing \
 filter_interannual.jl 
 
 - Postprocessing\
 map2regularpolesDepth.jl \
-mdsiofiles2regularpoles.jl \
-netcdffiles2regularpoles.jl \
+mdsio2regularpoles.jl \
+netcdf2regularpoles.jl \
 regularpoles2sigma1.jl \
 state2sigma1.jl 
 

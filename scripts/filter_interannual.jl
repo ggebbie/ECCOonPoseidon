@@ -12,24 +12,13 @@ using ECCOtour, ECCOonPoseidon
 using Statistics, PyPlot, Distributions, FFTW, LinearAlgebra, StatsBase
 using MeshArrays, MITgcmTools
 
-# for interactive use, ARGS may be set this way:
-# push!(empty!(ARGS), "southpac")
-
-if isempty(ARGS)
-    keepregion = false
-    println("ARGS empty")
-    expname  = "nointerannual"
-else
-    # withhold one region from filtering
-    region = ARGS[1]
-    keepregion = true
-    expname  = "interannual_"*ARGS[1]
-end
-println("Experiment: ",expname)
+# from intro.jl, default is nointerannual
+expt == "nointerannual" ? keepregion = false : keepregion = true
+println("Experiment: ",expt)
 
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
-outputdir = fluxdir(expname)
+outputdir = fluxdir(expt)
 
 # get MIT GCM native grid
 γ = setupLLCgrid(datadir("grid/"))

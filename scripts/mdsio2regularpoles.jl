@@ -9,12 +9,7 @@ include("intro.jl")
 using Revise
 using ECCOtour, ECCOonPoseidon
 using MeshArrays, MITgcmTools
-
-## SELECT EXPERIMENTS TO COMPARE #################################
-# manually choose from available experiment
-# for interactive use, ARGS may be set this way:
-# push!(empty!(ARGS), "iter129_fluxforced")
-expt = ARGS[1]
+    
 ##########################################
 
 Frootlist = ("state_3d_set1","state_3d_set2","state_2d_set1","state_2d_set2")
@@ -24,7 +19,6 @@ Frootlist = ("state_3d_set1","state_3d_set2","state_2d_set1","state_2d_set2")
 ###################################
 
 include("config_exp.jl")
-
 include("config_regularpoles.jl")
 
 # Froot= Frootlist[1] # for interactive use

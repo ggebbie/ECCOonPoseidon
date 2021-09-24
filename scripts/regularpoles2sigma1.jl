@@ -7,13 +7,6 @@ using Revise
 using MITgcmTools, MeshArrays, Statistics
 using ECCOtour, ECCOonPoseidon #,JLD2 , Dierckx, Interpolations
 
-## SELECT EXPERIMENTS TO COMPARE #################################
-# manually choose from available experiment
-# for interactive use, ARGS may be set this way:
-# push!(empty!(ARGS), "nointerannual")
-expt = ARGS[1]
-##########################################
-
 include("config_exp.jl")
 
 # the state_3d monthly-average diagnostic output on regularpoles grid

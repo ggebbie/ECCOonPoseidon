@@ -9,14 +9,10 @@ using MITgcmTools, MeshArrays, Statistics
 using ECCOtour, ECCOonPoseidon
 # using JLD2, Dierckx, Interpolations
 
-## SELECT EXPERIMENTS TO COMPARE #################################
-# manually choose from available experiment
-# for interactive use, ARGS may be set this way:
-# push!(empty!(ARGS), "iter129_fluxforced")
-expt = ARGS[1]
-##########################################
-
 include("config_exp.jl")
+
+# DEFINE THE LIST OF SIGMA1 VALUES.
+sig1grid = sigma1grid()
 
 ## specific for state
 # the state_3d monthly-average diagnostic output
