@@ -5,7 +5,7 @@ Analysis of ECCO version 4 release 4 using output from Poseidon @ WHOI
 # Getting started
 
 Clone with `git clone https://github.com/ggebbie/ECCOonPoseidon` \
-Or `git clone git@github.com:ggebbie/ECCOonPoseidon` with SSH keys.
+Or `git clone git@github.com:ggebbie/ECCOonPoseidon.git` with SSH keys.
 
 # Requirements
 - Julia 1.6
@@ -21,11 +21,12 @@ Install a Julia-specific version of Python with Matplotlib through the Julia REP
 `Conda.add("matplotlib")`
 
 - Add DrWatson to your default enviroment.
+
 One method from the Julia REPL:\
 `]` \
 `add DrWatson`\
 Backspace to leave package manager\
-`;` enter shell mode\ 
+`;` enter shell mode \
 `cd BASEDIR/ECCOonPoseidon` where BASEDIR is the location of the project
 Backspace to leave shell \
 `]` \
@@ -39,7 +40,7 @@ Backspace to leave shell \
 # Running scripts
 
 Scripts are available for preprocessing, postprocessing, and scientific analysis. From a shell, use the following commands to run a script:\
-`cd BASEDIR/ECCOonPoseidon/scripts`, where `BASEDIR` is where you cloned the repository.\
+`cd BASEDIR/ECCOonPoseidon/scripts`, where `BASEDIR` is where you cloned the repository.
 
 Preprocess the forcing fields with:\
 `julia filter_interannual.jl southpac`, one example where the script takes one argument (surface region).
@@ -57,7 +58,7 @@ netcdf2regularpoles.jl \
 regularpoles2sigma1.jl \
 state2sigma1.jl 
 
-- Scientific Analysis
+- Scientific Analysis \
 argotrends.jl \
 experiment_divergence.jl \
 plot_divergence.jl \
