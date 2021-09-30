@@ -2,6 +2,8 @@ module ECCOonPoseidon
 #
 # Define functions that are specific to the ECCO runs stored on Poseidon @ WHOI.
 
+using ECCOtour
+
 export fluxdir, rectangle, exprootdir, sig1dir, diagdir, listexperiments
 export expnames, expsymbols, regpolesdir, rundir
 
@@ -20,6 +22,12 @@ function exprootdir(expt::String)
     !isdir(rootdir) ? rootdir = "/poseidon/ECCOv4r4/exps/"*expt*"/" : nothing
     return rootdir
 end
+
+"""
+    function exprootdir() 
+    Root directory of the ECCOv4r4 output
+"""
+exprootdir() = "/batou/ECCOv4r4/exps"
 
 rundir(expt::String) = exprootdir(expt)*"run/"
 sig1dir(expt::String) = rundir(expt)*"sigma1/"
@@ -61,8 +69,13 @@ end
 - `diagpath`: dictionary with keys=experiments, values=diagnostic paths
 """
 function listexperiments(exppath)
-    dirlist = searchdir(exppath,"") # all files in directory
-    explist  = filter(x -> !occursin("README",x),dirlist) # remove README to get explist
+
+    # add a trailing / if needed
+    exppath[end] != "/" ? exppath *= "/" : nothing
+    
+    explist = searchdir(exppath,"") # all files in directory
+    filter!(x -> !occursin("README",x),explist) # remove README to get explist
+    filter!(x -> !occursin(".out",x),explist) # remove output to get explist
 
     runpath = Dict(explist .=> exppath.*explist.*"/run/")
     diagpath = Dict(explist .=> exppath.*explist.*"/run/diags/")

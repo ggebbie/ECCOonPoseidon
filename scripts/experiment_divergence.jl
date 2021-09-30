@@ -2,25 +2,19 @@
 # recreate MATLAB difference plots
 # use files directly on poseidon through cifs mount
 
+include("../src/intro.jl")
+
 using Revise 
-using MITgcmTools, MeshArrays, Statistics, Reemergence, JLD2
+using MITgcmTools, MeshArrays, ECCOonPoseidon, ECCOtour
+using Statistics, JLD2
 
 # save output to file?
 output2file = true
 
-# get MITgcm / ECCOv4r4 LLC grid and depth information. Store in γ.
-path_grid="../inputs/GRID_LLC90/"
-γ = setupLLCgrid(path_grid)
-
-# get standard levels of MITgcm
-fileZ = "RC"
-z = read_mdsio(path_grid,fileZ)
-z = vec(z)
-nz = length(z)
+include(srcdir("config_exp.jl"))
 
 # list of experiments on poseidon
-exppath = "/poseidon/ecco/ECCOv4r4/MITgcm/exps/"
-runpath,diagpath = listexperiments(exppath);
+runpath,diagpath = listexperiments(exprootdir())
 
 # abbreviations for each experiment for labels, etc.
 shortnames = expnames()
@@ -49,6 +43,7 @@ nt = length(datafilelist)
 nc = 2 # do first two of three properties in state_3d_set1
 
 # pre-allocate
+nz = length(z)
 σx = Array{Float32, 2}(undef, nt, nz*nc)
 # xmed = similar(σ); median was slow so I dropped it.
 xbar = similar(σx); xmax = similar(σx); xmin = similar(σx); absxbar = similar(xbar);
@@ -56,7 +51,9 @@ xbar = similar(σx); xmax = similar(σx); xmin = similar(σx); absxbar = similar
 tt = 0
 for fname in datafilelist
     global tt += 1
-    println("time index ",tt)
+
+    #print timestamp
+    year,month = timestamp_monthly_v4r4(tt)
 
     # need to get all three tracers read.
     @time xbase = γ.read(diagpath[expbase]*fname,MeshArray(γ,Float32,nz*nc))
@@ -70,10 +67,9 @@ end
 
 # save output as JLD2
 if output2file
-    outpath = "../outputs/"
-    outfile = outpath*"faststats_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*".jld2"
+    outfile = datadir("faststats_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*".jld2")
     @save outfile absxbar xbar σx xmax xmin z 
 end
 
-# Work in progress
-#include("plot_divergence.jl")
+# Call this to plot the results
+include("plot_divergence.jl")

@@ -1,3 +1,5 @@
+println("Configure the experiment variables and directories")
+
 # Check that the output has been copied to batou from poseidon
 !isdir(exprootdir(expt)) ? error("Experiment missing") : nothing
 
