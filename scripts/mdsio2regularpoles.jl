@@ -4,22 +4,22 @@
 # 3. save to self-describing file.
 # 4. repeat with all fields.
 
-include("intro.jl")
+include("../src/intro.jl")
 
 using Revise
 using ECCOtour, ECCOonPoseidon
 using MeshArrays, MITgcmTools
     
 ##########################################
-
+# file root names for variables of interest
 Frootlist = ("state_3d_set1","state_3d_set2","state_2d_set1","state_2d_set2")
 #Froot = "state_3d_set2"
 #Froot = "state_2d_set1"
 #Froot = "state_2d_set2"
 ###################################
 
-include("config_exp.jl")
-include("config_regularpoles.jl")
+include(srcdir("config_exp.jl"))
+include(srcdir("config_regularpoles.jl"))
 
 # Froot= Frootlist[1] # for interactive use
 for Froot in Frootlist

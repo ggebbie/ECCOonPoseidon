@@ -5,7 +5,7 @@
 #  Script argument: region (must be defined in `src/ECCOonPoseidon.jl`)
 #  If no arguments are passed, then interannual variability is removed everywhere.
 
-include("intro.jl")
+include("../src/intro.jl")
 
 using Revise
 using ECCOtour, ECCOonPoseidon
@@ -16,12 +16,11 @@ using MeshArrays, MITgcmTools
 expt == "nointerannual" ? keepregion = false : keepregion = true
 println("Experiment: ",expt)
 
+include(srcdir("config_exp.jl"))
+
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
 outputdir = fluxdir(expt)
-
-# get MIT GCM native grid
-γ = setupLLCgrid(datadir("grid/"))
 
 # read lat, lon at center of grid cell
 (ϕC,λC) = latlonC(γ)
@@ -88,8 +87,6 @@ Ecycle,Fcycle = seasonal_matrices(fcycle,t14day)
 # interannual filter is a Hann(ing) filter
 Thann = 100.0 # days
 
-# Is it possible to solve for regional mask before the variable loop? Yes, if the variables are on the same grid. (Double check that they all apply to the center of a grid cell.)
-#maskN, maskS, maskW, maskE = regional_mask(ϕC,λC,latrect,lonrect,dlat,dlon)
 # clash with `mask` name
 if keepregion
     msk = regional_mask(ϕC,λC,latrect,lonrect,dlat,dlon)
@@ -110,7 +107,7 @@ if keepregion
     outfname = plotsdir("southpac_mask.eps")
     xlbl = "longitude "*L"[\degree E]"
     ylbl = "latitude "*L"[\degree N]"
-    titlelbl = "Southpac Mask"
+    titlelbl = expt*" mask"
     title(titlelbl)
     xlabel(xlbl)
     ylabel(ylbl)
@@ -183,7 +180,7 @@ end
 # MV DIAGS TO DIFFERENT SCRIPT/FUNCTION
 # make a figure to see a spatial map of flux, oceTAUN, oceTAUE are most interesting
 diags = false
-if diags 
+if diags # this section requires updating to paths
     filename1 = "/poseidon/ecco.jpl.nasa.gov/drive/files/Version4/Release4/other/flux-forced/forcing/oceTAUN_6hourlyavg_2000"
     field1 = read_bin(filename1,Float32,γ)
     filename2 = "/poseidon/ecco.jpl.nasa.gov/drive/files/Version4/Release4/other/flux-forced-interannual_southpac/oceTAUN_6hourlyavg_2000"

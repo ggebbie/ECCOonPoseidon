@@ -19,4 +19,6 @@ else
     # following filter_interannual
     #push!(empty!(ARGS), "nointerannual")
     expt = "nointerannual"
+    println("No experiment chosen")
+    println("Default experiment is ",expt)
 end
