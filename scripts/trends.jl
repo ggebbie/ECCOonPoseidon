@@ -1,30 +1,17 @@
 #  First steps: 1. go into Reemergence project directory. 2. go into julia REPL package mode with `]`. 3. `activate .` 4. Backspace to return to command mode in REPL.
 # Modeled after "filter_interannual.jl"
 # Solve for linear trends at all points.
+
+include("../src/intro.jl")
+
 using Revise
-using Reemergence
+using ECCOtour, ECCOonPoseidon,  MeshArrays, MITgcmTools
 using Statistics, PyPlot, Distributions, LinearAlgebra, StatsBase
-using MeshArrays, MITgcmTools
 
-workdir = pwd()
-push!(LOAD_PATH, workdir)
-cd(workdir)
+include(srcdir("config_exp.jl"))
 
-path_grid="../inputs/GRID_LLC90/"
-γ = setupLLCgrid(path_grid)
-lat,lon = latlon(γ)
-
-# get standard levels of MITgcm
-z = depthlevels(γ)
-nz = length(z)
-
-# get experiments on poseidon/batou
 # list of experiments on poseidon
-exppath = "/poseidon/ECCOv4r4/MITgcm/exps/"
-runpath,diagpath = listexperiments(exppath);
-
-# print output here
-path_out = "/home/gebbie/julia/outputs/"
+runpath,diagpath = listexperiments(exprootdir())
 
 # abbreviations for each experiment for labels, etc.
 shortnames = expnames()
@@ -47,9 +34,9 @@ nt = length(tecco)
 
 # get weight matrix for finding trends
 E,F = trend_matrices(tecco)
-path_out = "/home/gebbie/julia/outputs/"
 
 # pre-allocate β, linear trends
+nz = length(z)
 β = MeshArray(γ,Float32,nz) # some nans here
 
 # cycle through all chosen experiments
@@ -60,9 +47,9 @@ for exp in exps
 
     # save β for each experiment
     # make an output directory for each experiment
-    pathoutexp = path_out*exp
-    !isdir(pathoutexp) ? mkdir(pathoutexp) : nothing;
-    Toutname = path_out*"DthetaDt_"*exp*".data"
+    outdir = datadir("trends",exp)
+    !isdir(outdir) ? mkpath(outdir) : nothing;
+    Toutname = datadir(outdir,"DthetaDt.data")
     # save to file before overwritten next time step.
     γ.write(Toutname,β)
 end

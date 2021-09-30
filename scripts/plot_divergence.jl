@@ -1,13 +1,15 @@
 # Work in progress.
+include("../src/intro.jl")
+
 using Revise
-using MITgcmTools, MeshArrays, PyPlot, LaTeXStrings, JLD2, Reemergence
+using MITgcmTools, MeshArrays, ECCOonPoseidon
+using PyPlot, LaTeXStrings, JLD2
 
 # recompute or read from file?
 readfromfile = true
 
 # list of experiments on poseidon
-exppath = "/poseidon/ecco/ECCOv4r4/MITgcm/exps/"
-runpath,diagpath = listexperiments(exppath);
+runpath,diagpath = listexperiments(exprootdir())
 
 # abbreviations for each experiment for labels, etc.
 shortnames = expnames()
@@ -18,15 +20,14 @@ expbase = "iter129_bulkformula"
 
 # comparison experiment(s)
 #expcompare = "iter129_fluxforced"
-expcompare = "nosfcadjust"
-#expcompare = "noinitadjust"
-
-outpath = "../outputs/"
+#expcompare = "nosfcadjust"
+expcompare = "noinitadjust"
 
 if readfromfile
-    outfile = outpath*"divergence_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*".jld2"
+    outfile = datadir("faststats_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*".jld2")
     @load outfile xbar σx xmax xmin absxbar z 
 else
+    # or re-run diagnostics
     include("experiment_divergence.jl")
 end
 
@@ -45,15 +46,15 @@ for cval = 1:2 # variable 1 = theta, variable 2 = practical salinity
         str1 = raw"$\theta_{"*shortnames[expbase]*raw"}$"
         str2 = raw"$\theta_{"*shortnames[expcompare]*raw"}$"
         titlelbl = str1*raw"$-$"*str2*","*depthlbl
-        linfname = outpath*"dtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps"
-        logfname = outpath*"logdtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps"
+        linfname = plotsdir("dtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps")
+        logfname = plotsdir("logdtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps")
         ylbl = L"\theta"*" "*L"[^{\degree}C]"
     elseif cval == 2
         str1 = raw"$S_{"*shortnames[expbase]*raw"}$"
         str2 = raw"$S_{"*shortnames[expcompare]*raw"}$"
         titlelbl = str1*raw"$-$"*str2*","*depthlbl
-        linfname = outpath*"dsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps"
-        logfname = outpath*"logdsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps"
+        linfname = plotsdir("dsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps")
+        logfname = plotsdir("logdsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps")
         ylbl = "salinity  [PSS-1978]"
     end
 
@@ -89,10 +90,10 @@ for cval = 1:2 # variable 1 = theta, variable 2 = practical salinity
     for tt ∈ tlist
         tlbl = time_label(tt-1) # subtract one, months since Jan 1992
         if cval == 1
-            timefname = outpath*"dtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_"*tlbl[1:3]*tlbl[5:8]*".eps"
+            timefname = plotsdir("dtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_"*tlbl[1:3]*tlbl[5:8]*".eps")
         elseif cval ==2
             
-            timefname = outpath*"dsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_"*tlbl[1:3]*tlbl[5:8]*".eps"
+            timefname = plotsdir("dsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_"*tlbl[1:3]*tlbl[5:8]*".eps")
         end
         
         levs = 1+(cval-1)*50:cval*50
