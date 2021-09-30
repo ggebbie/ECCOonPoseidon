@@ -2,14 +2,14 @@
 # This is a wrapper routine to read files on poseidon.
 # ggebbie, 1-Apr-2021
 
-include("intro.jl")
+include("../src/intro.jl")
 
 using Revise # for interactive use
 using MITgcmTools, MeshArrays, Statistics
 using ECCOtour, ECCOonPoseidon
 # using JLD2, Dierckx, Interpolations
 
-include("config_exp.jl")
+include(srcdir("config_exp.jl"))
 
 # DEFINE THE LIST OF SIGMA1 VALUES.
 sig1grid = sigma1grid()

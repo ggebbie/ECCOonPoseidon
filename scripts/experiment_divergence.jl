@@ -2,7 +2,7 @@
 # recreate MATLAB difference plots
 # use files directly on poseidon through cifs mount
 
-using Revise # not sure if Revise is necessary
+using Revise 
 using MITgcmTools, MeshArrays, Statistics, Reemergence, JLD2
 
 # save output to file?

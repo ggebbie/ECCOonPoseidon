@@ -1,18 +1,20 @@
 # map regularpoles output to sigma 1 surfaces.
 # ggebbie, 25-May-2021
 
-include("intro.jl")
+include("../src/intro.jl")
 
 using Revise 
 using MITgcmTools, MeshArrays, Statistics
 using ECCOtour, ECCOonPoseidon #,JLD2 , Dierckx, Interpolations
 
-include("config_exp.jl")
+include(srcdir("config_exp.jl"))
 
 # the state_3d monthly-average diagnostic output on regularpoles grid
 # some are not available
 #varroot = ("EVEL","EVELMASS","EVELSTAR","NVEL","NVELMASS","NVELSTAR","PHIHYD","RHOAnoma","SALT","THETA")
 varroot = ("PHIHYD","RHOAnoma","SALT","THETA")
+
+sig1grid = sigma1grid()
 
 # if splorder is larger than the number of points in a profile,
 # then it will default to linear interpolation

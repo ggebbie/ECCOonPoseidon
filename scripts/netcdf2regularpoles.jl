@@ -1,4 +1,3 @@
-# WARNING: THIS SCRIPT IS OUT OF DATE
 # Special case: Take EVEL* NVEL* from nctiles_monthly and map onto regular grid. 
 
 # 1. read monthly-average fields
@@ -6,65 +5,24 @@
 # 3. save to self-describing file.
 # 4. repeat
 
+include("../src/intro.jl")
+
 using Revise
-using Reemergence
-using MeshArrays, MITgcmTools
+using ECCOonPoseidon, ECCOtour, MeshArrays, MITgcmTools
 using NetCDF
 
-exppath = "/batou/ECCOv4r4/MITgcm/exps/"
-runpath,diagpath,regpolespath = listexperiments(exppath);
+#exppath = "/batou/ECCOv4r4/MITgcm/exps/"
+#runpath,diagpath,regpolespath = listexperiments(exppath);
 varnames = ("EVEL","EVELMASS","EVELSTAR","NVEL","NVELMASS","NVELSTAR","WVELMASS","WVELSTAR","oceTAUN","oceTAUE")
 
-# get names of exps. 
-workdir = pwd()
-push!(LOAD_PATH, workdir)
-cd(workdir)
+include(srcdir("config_exp.jl"))
+include(srcdir("config_regularpoles.jl"))
 
 # Read nctiles_monthly from ECCO Drive
+# this kludge needs to be replaced
 exppath = "/batou/eccodrive/nctiles_monthly/"
-# print output here
-pathout = "/batou/ECCOv4r4/MITgcm/exps/iter129_bulkformula/run/regularpoles/"
 
-expt = "iter129_bulkformula"
-filelog = runpath[expt]*"available_diagnostics.log"
-
-path_grid="../inputs/GRID_LLC90/"
-γ = setupLLCgrid(path_grid)
-
-lat,lon = latlon(γ)
-# Set up Cartesian grid for interpolation.
-#ϕG,ϕC = regularlatgrid(γ) # regular grid
-ϕGarc,ϕCarc = latgridArctic(γ)
-ϕGantarc,ϕCantarc = latgridAntarctic(γ) 
-ϕGreg,ϕCreg = latgridRegular(γ) 
-λG = -180.0:179.0
-λC = -179.5:179.5
-
-ϕG = vcat(ϕGantarc,ϕGreg,ϕGarc)
-ϕC = vcat(ϕCantarc,ϕCreg,ϕCarc)
-
-farc,iarc,jarc,warc = prereginterp(ϕCarc,λC,γ)
-fantarc,iantarc,jantarc,wantarc = prereginterp(ϕCantarc,λC,γ)
-
-# Fix this
-nx = length(λC)
-ny = length(ϕC)
-nyarc = length(ϕCarc)
-nyantarc = length(ϕCantarc)
-
-# get standard levels of MITgcm
-z = depthlevels(γ)
-nz = length(z)
-
-tstart = 1992 + 1/24
-tend = 2018
-tecco = range(tstart,step=1/12,stop=2018)
-nt = length(tecco)
-
-lonatts = Dict("longname" => "Longitude", "units" => "degrees east")
-latatts = Dict("longname" => "Latitude", "units" => "degrees north")
-depthatts = Dict("longname" => "Depth", "units" => "m")
-
+# varname = varnames[1] # for interactive use
 for varname in varnames
 
     println("varname ",varname)
@@ -92,4 +50,3 @@ for varname in varnames
         
     end
 end
-
