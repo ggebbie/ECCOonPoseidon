@@ -11,7 +11,7 @@ using Statistics, PyPlot, Distributions, LinearAlgebra, StatsBase
 include(srcdir("config_exp.jl"))
 
 # list of experiments on poseidon
-runpath,diagpath = listexperiments(exprootdir())
+runpath,diagpath = listexperiments(exprootdir());
 
 # abbreviations for each experiment for labels, etc.
 shortnames = expnames()
@@ -24,8 +24,6 @@ shortnames = expnames()
 exps = keys(shortnames)
 #################################################################
 
-nexps = length(exps) # number of experiments
-
 # assume monthly averages, ECCOv4r4
 tstart = 1992 + 1/24
 tend = 2018
@@ -37,17 +35,17 @@ E,F = trend_matrices(tecco)
 
 # pre-allocate β, linear trends
 nz = length(z)
-β = MeshArray(γ,Float32,nz) # some nans here
+
 
 # cycle through all chosen experiments
-for exp in exps
+for expt in exps
 
-    fill!(β,0.0f0) # initialize β
-    trend_theta!(β,diagpath[exp],tecco,γ,F)
-
+    β = trend_theta(diagpath[expt],tecco,γ,F)
+#        trend_theta!(β,diagpath[expt],tecco,γ,F)
+    println(maximum(β))
     # save β for each experiment
     # make an output directory for each experiment
-    outdir = datadir("trends",exp)
+    outdir = datadir("trends",expt)
     !isdir(outdir) ? mkpath(outdir) : nothing;
     Toutname = datadir(outdir,"DthetaDt.data")
     # save to file before overwritten next time step.

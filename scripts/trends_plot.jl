@@ -27,8 +27,6 @@ shortnames = expnames()
 exps = keys(shortnames)
 #################################################################
 
-nexps = length(exps) # number of experiments
-
 # assume monthly averages, ECCOv4r4
 tstart = 1992 + 1/24
 tend = 2018
@@ -38,10 +36,10 @@ nx = length(λC); ny = length(ϕC)
         
 cmap_seismic = get_cmap("seismic")
 
-for exp in exps
+for expt in exps
 
     # read trends from file. 
-    outdir = datadir("trends",exp)
+    outdir = datadir("trends",expt)
     Tname = datadir(outdir,"DthetaDt.data")
     @time β = γ.read(Tname,MeshArray(γ,Float32,nz))
 
@@ -49,22 +47,28 @@ for exp in exps
     for zz = 1:nz
         βz = 1.0f4*β[:,zz] # units K/yr -> cK/century
 
-        # problem here?
         βzreg = var2regularpoles(βz,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
-        #βzreg = reginterp(βz,nx,ny,f,i,j,w)
-        mx = maximum(βz,NaN32) # filter out NaN32
-        mn = minimum(βz,NaN32) 
-        extrm = max(mx,-mn)
+
+        #mx = maximum(filter(βz,NaN32 => 0.0)) # filter out NaN32
+        #mn = minimum(βz,NaN32)
+        # fix this hard-coded range
+        #mx = 0.025
+        #mn = -0.025
+        #extrm = max(mx,-mn)
         clf()
         lims = range(-extrm,step=2extrm/30,stop=extrm)
-        contourf(longrid,latgrid,βzreg,lims,cmap=cmap_seismic)
+        contourf(λC,ϕC,βzreg',cmap=cmap_seismic)
+        # contourf(λC,ϕC,βzreg',lims,cmap=cmap_seismic)
         colorbar(label="cK/century",orientation="vertical",ticks=lims)
-        contour(longrid,latgrid,βzreg,lims,colors="k")
+        contour(λC,ϕC,βzreg',colors="k")
+        # contour(λC,ϕC,βzreg',lims,colors="k")
 
-        depthlbl = string(round(Int,-z[zz]))*" m"
-        depthlbl2 = string(round(Int,-z[zz]))*"m"
-        titlelbl = exp*", "*" "*depthlbl
-        outfname = plotsdir(exp,"DthetaDt_"*shortnames[exp]*"_"*depthlbl2*".eps")
+        depthlbl = string(round(Int,z[zz]))*" m"
+        depthlbl2 = string(round(Int,z[zz]))*"m"
+        titlelbl = expt*", "*" "*depthlbl
+        outdir = plotsdir(expt)
+        !isdir(outdir) ? mkpath(outdir) : nothing
+        outfname = plotsdir(expt,"DthetaDt_"*shortnames[expt]*"_"*depthlbl2*".eps")
         xlbl = "longitude "*L"[\degree E]"
         ylbl = "latitude "*L"[\degree N]"
         title(titlelbl)

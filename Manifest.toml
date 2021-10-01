@@ -207,7 +207,7 @@ version = "2.4.4"
 
 [[ECCOtour]]
 deps = ["DelimitedFiles", "Dierckx", "Distributions", "FFTW", "Interpolations", "JLD2", "LaTeXStrings", "LinearAlgebra", "MAT", "MITgcmTools", "MeshArrays", "NetCDF", "PyPlot", "Revise", "Statistics", "StatsBase"]
-git-tree-sha1 = "0a120e910cea7bf62b5adffbef66d4411346065f"
+git-tree-sha1 = "6459adaf40958ec4d0be2c7946a91c5f72c11608"
 repo-rev = "main"
 repo-url = "https://github.com/ggebbie/ECCOtour.jl"
 uuid = "414fb998-b5a0-4a85-b76f-da39d21445ca"
