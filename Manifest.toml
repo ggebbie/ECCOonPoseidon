@@ -231,7 +231,9 @@ version = "2.4.4"
 
 [[ECCOtour]]
 deps = ["Conda", "DelimitedFiles", "Dierckx", "Distributions", "FFTW", "Interpolations", "JLD2", "LaTeXStrings", "LinearAlgebra", "MAT", "MITgcmTools", "MeshArrays", "NetCDF", "Pkg", "PyPlot", "Revise", "Statistics", "StatsBase"]
-path = "/home/gebbie/julia/ECCOtour"
+git-tree-sha1 = "dcd764d0267d459e4216841d4426531ba1f9059f"
+repo-rev = "vectorinterpolation"
+repo-url = "https://github.com/ggebbie/ECCOtour.jl"
 uuid = "414fb998-b5a0-4a85-b76f-da39d21445ca"
 version = "0.1.11"
 
