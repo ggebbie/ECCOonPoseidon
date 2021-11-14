@@ -1,8 +1,9 @@
 include("../src/intro.jl")
 
 using Revise
-using ECCOtour, MeshArrays, MITgcmTools
-using PyPlot, JLD2
+using ECCOonPoseidon, ECCOtour,
+    MeshArrays, MITgcmTools,
+    PyPlot, JLD2, DrWatson
 
 include(srcdir("config_exp.jl"))
 
@@ -19,23 +20,26 @@ nexp = length(shortnames) # number of experiments
  
 fileroot = "state_3d_set1"
 dryval = 0.0
-iswet(x) = x != dryval # or was this defined in Reemergence.jl
+iswet(x) = x != dryval 
 
 # transfer to nino34 by removing seasonal climatology. Read climatology.
 #inputpath = "../inputs/"
 #@load inputpath*"nino34_1870-2020.jld2" nino34 nino34yr SSTclimatology
 #nino34hadisst = nino34; thadisst = nino34yr; sst34hadisst = SSTclimatology;
-nino34hadisst,thadisst,sst34hadisst = historicalNino34((1960,2020))
+nino34hadisst,thadisst,sst34hadisst = ECCOonPoseidon.historicalNino34((1960,2020))
+
 
 # pre-define
 nino34 = Dict{String,Array{Any,1}}() # don't forget trailing parentheses
 nino34native = Dict{String,Array{Any,1}}() 
 # to do: remove seasonal climatology from model or from reality
+
 tecco = 1992+1/24:1/12:2018
 monthsperyear = 12
 fcycle = 1 # units: yr^{-1}
 # for removing seasonal cycle from monthly averaged timeseries
-Ecycle,Fcycle = seasonal_matrices(fcycle,tecco,overtones=4)
+overtones= 4; # semi-annual, quad-annual, etc.: helps capture an asymmetric seasonal cycle
+Ecycle,Fcycle = seasonal_matrices(fcycle,tecco,overtones)
 
 for (keys,values) in shortnames
 
@@ -63,8 +67,8 @@ ylabel(ylbl)
 xlabel("calendar years")
 axorig = axis()
 axis((1992,2018,axorig[3],axorig[4]))
-outputpath = "../outputs/"
-savefig(outputpath*"nino34comparison_sameSSTscale.eps")
+outputfile = plotsdir("nino34comparison_sameSSTscale.eps")
+savefig(outputfile)
 
 ## make second figure with different SST baseline
 ylbl  = "NINO3.4 relative to modeled SST "*L"[\degree C]"
@@ -79,6 +83,4 @@ ylabel(ylbl)
 xlabel("calendar years")
 axorig = axis()
 axis((1992,2018,axorig[3],axorig[4]))
-outputpath = "../outputs/"
-savefig(outputpath*"nino34comparison_nativeSSTscale.eps")
-
+savefig(plotsdir("nino34comparison_nativeSSTscale.eps"))
