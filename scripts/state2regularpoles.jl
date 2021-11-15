@@ -12,9 +12,6 @@ using MeshArrays, MITgcmTools
 
 # add transport fields and accommodate for staggered grid
 Frootlist = ("trsp_3d_set1","state_3d_set1","state_3d_set2","state_2d_set1","state_2d_set2")
-#Froot = "state_3d_set2"
-#Froot = "state_2d_set1"
-#Froot = "state_2d_set2"
 ###################################
 
 include(srcdir("config_exp.jl"))
