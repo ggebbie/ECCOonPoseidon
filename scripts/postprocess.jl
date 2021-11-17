@@ -1,9 +1,6 @@
-# vertically map θ, S, p to sigma 1 surfaces.
-# then horizontally map on regularpoles grid.
-# ggebbie, 20-Sep-2021
-
-# put on regularpoles grid, save as NetCDF
-include("mdsio2regularpoles.jl")
-
-# put NetCDF on sigma1
-include("regularpoles2sigma1.jl")
+# 1. read 3d monthly average state variables
+# 2. map to sigma-1 vertical coordinate
+#    - save to mdsio files
+# 3. interpolate to regularpoles grid
+#    - save as NetCDF
+include("state2sigmaregularpoles.jl")
