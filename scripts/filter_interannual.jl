@@ -161,10 +161,10 @@ for vname ∈ varnames
 
     # put tflux_14day_lopass on to 6hr
     # check for NaN's in output
-    nancount_lopass = sum(nancount_gcmarray(flux_14day_lopass))
-    nancount_14day = sum(nancount_gcmarray(flux_14day))
-    nancount_14day_seasonal = sum(nancount_gcmarray(flux_14day_seasonal))
-    nancount_14day_noseasonal = sum(nancount_gcmarray(flux_14day_noseasonal))
+    nancount_lopass = sum(nancount(flux_14day_lopass))
+    nancount_14day = sum(nancount(flux_14day))
+    nancount_14day_seasonal = sum(nancount(flux_14day_seasonal))
+    nancount_14day_noseasonal = sum(nancount(flux_14day_noseasonal))
 
     if nancount_lopass + nancount_14day + nancount_14day_seasonal + nancount_14day_noseasonal > 0
         error("NaNs in the filtered output")
