@@ -10,10 +10,8 @@ using Revise
 using ECCOtour, ECCOonPoseidon
 using MeshArrays, MITgcmTools
 
-Frootlist = ("state_3d_set1","state_3d_set2","state_2d_set1","state_2d_set2")
-#Froot = "state_3d_set2"
-#Froot = "state_2d_set1"
-#Froot = "state_2d_set2"
+# add transport fields and accommodate for staggered grid
+Frootlist = ("trsp_3d_set1","state_3d_set1","state_3d_set2","state_2d_set1","state_2d_set2")
 ###################################
 
 include(srcdir("config_exp.jl"))
@@ -46,7 +44,7 @@ for Froot in Frootlist
         filein = Fname[1:end-5]
         pathin = diagpath
 
-        @time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
+        @time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
         @time writeregularpoles(varsregpoles,γ,pathout,filesuffix,filelog,λC,lonatts,ϕC,latatts,z,depthatts)
 

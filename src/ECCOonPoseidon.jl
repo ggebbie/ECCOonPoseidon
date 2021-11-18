@@ -2,10 +2,12 @@ module ECCOonPoseidon
 #
 # Define functions that are specific to the ECCO runs stored on Poseidon @ WHOI.
 
-using ECCOtour
+using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles
 
-export fluxdir, rectangle, exprootdir, sig1dir, diagdir, listexperiments
-export expnames, expsymbols, regpolesdir, rundir
+export fluxdir, rectangle, exprootdir, sig1dir,
+    diagdir, listexperiments,
+    expnames, expsymbols, regpolesdir, rundir,
+    Nino34file, historicalNino34, readNino34
 
 fluxdir() = "/batou/eccodrive/files/Version4/Release4/other/flux-forced/forcing/"
 
@@ -121,6 +123,78 @@ function expsymbols()
     push!(marks,"nosfcadjust" => "+")
     push!(marks,"nointerannual" => "s")
     return marks
+end
+
+"""
+    function Nino34file()
+    Get location of the historical Nino34 Google Drive file
+    Download if necessary
+    FUTURE UPDATES: use GoogleDrive package
+# Output
+- `fileloc`: local location of gdrive file
+"""
+function Nino34file()
+    !isdir(datadir()) && mkdir(datadir())
+
+    # download from google drive and save location
+    fileloc = datadir("nino34.hadisst1.1870-2020.txt")
+    if !isfile(fileloc) 
+
+        url = "https://docs.google.com/uc?export=download&id=1kOtOnD6B3Y9SAI5W6ezP-o_tgNkonn5n"
+        google_download(url,datadir())
+
+        # if GoogleDrive.jl doesn't work, try shell command
+        #run(`wget "https://drive.google.com/file/d/1kOtOnD6B3Y9SAI5W6ezP-o_tgNkonn5n/view?usp=sharing" -O $fileloc`)
+        
+    end
+    return fileloc
+end
+
+"""
+    function historicalNino34(baselineyears)
+    Get historical Nino3.4 data and SST climatology from HadISST 1
+# Argument
+- `baselineyears`: for computation of SST climatology, i.e., (1960,2020)
+# Output
+- `nino34`: historical Nino3.4 index
+- `tnino34`: time in years CE corresponding to index
+- `SSTclimatology`: monthly mean values in Nino3.4 patch
+"""
+function historicalNino34(baselineyears)
+    SSTnino34 = readNino34()
+    nyr,nmon = size(SSTnino34)
+
+    SSTclimatology = zeros(12) # 12 months
+    count = 0
+    for i = 1:nyr
+        if baselineyears[1] <= SSTnino34[i,1] <= baselineyears[2]
+            SSTclimatology += SSTnino34[i,2:end]  # skip the year in column 1
+            count += 1
+        end
+    end
+    SSTclimatology = SSTclimatology/count
+
+    # get nino3.4 timeseries
+    nino34 = []
+    tnino34 = []
+    monlist= 1/24:1/12:1
+    for i  = 1:nyr
+        append!(nino34,SSTnino34[i,2:end]-SSTclimatology)
+        append!(tnino34,SSTnino34[i,1] .+ collect(monlist))
+    end
+    return nino34,tnino34,SSTclimatology
+end
+
+"""
+    function readNino34()
+    Get historical Nino3.4 data from HadISST 1
+# Output
+- `SST_nino34`: local location of gdrive file
+"""
+function readNino34()
+    filename = Nino34file()
+    SST_nino34 = DelimitedFiles.readdlm(filename)
+    return SST_nino34
 end
 
 end
