@@ -4,3 +4,6 @@
 # 3. interpolate to regularpoles grid
 #    - save as NetCDF
 include("state2sigmaregularpoles.jl")
+
+# 1. take 2dstate and translate it to regularpoles grid.
+include("state2d2regularpoles.jl")
