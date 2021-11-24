@@ -25,10 +25,10 @@ for Froot in Frootlist
     filelist = searchdir(diagpath,Froot) 
     datafilelist  = filter(x -> occursin("data",x),filelist)
 
-    global tt = 0
+    tt = 0
 
     for Fname in datafilelist
-        tt += 1
+        global tt += 1
         println("filename ",Fname)
 
         year,month = timestamp_monthly_v4r4(tt)
