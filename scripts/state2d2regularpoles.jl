@@ -14,15 +14,17 @@ using MeshArrays, MITgcmTools
 Frootlist = ("state_2d_set1","state_2d_set2")
 ###################################
 
+# get the grid, etc.
 include(srcdir("config_exp.jl"))
 
+# get the interpolation factors
 include(srcdir("config_regularpoles.jl"))
+
 tt = 0
 
 # Froot= Frootlist[1] # for interactive use
 for Froot in Frootlist
 
-    filelist = searchdir(diagpath,Froot)
     filelist = searchdir(diagpath,Froot) 
     datafilelist  = filter(x -> occursin("data",x),filelist)
 
