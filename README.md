@@ -43,10 +43,13 @@ Scripts are available for preprocessing, postprocessing, and scientific analysis
 `cd BASEDIR/ECCOonPoseidon/scripts`, where `BASEDIR` is where you cloned the repository.
 
 Preprocess the forcing fields with:\
-`julia filter_interannual.jl southpac`, one example where the script takes one argument (surface region).
+`julia --project=@. filter_interannual.jl southpac`, one example where the script takes one argument (surface region).
 
 Postprocess the experimental output with:\
-`julia postprocess.jl nointerannual`, one example where the script takes one argument (experiment name).
+`julia --project=@. postprocess.jl nointerannual`, one example where the script takes one argument (experiment name).
+
+For long jobs, it is worth using nohup following:
+`nohup julia --project=@. scripts/postprocess.jl nointerannual > postprocess_nointerannual_23nov2021.out &`
 
 - Preprocessing \
 filter_interannual.jl 

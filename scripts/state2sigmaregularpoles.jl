@@ -6,7 +6,7 @@ include("../src/intro.jl")
 
 using Revise # for interactive use
 using MITgcmTools, MeshArrays, Statistics
-using ECCOtour, ECCOonPoseidon
+using ECCOtour, ECCOonPoseidon, SigmaShift
 # using JLD2, Dierckx, Interpolations
 
 include(srcdir("config_exp.jl"))
@@ -36,9 +36,10 @@ nt = length(datafilelist)
 # for writing to NetCDF
 sigmaatts = Dict("longname" => "Sigma-1", "units" => "kg/m^3 - 1000")
 
-global tt = 0
+tt = 0
 for datafile in datafilelist
-    tt += 1
+    global tt += 1
+
 
     #print timestamp
     year,month = timestamp_monthly_v4r4(tt)
