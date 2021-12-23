@@ -67,7 +67,7 @@ ylabel(ylbl)
 xlabel("calendar years")
 axorig = axis()
 axis((1992,2018,axorig[3],axorig[4]))
-outputfile = plotsdir("nino34comparison_sameSSTscale.eps")
+outputfile = plotsdir("nino34comparison_sameSSTscale.pdf")
 
 isdir(plotsdir()) ? nothing : mkdir(plotsdir())
 
