@@ -20,7 +20,7 @@ nexp = length(shortnames) # number of experiments
  
 fileroot = "state_3d_set1"
 dryval = 0.0
-iswet(x) = x != dryval 
+iswet(x) = x != dryval
 
 # transfer to nino34 by removing seasonal climatology. Read climatology.
 #inputpath = "../inputs/"
@@ -68,6 +68,9 @@ xlabel("calendar years")
 axorig = axis()
 axis((1992,2018,axorig[3],axorig[4]))
 outputfile = plotsdir("nino34comparison_sameSSTscale.eps")
+
+isdir(plotsdir()) ? nothing : mkdir(plotsdir())
+
 savefig(outputfile)
 
 ## make second figure with different SST baseline

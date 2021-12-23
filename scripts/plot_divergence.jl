@@ -46,15 +46,15 @@ for cval = 1:2 # variable 1 = theta, variable 2 = practical salinity
         str1 = raw"$\theta_{"*shortnames[expbase]*raw"}$"
         str2 = raw"$\theta_{"*shortnames[expcompare]*raw"}$"
         titlelbl = str1*raw"$-$"*str2*","*depthlbl
-        linfname = plotsdir("dtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps")
-        logfname = plotsdir("logdtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps")
+        linfname = plotsdir("dtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".pdf")
+        logfname = plotsdir("logdtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".pdf")
         ylbl = L"\theta"*" "*L"[^{\degree}C]"
     elseif cval == 2
         str1 = raw"$S_{"*shortnames[expbase]*raw"}$"
         str2 = raw"$S_{"*shortnames[expcompare]*raw"}$"
         titlelbl = str1*raw"$-$"*str2*","*depthlbl
-        linfname = plotsdir("dsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps")
-        logfname = plotsdir("logdsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".eps")
+        linfname = plotsdir("dsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".pdf")
+        logfname = plotsdir("logdsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_1992-2017_"*depthlbl*".pdf")
         ylbl = "salinity  [PSS-1978]"
     end
 
@@ -90,10 +90,10 @@ for cval = 1:2 # variable 1 = theta, variable 2 = practical salinity
     for tt ∈ tlist
         tlbl = time_label(tt-1) # subtract one, months since Jan 1992
         if cval == 1
-            timefname = plotsdir("dtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_"*tlbl[1:3]*tlbl[5:8]*".eps")
+            timefname = plotsdir("dtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_"*tlbl[1:3]*tlbl[5:8]*".pdf")
         elseif cval ==2
             
-            timefname = plotsdir("dsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_"*tlbl[1:3]*tlbl[5:8]*".eps")
+            timefname = plotsdir("dsalt_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_"*tlbl[1:3]*tlbl[5:8]*".pdf")
         end
         
         levs = 1+(cval-1)*50:cval*50

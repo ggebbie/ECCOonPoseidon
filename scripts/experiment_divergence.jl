@@ -35,8 +35,10 @@ expcompare = "noinitadjust"
 
 # name of file inside diagspath
 fileroot = "state_3d_set1"
-filelist = searchdir(diagpath[expbase],fileroot) # first filter for state_3d_set1
-datafilelist  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+# first filter for files corresponding to state_3d_set1
+filelist = searchdir(diagpath[expbase],fileroot) 
+ # second filter for files corresponding to the "data" of state_3d_set1
+datafilelist  = filter(x -> occursin("data",x),filelist)
 nt = length(datafilelist)
 
 # Improve code here to read meta file, make variable selection transparent.
