@@ -17,9 +17,8 @@ NetCDF = "30363a11-5582-574a-97bb-aa9a979735b9"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
-SigmaShift = "29a8b8bc-eb2a-4ada-9a47-be49547c4d59"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [compat]
 DrWatson = "2.4.4"
-julia = "1.6.0,1.6.2"
+julia = "1.6.0,1.6.2,1.7.0"
