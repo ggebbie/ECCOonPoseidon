@@ -25,5 +25,20 @@ nf = length(γ.fSize)
 
 # get standard levels of MITgcm
 z = depthlevels(γ)
+z = -vec(z)
+
 pstdz = pressurelevels(z)
 p₀ = 1000.0; # dbar
+
+Δz = read_mdsio(γ.path,"DRC")
+Δz = vec(Δz)
+
+#retrieves the array containing all basin IDs 
+basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
+
+basin_list=["Pacific","Atlantic","indian","Arctic","Bering Sea",
+            "South China Sea","Gulf of Mexico","Okhotsk Sea",
+            "Hudson Bay","Mediterranean Sea","Java Sea","North Sea",
+            "Japan Sea", "Timor Sea","East China Sea","Red Sea",
+            "Gulf","Baffin Bay","GIN Seas","Barents Sea"];
+

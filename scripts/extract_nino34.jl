@@ -1,3 +1,5 @@
+# this script will compile and save a basin-averaged temperature
+
 include("../src/intro.jl")
 
 using Revise
