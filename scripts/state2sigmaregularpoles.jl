@@ -14,7 +14,7 @@ include(srcdir("config_regularpoles.jl"))
 
 # DEFINE THE LIST OF SIGMA1 VALUES.
 # 120 sigma values
-sig1grid = ECCOonPoseidon.sigma1grid()
+sig1grid = sigma1grid("mixed layer")
 
 ## specific for state
 # the state_3d monthly-average diagnostic output
