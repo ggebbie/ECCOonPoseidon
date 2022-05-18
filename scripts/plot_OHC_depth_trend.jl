@@ -2,14 +2,15 @@
 include("../src/intro.jl")
 include("../src/OHC_helper.jl")
 
-using Revise 
-using ECCOonPoseidon, ECCOtour,
-    MeshArrays, MITgcmTools,
-    PyPlot, JLD2, DrWatson, Statistics, JLD2
-import CairoMakie as Mkie
-import GeoMakie
+using Revise,ECCOonPoseidon, ECCOtour,
+MeshArrays, MITgcmTools,
+PyPlot, JLD2, DrWatson, Statistics, JLD2,
+GoogleDrive,NCDatasets, NetCDF
 using .OHC_helper
-using GoogleDrive,NCDatasets, NetCDF
+# import CairoMakie as Mkie
+# import GeoMakie
+
+
 
 include(srcdir("config_exp.jl"))
 pygui(false)
@@ -25,9 +26,9 @@ OHC_datadir = joinpath(datadir(), "OHC_data")
 basin_name="Pacific"
 # basin_name="Atlantic"
 
-exp1 = "const_density"
-exp1_dir = joinpath(theta_datadir, "OHC", exp1)
-basin_vol_pth = searchdir(OHC_datadir, basin_name*"Level")[1]
+# exp1 = "const_density"
+exp1_dir = joinpath(OHC_datadir)
+basin_vol_pth = searchdir(OHC_datadir, basin_name*"LevelVolumes")[1]
 @load joinpath(OHC_datadir, basin_vol_pth) level_volumes
 basin_volumes = level_volumes
 
@@ -46,16 +47,16 @@ Ecycle,Fcycle = seasonal_matrices(fcycle,tecco,overtones)
 
 # returns "full" second
 #full means that seasonal pattern has not been removed 
-exp1_filename = searchdir(exp1_dir, basin_name)[1]
+exp1_filename = searchdir(exp1_dir, "full_OHC_"*basin_name)[1]
 exp1_path = joinpath(exp1_dir, exp1_filename)
 
 println("Comparing the two datasets")
 println(exp1_path[length(theta_datadir)+1:end])
 
-@load exp1_path θ_native
-exp1_theta_native = θ_native
+@load exp1_path OHC_native
+exp1_OHC_native = OHC_native
 
-exp = exp1_theta_native
+exps = exp1_OHC_native
 
 skip_exp = ["noIA", "129ff"]
 Aₑ = 5.1e14
@@ -79,11 +80,11 @@ for (keys,values) in shortnames
         errs = zeros(Float64, 2, length(z),)
         offset = 1
         for level in 1:length(z)
-            y_true = basin_volumes[level] .* Real.(exp[keys][level, offset:end] )
+            y_true = Real.(exps[keys][level, offset:end] ) .* 1e-21
             t = tecco[offset:end]
             X = ones(length(t), 2)
             X[:, 2] .= t
-            β = (X' * X ) \ X' * y_true
+            β = (X' * X ) \ (X' * y_true)
             intercepts[level] = β[1]
             slopes[level] = β[2] 
 
@@ -94,7 +95,7 @@ for (keys,values) in shortnames
             errs[2, level] = err2 
         end
 
-    ax.plot(slope .* (1e-21 * 26 * ρ * cₚ), z, marker=string(marks[keys]) ,label = shortnames[keys],
+        ax.plot(slopes .* 26, z, marker=string(marks[keys]) ,label = shortnames[keys],
                 markersize = 5, linewidth = 2, color = CB_color_cycle[k])
     end
 end
@@ -106,6 +107,6 @@ legend_size = Dict("size" => 12)
 ax.legend(loc="center",bbox_to_anchor=(0.5, -0.3), ncol=4, prop=legend_size)
 fig.suptitle(basin_name * " Ocean Heat Content Change [1992-2018]", size = 15)
 fig.tight_layout()
-outputfile = plotsdir("OHC_dt/OHC_depth_plot_"*basin_name*"_original_and_noseasonal" * ".pdf")
+outputfile = plotsdir("OHC/OHC_depth_plot_"*basin_name*"_original_and_noseasonal" * ".pdf")
 fig.savefig(outputfile)
 close("all")

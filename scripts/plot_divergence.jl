@@ -88,6 +88,7 @@ for cval = 1:2 # variable 1 = theta, variable 2 = practical salinity
     #  pick a time index: here, beginning and end
     tlist = (1,nt)
     for tt ∈ tlist
+        println("plotting something for tt", tt)
         tlbl = time_label(tt-1) # subtract one, months since Jan 1992
         if cval == 1
             timefname = plotsdir("dtheta_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*"_"*tlbl[1:3]*tlbl[5:8]*".pdf")

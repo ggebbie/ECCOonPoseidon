@@ -2,12 +2,15 @@
 module OHC_helper
 export patchvolume, calc_OHC, get_basin_volumes, standardize, 
        OHC_outputpath, do_FFT, calc_θ_bar, standard_error, conf_int,
-       lin_reg, get_basin_depths
+       lin_reg, get_basin_depths, get_GH19, plot_patch
 
 using Revise
 using ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools,
-    PyPlot, JLD2, DrWatson, FFTW
+    PyPlot, JLD2, DrWatson, FFTW, NetCDF
+
+import CairoMakie as Mkie
+
 
 """
     function calc_OHC(diagpath, expname, datafilelist,γ,
@@ -85,7 +88,7 @@ function calc_θ_bar(diagpath, expname, datafilelist,γ,masked_volume,
             depth_level = ff[2]            
             θ̄_tt[depth_level] += sum(θ[ff] .* masked_volume[ff]) / level_volume[depth_level]
         end
-        OHC = hcat(θ̄, θ̄_tt)
+        θ̄ = hcat(θ̄, θ̄_tt)
     end
     return θ̄
 end
@@ -228,7 +231,6 @@ function conf_int(Β, SE)
 end
 
 function get_GH19()
-
     GH19_file = datadir("oceanheatcontent_GH19.nc")
     GH19_time = ncread(GH19_file, "time")
     OHC_GH19_700 = ncread(GH19_file, "H700")
@@ -239,5 +241,45 @@ function get_GH19()
     return OHC_G19, GH19_time
 
 end
+
+"""
+    function plot_patch(Γ, ocean_mask, ocean_name)
+    plot a single patch of ocean 
+# Arguments
+- `Γ`: grid
+- `ocean_mask`: boolean mask of patch 
+- 'ocean_name': name of patch 
+# Output
+- `H`: volume-integrated ocean heat content 
+"""
+
+function plot_patch(Γ, patch_mask, patch_name)
+    pth = MeshArrays.GRID_LLC90
+    γ = GridSpec("LatLonCap",pth)
+    basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
+
+    μ =Γ.hFacC[:,1]
+    μ[findall(μ.>0.0)].=1.0
+    μ[findall(μ.==0.0)].=NaN
+
+    fig = Mkie.Figure(resolution = (900,600), backgroundcolor = :grey95)
+	ax = Mkie.Axis(fig[1,1],xlabel="longitude",ylabel="latitude",title=patch_name* " (shown in red)")
+
+	# basinID=findall(basin_list.==basin_name)[1]
+	
+	mx=maximum(basins)
+	for ff in 1:length(Γ.RAC)
+		col=μ[ff][:].*(patch_mask[ff][:])
+		kk=findall(col.>0.0)
+		!isempty(kk) ? Mkie.scatter!(ax,Γ.XC[ff][kk],Γ.YC[ff][kk],color=:red,markersize=2.0) : nothing
+		kk=findall((col.==0.0).*(!isnan).(μ[ff][:]))
+        colors = (basins[ff][kk].*0.0) .+ 1.0 
+		!isempty(kk) ? Mkie.scatter!(ax,Γ.XC[ff][kk],Γ.YC[ff][kk],color=colors,
+			colorrange=(0.0,mx),markersize=2.0,colormap=:lisbon) : nothing
+	end
+	Mkie.Colorbar(fig[1,2], colormap=:lisbon, colorrange=(0.0, mx), height = Mkie.Relative(0.65))
+    save(patch_name*"_patch.png",fig)
+end
+
 end
 

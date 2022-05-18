@@ -46,7 +46,7 @@ Ecycle,Fcycle = seasonal_matrices(fcycle,tecco,overtones)
 
 # returns "full" second
 #full means that seasonal pattern has not been removed 
-exp1_filename = searchdir(exp1_dir, basin_name)[1]
+exp1_filename = searchdir(exp1_dir, basin_name)[2]
 exp1_path = joinpath(exp1_dir, exp1_filename)
 
 println("Comparing the two datasets")
@@ -55,7 +55,7 @@ println(exp1_path[length(theta_datadir)+1:end])
 @load exp1_path θ_native
 exp1_theta_native = θ_native
 
-exp = exp1_theta_native
+exps = exp1_theta_native
 
 skip_exp = ["noIA", "129ff"]
 
@@ -65,8 +65,8 @@ shortnames["iter0_bulkformula"] = "iter0"
 
 k = 0
 CB_color_cycle = ["#377eb8", "#ff7f00", "#4daf4a",
-"#f781bf", "#a65628", "#984ea3",
-"#999999", "#e41a1c", "#dede00"]
+                  "#f781bf", "#a65628", "#984ea3",
+                  "#999999", "#e41a1c", "#dede00"]
 for (keys,values) in shortnames
     k +=1
     if values ∉ skip_exp
@@ -75,11 +75,12 @@ for (keys,values) in shortnames
         errs = zeros(Float64, 2, length(z),)
         offset = 1
         for level in 1:length(z)
-            y_true = Real.(exp[keys][level, offset:end] )
+            y_true = Real.(exps[keys][level, offset:end] )
             t = tecco[offset:end]
             X = ones(length(t), 2)
             X[:, 2] .= t
-            Beta = (X' * X ) \ X' * y_true
+            # println(y_true)
+            Beta = (X' * X ) \ (X' * y_true)
             intercep[level] = Beta[1]
             slope[level] = Beta[2] 
             y_pred = Beta[1] .+ (Beta[2] .* t)
@@ -107,6 +108,6 @@ legend_size = Dict("size" => 12)
 ax.legend(loc="center",bbox_to_anchor=(0.5, -0.3), ncol=4, prop=legend_size)
 fig.suptitle(basin_name * " Ocean Temp. Change [1992-2018]", size = 15)
 fig.tight_layout()
-outputfile = plotsdir("OHC_dt/theta_depth_plot_"*basin_name*"_original_and_noseasonal" * ".pdf")
+outputfile = plotsdir("OHC/theta_depth_plot_"*basin_name*"_original_and_noseasonal" * ".pdf")
 fig.savefig(outputfile)
 close("all")

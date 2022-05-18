@@ -58,9 +58,12 @@ for fname in datafilelist
     year,month = timestamp_monthly_v4r4(tt)
 
     # need to get all three tracers read.
+
+
     @time xbase = γ.read(diagpath[expbase]*fname,MeshArray(γ,Float32,nz*nc))
     @time x = γ.read(diagpath[expcompare]*fname,MeshArray(γ,Float32,nz*nc))
-
+    print(size(xbase))
+    print(size(xbase[1]))
     x = x - xbase # turn into a difference 
     for zc = 1:nz*nc
         xbar[tt,zc],xmax[tt,zc],xmin[tt,zc],σx[tt,zc],absxbar[tt,zc] = faststats(x[:,zc])

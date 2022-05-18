@@ -15,8 +15,8 @@ include(srcdir("config_exp.jl"))
 
 do_constant_density=true 
 do_total=true 
-basin_name="Pacific"
-# basin_name = "Atlantic"
+# basin_name="Pacific"
+basin_name = "Atlantic"
 output2file = true
 
 (ϕ,λ) = latlonC(γ)
@@ -38,19 +38,19 @@ basinID=findall(basin_list.==basin_name)[1]
 basin_mask=similar(basins)
 
 for ff in 1:length(area)
-    #creating a mask for the selected basin
-    basin_mask[ff] .= ocean_mask[ff].*(basins[ff].==basinID) 
+    above_SO = (ϕ[ff] .> -56.0) #removes southern ocean 
+    basin_mask[ff] .= ocean_mask[ff].*(basins[ff].==basinID) .* above_SO
 end
 
 cell_depths = get_basin_depths(basin_mask, Δz, Γ.hFacC)
 basin_volume = get_basin_volumes(area, cell_depths)
+plot_patch(Γ, basin_mask, basin_name)
 
 OHC_native = Dict{String,Array{Any,2}}() # don't forget trailing parentheses
 tecco = 1992+1/24:1/12:2018
 monthsperyear = 12
 
 temp_grid = similar(basin_volume)
-
 for (keys,values) in shortnames
     expname = keys
     println(expname)
@@ -67,10 +67,10 @@ for (keys,values) in shortnames
 end
 
 filedir = "OHC_data/"
-filename = "full_OHC"*basin_name*"_native_scale_.jld2"
+filename = "full_OHC_"*basin_name*"_native_scale_.jld2"
 @save datadir(filedir * filename) OHC_native
 
-filename = "AtlanticVolumes.jld2" 
+filename = basin_name*"LevelVolumes.jld2" 
 level_volumes = zeros(length(z))
 for ff in eachindex(basin_volume)
     level_volumes[ff[2]] += sum(basin_volume[ff])
