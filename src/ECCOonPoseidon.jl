@@ -2,7 +2,7 @@ module ECCOonPoseidon
 #
 # Define functions that are specific to the ECCO runs stored on Poseidon @ WHOI.
 
-using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles
+using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, PyCall, PyPlot
 
 export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
@@ -12,6 +12,24 @@ export fluxdir, rectangle, exprootdir, sig1dir,
 
 # add a method to this function
 import ECCOtour.sigma1grid
+
+const mpl = PyNULL()
+const plt = PyNULL()
+const cmocean = PyNULL()
+const cartopy = PyNULL()
+
+#Initialize all Python packages - install with conda through Julia
+function __init__()
+
+    # following ClimatePlots.jl
+    copy!(mpl, pyimport_conda("matplotlib", "matplotlib", "conda-forge"))
+    copy!(cartopy, pyimport_conda("cartopy", "cartopy", "conda-forge"))
+
+    #copy!(plt, pyimport_conda("matplotlib.pyplot", "matplotlib", "conda-forge"))
+    #copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
+
+    println("Python libraries installed")
+ end
 
 """ function sigma1grid()
     Choice of sigma1 surfaces for gridding

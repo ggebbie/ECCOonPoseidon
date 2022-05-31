@@ -43,24 +43,32 @@ for expt in exps
     Tname = datadir(outdir,"DthetaDt.data")
     @time β = γ.read(Tname,MeshArray(γ,Float32,nz))
 
-    figure(101)
+    fig = figure(101)
     for zz = 1:nz
         βz = 1.0f4*β[:,zz] # units K/yr -> cK/century
 
-        βzreg = var2regularpoles(βz,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
+        #βzreg = var2regularpoles(βz,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
+        βzreg = var2regularpoles(βz,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+        
+        mx = maximum(MeshArrays.mask(βz,-Inf))
+        mn = minimum(MeshArrays.mask(βz,Inf))
 
-        #mx = maximum(filter(βz,NaN32 => 0.0)) # filter out NaN32
-        #mn = minimum(βz,NaN32)
-        # fix this hard-coded range
-        #mx = 0.025
-        #mn = -0.025
-        #extrm = max(mx,-mn)
+        extrm = max(mx,-mn)
+
         clf()
         lims = range(-extrm,step=2extrm/30,stop=extrm)
-        contourf(λC,ϕC,βzreg',cmap=cmap_seismic)
+
+        cenlon = -160.0
+        proj0 = ECCOonPoseidon.cartopy.crs.PlateCarree()
+        proj = ECCOonPoseidon.cartopy.crs.PlateCarree(central_longitude=cenlon)
+        ax = fig.add_subplot(projection = proj)
+        ax.set_global()
+        ax.coastlines()
+        
+        contourf(λC,ϕC,βzreg',cmap=cmap_seismic, transform = proj0)
         # contourf(λC,ϕC,βzreg',lims,cmap=cmap_seismic)
         colorbar(label="cK/century",orientation="vertical",ticks=lims)
-        contour(λC,ϕC,βzreg',colors="k")
+        contour(λC,ϕC,βzreg',colors="k",transform = proj0)
         # contour(λC,ϕC,βzreg',lims,colors="k")
 
         depthlbl = string(round(Int,z[zz]))*" m"
@@ -71,9 +79,9 @@ for expt in exps
         outfname = plotsdir(expt,"DthetaDt_"*shortnames[expt]*"_"*depthlbl2*".eps")
         xlbl = "longitude "*L"[\degree E]"
         ylbl = "latitude "*L"[\degree N]"
-        title(titlelbl)
-        xlabel(xlbl)
-        ylabel(ylbl)
+        ax.set_title(titlelbl)
+        ax.set_xlabel(xlbl)
+        ax.set_ylabel(ylbl)
         savefig(outfname)
     end
 end
