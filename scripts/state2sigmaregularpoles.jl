@@ -6,14 +6,15 @@ include("../src/intro.jl")
 
 using Revise # for interactive use
 using MITgcmTools, MeshArrays, Statistics
-using ECCOtour, ECCOonPoseidon, SigmaShift
+using ECCOtour, ECCOonPoseidon
 # using JLD2, Dierckx, Interpolations
 
 include(srcdir("config_exp.jl"))
 include(srcdir("config_regularpoles.jl"))
 
 # DEFINE THE LIST OF SIGMA1 VALUES.
-sig1grid = sigma1grid()
+# 120 sigma values
+sig1grid = sigma1grid("mixed layer")
 
 ## specific for state
 # the state_3d monthly-average diagnostic output
@@ -21,6 +22,7 @@ TSroot = "state_3d_set1" # 1: θ, 2: S
 RProot = ("trsp_3d_set1","state_3d_set2") # uvel, vvel, gm psix, gm psiy, rhoanoma, phihyd
 
 splorder = 3 # spline order
+eos_mitgcm = "JMD95"
 
 # first filter for state_3d_set1
 filelist = searchdir(diagpath,TSroot)
@@ -60,7 +62,7 @@ for datafile in datafilelist
     end
     
     # Read from filelist, map to sigma-1, write to file
-    varsσ = mdsio2sigma1(diagpath,path_out,fileroots,γ,pstdz,sig1grid,splorder)
+    varsσ = mdsio2sigma1(diagpath,path_out,fileroots,γ,pstdz,sig1grid,splorder=splorder,eos=eos_mitgcm)
 
     # transfer to regularpoles grid
     varsσregpoles = vars2regularpoles(varsσ,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)

@@ -2,12 +2,61 @@ module ECCOonPoseidon
 #
 # Define functions that are specific to the ECCO runs stored on Poseidon @ WHOI.
 
-using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles
+using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, PyCall, PyPlot
 
 export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
     expnames, expsymbols, regpolesdir, rundir,
-    Nino34file, historicalNino34, readNino34
+    Nino34file, historicalNino34, readNino34,
+    sigma1grid
+
+# add a method to this function
+import ECCOtour.sigma1grid
+
+const mpl = PyNULL()
+const plt = PyNULL()
+const cmocean = PyNULL()
+const cartopy = PyNULL()
+
+#Initialize all Python packages - install with conda through Julia
+function __init__()
+
+    # following ClimatePlots.jl
+    copy!(mpl, pyimport_conda("matplotlib", "matplotlib", "conda-forge"))
+    copy!(cartopy, pyimport_conda("cartopy", "cartopy", "conda-forge"))
+
+    #copy!(plt, pyimport_conda("matplotlib.pyplot", "matplotlib", "conda-forge"))
+    #copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
+
+    println("Python libraries installed")
+ end
+
+""" function sigma1grid()
+    Choice of sigma1 surfaces for gridding
+# Arguments
+- `focus`: what part of water column is the focus?
+# Output
+- `σ₁grid`: list (vector) of σ₁ values
+"""
+function sigma1grid(focus::String)
+
+    if focus == "mixed layer"
+        σ₁grida = 24:0.15:31.05
+        σ₁gridb = 31.175:0.075:31.55
+        σ₁gridc = 31.64:0.04:32.4
+        σ₁gridd = 32.408:0.008:32.768
+        σ₁grid = vcat(σ₁grida,σ₁gridb,σ₁gridc,σ₁gridd)
+
+        return σ₁grid
+        
+    else
+        # call the standard version
+        # from ECCOtour/IsopycnalSurfaces
+        # has focus = "thermocline"
+        
+        return sig1grid()
+    end
+end
 
 fluxdir() = "/batou/eccodrive/files/Version4/Release4/other/flux-forced/forcing/"
 
