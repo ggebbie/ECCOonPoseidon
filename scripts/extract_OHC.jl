@@ -3,14 +3,14 @@
 
 include("../src/intro.jl")
 include("../src/OHC_helper.jl")
+using .OHC_helper
 
 using Revise 
 using ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools,
     PyPlot, JLD2, DrWatson, Statistics, JLD2
-import CairoMakie as Mkie
-import GeoMakie
-using .OHC_helper
+# import CairoMakie as Mkie
+# import GeoMakie
 include(srcdir("config_exp.jl"))
 
 do_constant_density=true 
@@ -41,8 +41,8 @@ for ff in 1:length(area)
     above_SO = (ϕ[ff] .> -56.0) #removes southern ocean 
     basin_mask[ff] .= ocean_mask[ff].*(basins[ff].==basinID) .* above_SO
 end
+cell_depths = get_cell_depths(basin_mask, Δz, Γ.hFacC)
 
-cell_depths = get_basin_depths(basin_mask, Δz, Γ.hFacC)
 basin_volume = get_basin_volumes(area, cell_depths)
 plot_patch(Γ, basin_mask, basin_name)
 

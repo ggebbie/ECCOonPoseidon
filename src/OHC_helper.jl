@@ -1,8 +1,9 @@
 
 module OHC_helper
-export patchvolume, calc_OHC, get_basin_volumes, standardize, 
+export patchvolume, calc_OHC, get_cell_volumes, standardize, 
        OHC_outputpath, do_FFT, calc_θ_bar, standard_error, conf_int,
-       lin_reg, get_basin_depths, get_GH19, plot_patch
+       lin_reg, get_cell_depths, get_GH19, plot_patch,extract_3d_var,
+       max_mesharray, min_mesharray, level_weighted_mean, compute_β
 
 using Revise
 using ECCOonPoseidon, ECCOtour,
@@ -52,6 +53,33 @@ function calc_OHC(diagpath, expname, datafilelist,γ,
     end
     return H
 end
+"""
+    function extract_3d_var(γ, nc, diagpath, expname, datafilelist, nz)  
+    extract_variable 
+# Arguments
+- `γ`: ECCO Grid 
+- `nc`: number of variable stored in fname
+- `diagpath`: variable of interest
+- `expname`: experiment of interest 
+- `datafilelist`: list of files pertaining to variable of interest
+- `nz` = number of depth levels in γ
+
+# Output
+- `vart`: variable "varname" at each time (4-D object)
+"""
+function extract_3d_var(γ, nc, diagpath, expname, datafilelist, nz)  
+    tt = 0
+    vart = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
+
+    for fname in datafilelist
+        tt += 1
+        x = γ.read(diagpath[expname]*fname,MeshArray(γ,Float32,nc*nz))
+        lbound = (nc-1)*nz
+        rbound = (nc)*nz
+        push!(vart, x[:,lbound+1:rbound]) # load potential temperature
+    end
+    return vart
+end
 
 """
     function calc_θ_bar(diagpath, expname, datafilelist,γ,masked_volume,
@@ -94,7 +122,7 @@ function calc_θ_bar(diagpath, expname, datafilelist,γ,masked_volume,
 end
 
 """
-    function get_basin_volumes(cell_area, cell_depths)
+    function get_cell_volumes(cell_area, cell_depths)
     get the volume in area of interst 
 # Arguments
 - `cell_area`: s
@@ -103,7 +131,7 @@ end
 - `basin_volume`: volume-weighted ocean temperature
 """
 
-function get_basin_volumes(cell_area, cell_depths)
+function get_cell_volumes(cell_area, cell_depths)
 
     basin_volume = similar(cell_depths)
 
@@ -119,7 +147,7 @@ function get_basin_volumes(cell_area, cell_depths)
 end
 
 """
-    function get_basin_depths(basin_mask, Δz, hFacC)
+    function get_cell_depths(basin_mask, Δz, hFacC)
     get true depth for each grid square in area of interest.
 # Arguments
 - `basin_mask`: mask with entries of interest equal to 1.0 else 0.0
@@ -129,7 +157,7 @@ end
 - `basin_volume`: volume-weighted ocean temperature
 """
 
-function get_basin_depths(basin_mask, Δz, hFacC)
+function get_cell_depths(basin_mask, Δz, hFacC)
 
     cell_depths = similar(hFacC) .* 0.0 
     
@@ -281,5 +309,71 @@ function plot_patch(Γ, patch_mask, patch_name)
     save(patch_name*"_patch.png",fig)
 end
 
+function max_mesharray(M)
+    #check that you are only looking at one level of MeshArray
+    if length(size(M)) > 1
+        error("MeshArray should only have one level")
+    else
+        m = [-Inf]
+        for ff in 1:length(M)
+            filt_M = maximum(filter(!isnan, M[ff]))
+            m[1] = maximum([m[1], filt_M])
+        end
+        return m[1]
+    end
+end
+
+function min_mesharray(M)
+    #check that you are only looking at one level of MeshArray
+    if length(size(M)) > 1
+        error("MeshArray should only have one level")
+    else
+        m = [Inf]
+        for ff in 1:length(M)
+            filt_M = minimum(filter(!isnan, M[ff]))
+            m[1] = minimum([m[1], filt_M])
+        end
+        return m[1]
+    end
+end
+
+function level_weighted_mean(ma, γ, cell_depths)
+
+    num_dims = length(size(ma))
+    if num_dims > 1
+        var = MeshArray(γ,Float32)
+        ztot = MeshArray(γ,Float32)
+        fill!(var,0.0f0) 
+        fill!(ztot,0.0f0) 
+        max_lvl = size(ma, 2)
+        for k in 1:max_lvl
+            for ff in eachindex(var)
+                var[ff] .+= ma[ff, k] .* cell_depths[ff, k]
+                ztot[ff] .+= cell_depths[ff, k]
+            end
+        end
+        weighted_mean = MeshArray(γ,Float32)
+        fill!(weighted_mean,0.0f0) 
+        for ff in eachindex(var)
+            weighted_mean[ff] = var[ff] ./ ztot[ff]
+        end
+        
+        return weighted_mean
+    else 
+        println("Only one level provided, no mean can be computed")
+        return ma
+    end
+end
+
+function compute_β(var_ts, F, γ)
+    nz = 50
+    β = MeshArray(γ,Float32,nz)
+    fill!(β,0.0f0) 
+    for tt in 1:length(var_ts)
+        var = var_ts[tt]
+        β .+= F[2,tt] .* var
+    end
+    return β
+end
 end
 
