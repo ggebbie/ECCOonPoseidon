@@ -96,7 +96,6 @@ for j in 1:length(levels_list)
                     OHC_dt =  dOHC ./ dts
                     ax[i, j].plot(tecco[7:end-6],OHC_dt,"-"*marks[keys],label = shortnames[keys], 
                     linewidth=1, markersize = 2)
-
                 end
                 # ax[i,j].legend()
                 ax[i,j].set_xlim(tecco[1], tecco[end])

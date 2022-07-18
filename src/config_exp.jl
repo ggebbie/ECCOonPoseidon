@@ -31,6 +31,7 @@ pstdz = pressurelevels(z)
 p₀ = 1000.0; # dbar
 
 Δz = read_mdsio(γ.path,"DRC")
+ΔzF = vec(read_mdsio(γ.path,"DRF"))
 Δz = vec(Δz)
 
 #retrieves the array containing all basin IDs 

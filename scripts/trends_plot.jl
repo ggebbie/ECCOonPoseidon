@@ -76,7 +76,7 @@ for expt in exps
         titlelbl = expt*", "*" "*depthlbl
         outdir = plotsdir(expt)
         !isdir(outdir) ? mkpath(outdir) : nothing
-        outfname = plotsdir(expt,"DthetaDt_"*shortnames[expt]*"_"*depthlbl2*".eps")
+        outfname = plotsdir(expt,"DthetaDt_"*shortnames[expt]*"_"*depthlbl2*".pdf")
         xlbl = "longitude "*L"[\degree E]"
         ylbl = "latitude "*L"[\degree N]"
         ax.set_title(titlelbl)

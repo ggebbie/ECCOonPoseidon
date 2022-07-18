@@ -56,10 +56,7 @@ for fname in datafilelist
 
     #print timestamp
     year,month = timestamp_monthly_v4r4(tt)
-
     # need to get all three tracers read.
-
-
     @time xbase = γ.read(diagpath[expbase]*fname,MeshArray(γ,Float32,nz*nc))
     @time x = γ.read(diagpath[expcompare]*fname,MeshArray(γ,Float32,nz*nc))
     print(size(xbase))

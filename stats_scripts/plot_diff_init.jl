@@ -11,7 +11,9 @@ using ECCOonPoseidon, ECCOtour,
     PyPlot, PyCall, JLD2, DrWatson, Statistics, JLD2
 using Main.OHC_helper
 include(srcdir("config_exp.jl"))
+cm = pyimport("cmocean.cm")
 
+colorway = cm.balance
 
 do_constant_density=true 
 do_total=true 
@@ -51,46 +53,58 @@ nt = length(tecco)
 
 # get weight matrix for finding trends
 E,F = trend_matrices(tecco)
+uplvl = -1700; botlvl = -2300
+# lvl1 = -4000; lvl2 = -5000
+lvl_idx = findall( botlvl .<= z[:].<= uplvl)
+
+#load iter0 
+expname = "iter0_bulkformula"
+expshort = "0bf"
+@load datadir(filedir*filename*"_"*expname*".jld2") var_exp
+iter0_init = var_exp[1][:, lvl_idx]
+var_exp = nothing
 for (keys,values) in shortnames
     # pre-allocate β, linear trends
     expname = keys
     @load datadir(filedir*filename*"_"*expname*".jld2") var_exp
-    β = compute_β(var_exp, F, γ; no_szn = false); var_exp = nothing 
-    uplvl = -2000; botlvl = -3000
-    # lvl1 = -4000; lvl2 = -5000
-    lvl_idx = findall( botlvl .<= z[:].<= uplvl)
-    β_sel = β[:, lvl_idx]
-    var_sel = level_weighted_mean(β_sel, γ, cell_depths) .* 100  #make trend C/century
+    exp_init = var_exp[1][:, lvl_idx]
+    var_exp = nothing
+    diff = similar(exp_init)
+    for lvl in 1:length(lvl_idx)
+        diff[:, lvl] = exp_init[:, lvl] .- iter0_init[:, lvl]
+    end
+    var_sel = level_weighted_mean(diff, γ, cell_depths)  
+
     proj = ECCOonPoseidon.cartopy.crs.Robinson()
     proj0 = ECCOonPoseidon.cartopy.crs.Robinson(central_longitude=-150)
     projPC = ECCOonPoseidon.cartopy.crs.PlateCarree()
-    
-    fig, ax = plt.subplots(1, 1, figsize=(5,5), subplot_kw=Dict("projection"=> proj0))
+    fig, ax = plt.subplots(1, 1, figsize=(6,5), 
+                           subplot_kw=Dict("projection"=> proj0))
     ax.set_global()
     ax.coastlines()
     ax.set_extent((110, -70, -55, 60))
-    ax.gridlines(crs=proj, draw_labels=true,
-                        linewidth=2, color="gray", alpha=0, linestyle="--")
-    cf = Vector{Any}(undef ,1)
+    lvls_str = string(abs(uplvl)) * "to" * string(abs(botlvl))
+    ax.set_title("θ trend difference \n at " * lvls_str * " m \n " * values * "-"* "0bf")
+
     min_val = minimum(MeshArrays.mask(var_sel  .* ocean_mask ,Inf))
-    # max_val = maximum(MeshArrays.mask(var_sel,-Inf))
     max_val = -min_val
+    tight_layout()
+    println(values)
+    println(min_val)
+    cf = Vector{Any}(undef ,1)
     for ff in 1:length(var_sel)
             cf[1] = ax.pcolormesh(λ[ff], ϕ[ff], var_sel[ff],shading="nearest", 
             transform=projPC, rasterized = true, vmin = min_val, vmax = max_val,
             cmap = colorway)
     end
     # depthlbl = string(abs(round(z[lvl_idx], digits = 2)))
-    lvls_str = string(abs(uplvl)) * "to" * string(abs(botlvl))
-    ax.set_title("θ linear trend at " * lvls_str * " m \n " * "Exp: "* values)
-    cbar = fig.colorbar(cf[1], label = L"^\circ"*"C/century")
-    tight_layout()
+    cbar = fig.colorbar(cf[1], label = L"^\circ"*"C")
 
     #Saving the Figure
     folder = "/home/ameza/ECCOonPoseidon/plots/OHC Climatologies/" * expname * "/"
     mkpath(folder[1:end-1])
     # lvls_str = "lvl" * string(lvl_idx)
-    outputfile = plotsdir(folder * "ΔΘ" *"climatology" * expname * lvls_str * ".pdf")
+    outputfile = plotsdir(folder * "Θ" *"climatology_diffinit_" * expname * lvls_str * ".pdf")
 
     savefig(outputfile)
     println("saving plots at.. " * outputfile)
