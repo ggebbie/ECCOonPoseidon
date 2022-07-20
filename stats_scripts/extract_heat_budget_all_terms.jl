@@ -53,18 +53,30 @@ end
 
 """ vertically integrate theta (should use eTan """
 outdir = "ECCO_vars/"
-savename = "Deep_THETA"
+savename = "Deep_STHETA"
 
 filedir = "ECCO_vars/"
 filename = "THETAs"
+filename2 = "ETAN"
+
 ocean_mask = wet_pts(Γ)
 msk = ocean_mask
+smush_depths =  Float32.(smush(cell_depths))
+smush_depths[findall(smush_depths .== 0)] = Inf32
+inv_depths = 1 ./ smush_depths
 for (keys,values) in shortnames
     expname = keys; println(keys)
-
-    @load datadir(filedir*filename*"_"*expname*".jld2") var_exp; θ = var_exp
-    temp = slice_mavec(var_exp, lvls)
-    var_exp = temp 
+    @time @load datadir(filedir*filename*"_"*expname*".jld2") var_exp; θ = var_exp
+    @time @load datadir(filedir*filename2*"_"*expname*".jld2") var_exp; ETAN = var_exp
+    var_exp  = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
+    temp = slice_mavec(θ, lvls)
+    for tt in 1:length(temp)
+        s1 = @views ((ETAN[tt] .* inv_depths) )
+        s2 = (s1 .+ 1)
+        s3 = @views s2 .* msk 
+        temp2 = temp[tt] .* s3
+        push!(var_exp, temp2)
+    end
     @save datadir(outdir * savename*"_"*expname*".jld2") var_exp
     GC.gc()
 end
@@ -132,4 +144,5 @@ end
 #check budget 
 # H = -DiffR .- AdvR .+ DifsH .+ AdvH
 #piecuch uses -H
-println(H[1][6, 200] / cell_volumes[1, 30][6, 200]) #budget looks closed when normalized by volume! 
+# println(H[1][6, 200] / cell_volumes[1, 30][6, 200]) #budget looks closed when normalized by volume! 
+

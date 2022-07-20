@@ -22,21 +22,23 @@ runpath,diagpath = listexperiments(exprootdir())
 shortnames = expnames()
 marks = expsymbols()
 nexp = length(shortnames) # number of experiments
-fileroot = "trsp_3d_set2" #DFxE_TH (1), DFyE_TH(2), ADVx_TH(3), ADVy_TH(4)
-filename = "ADVy_TH"
+fileroot = "state_2d_set1" #DFxE_TH (1), DFyE_TH(2), ADVx_TH(3), ADVy_TH(4)
+filename = "ETAN"
 outdir = "ECCO_vars/"
 # nc = 2 #THETA vert flux is in here explicit 
-nc = 4 #THETA vert. flux id implicit
+nc = 1 #THETA vert. flux id implicit
 for (keys,values) in shortnames
     expname = keys
     # if value ∉ ["129ff", "noIA"]
     if values ∉ ["129ff", "noIA"]
         println(expname)
-        nz = 50
+        nz = 1
         filelist = searchdir(diagpath[expname],fileroot) # 1st filter for state_3d_set1
         datafilelist  = filter(x -> occursin("data",x),filelist) # 2nd filter for "data"
         @time var_exp = extract_3d_var(γ, nc, diagpath, expname, datafilelist, nz)  
         @save datadir(outdir * filename*"_"*expname*".jld2") var_exp
     end
+    @time GC.gc(true) #garbage collecting 
+
 end
 

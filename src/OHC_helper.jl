@@ -7,7 +7,7 @@ export patchvolume, calc_OHC, get_cell_volumes, standardize,
        rm_vals, PAC_mask, plot_div_0bf!, plot_ts!, div_ma,
        smush, levels_2_string, level_mean, plot_field!,
        reduce_dict, vert_int_ma,  get_geothermalheating, calc_UV_conv,
-       plot_resids!
+       plot_resids!, prune
 
 export RMSE, RelDiff
 using Revise
@@ -37,7 +37,7 @@ function div_ma(ma1::MeshArray, ma2::MeshArray; fillval = nothing)
     return temp 
 end
 
-function mean(x::MeshArray, weights::MeshArray)
+function mean(x::MeshArray; weights::MeshArray)
     numerator = [0.0]
     denom =[0.0]
     if size(x) == size(weights)
@@ -511,7 +511,7 @@ function wet_pts(Γ)
     ocean_mask = similar(Γ.hFacC[:,1] )
     ocean_mask[findall(Γ.hFacC[:,1] .>0.0)].=1.0
     ocean_mask[findall(Γ.hFacC[:,1] .<=0.0)].=0.0
-    return ocean_mask
+    return Float32.(ocean_mask)
 end
 
 function rm_vals(dict, new_vals)
@@ -525,7 +525,11 @@ end
 function PAC_mask(Γ, basins, basin_list, ϕ; region = "")
     ocean_mask = wet_pts(Γ)
     basin_name="Pacific"
+    
     basinID=findall(basin_list.==basin_name)[1]
+    basinID1 = findall(basin_list.=="Okhotsk Sea")[1]      
+    basinID2 = findall(basin_list.== "Japan Sea")[1]   
+    basinID3 = findall(basin_list.== "East China Sea")[1]   
     PAC_msk=similar(basins)
     bounds = [0.0, 0.0]
     if region == "NPAC"
@@ -547,7 +551,9 @@ function PAC_mask(Γ, basins, basin_list, ϕ; region = "")
     println(region)
     for ff in 1:5
         above_SO = (bounds[2] .< ϕ[ff] .< bounds[1]) #removes southern ocean 
-        PAC_msk[ff] .= ocean_mask[ff].*(basins[ff].==basinID) .* above_SO
+        temp = (basins[ff].==basinID) .+ (basins[ff].==basinID1) .+
+        (basins[ff].==basinID2) .+ (basins[ff].==basinID3)
+        PAC_msk[ff] .= ocean_mask[ff].* temp .* above_SO
     end
     return PAC_msk
 end
@@ -715,7 +721,14 @@ end
 function plot_resids_!(ax)
     NaN
 end 
-
+function prune(x)
+    idx = sortperm(x)
+    remove_amt = Int(round(length(idx) * 0.025))
+    y = copy(x)
+    y[idx[end-remove_amt:end]] .= 0.0
+    y[idx[1:remove_amt]] .= 0.0 
+    return y
+end
 end
 
 # @load datadir("ECCO_vars/ADVx_TH_iter129_bulkformula.jld2")
