@@ -1,10 +1,3 @@
-
-# depthlbl = string(abs(round(z[lvl_idx], digits = 2)))
-
-
-# this script will compile and save a basinwide average of OHC 
-# for a particular basin (basin_name) 
-
 include("../src/intro.jl")
 include("../src/OHC_helper.jl")
 using Revise,ECCOonPoseidon, ECCOtour,
@@ -43,6 +36,8 @@ cell_volumes_Inf[findall(cell_volumes .== 0)] = Inf32
 uplvl = -2000; botlvl = -3000
 tt3km = findall( botlvl .<= z[:].<= uplvl)
 lvls = tt3km
+suffix = "_surface"
+lvls = 1
 function slice_mavec(mavec, lvls)
     temp = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
     for tt in 1:length(mavec)
@@ -51,34 +46,93 @@ function slice_mavec(mavec, lvls)
     return temp
 end
 
-""" vertically integrate theta (should use eTan """
+""" vertically integrate theta """
 outdir = "ECCO_vars/"
-savename = "Deep_STHETA"
+savename = "Surface_THETA"
 
 filedir = "ECCO_vars/"
 filename = "THETAs"
-filename2 = "ETAN"
-
 ocean_mask = wet_pts(Γ)
 msk = ocean_mask
-smush_depths =  Float32.(smush(cell_depths))
-smush_depths[findall(smush_depths .== 0)] = Inf32
-inv_depths = 1 ./ smush_depths
 for (keys,values) in shortnames
     expname = keys; println(keys)
-    @time @load datadir(filedir*filename*"_"*expname*".jld2") var_exp; θ = var_exp
-    @time @load datadir(filedir*filename2*"_"*expname*".jld2") var_exp; ETAN = var_exp
-    var_exp  = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
-    temp = slice_mavec(θ, lvls)
-    for tt in 1:length(temp)
-        s1 = @views ((ETAN[tt] .* inv_depths) )
-        s2 = (s1 .+ 1)
-        s3 = @views s2 .* msk 
-        temp2 = temp[tt] .* s3
-        push!(var_exp, temp2)
-    end
+
+    @load datadir(filedir*filename*"_"*expname*".jld2") var_exp; θ = var_exp
+    temp = slice_mavec(var_exp, lvls)
+    var_exp = temp 
     @save datadir(outdir * savename*"_"*expname*".jld2") var_exp
-    GC.gc()
+end
+
+"""Compare vertical heat convergences of pot. temperature"""
+
+filedir = "ECCO_vars/"
+filenameA = "THETA_AFLX";
+filenameE = "THETA_DFLXExplicit";
+filenameI = "THETA_DFLXImplicit";
+filenames = [filenameA, filenameI, filenameE]
+θC = Dict(f => Dict() for f in filenames)
+lvls = tt3km
+for (keys,values) in shortnames, filename in filenames
+    println(filename, " ", values)
+    
+    θC[filename][keys] = Vector{MeshArrays.gcmarray{Float32, 1, Matrix{Float32}}}(undef, 0)
+    expname = keys
+    @load datadir(filedir*filename*"_"*expname*".jld2") var_exp
+    for tt in 1:length(tecco)
+        temp = (var_exp[tt][:, lvls[end]+1] .- var_exp[tt][:, lvls[1]])  #extract msk points
+        # must reallocate temp every time, else it will be a pointer in θF
+        push!(θC[filename][keys], temp) #total vertical heat transport in msk
+    end
+end
+
+outdir = "ECCO_vars/"
+savename = "DeepVertHeatConv"
+for (keys,values) in shortnames
+    expname = keys
+    var_exp = Vector{MeshArrays.gcmarray{Float64, 1, Matrix{Float64}}}(undef, length(tecco))
+    i = [0] 
+    for filename in filenames
+        i .+= 1
+        for tt in 1:length(tecco)
+            if i[1] == 1
+                var_exp[tt] = 0.0f0 .* similar(msk)
+                var_exp[tt] .= 0.0f0
+            end
+
+            var_exp[tt] .+= θC[filename][keys][tt] 
+        end
+    end
+    
+    @save datadir(outdir * savename*"_"*expname*".jld2") var_exp
+end
+
+"""Compare lateral heat fluxes of pot. temperature"""
+outdir = "ECCO_vars/"
+filedir = "ECCO_vars/"
+savename = "DeepLateral"
+filenames = ["DF", "ADV"]
+#cell depths should be N/S depths
+#we divide by the volume but then still need 
+# depth to do the depth integral
+# this is equivalent to inverse area times ocean mask 
+for (keys,values) in shortnames, filename in filenames
+    expname = keys
+    time_series = Vector{MeshArrays.gcmarray{Float64, 1, Matrix{Float64}}}(undef, 0)
+    println(filename, " ", values)
+    filename == "DF" ? suf = "E_TH" : suf = "_TH"
+
+    varx = filename * "x" * suf; vary = filename * "y" * suf; 
+    @load datadir(filedir*varx*"_"*keys*".jld2") var_exp; var_exp_x = var_exp; 
+    tempx = vert_int_ma(var_exp_x, invarea, lvls, tecco); var_exp_x = nothing
+
+    @load datadir(filedir*vary*"_"*keys*".jld2") var_exp; var_exp_y = var_exp
+    tempy = vert_int_ma(var_exp_y, invarea, lvls, tecco); var_exp_y = nothing
+    
+    for tt in 1:length(tecco)
+        push!(time_series, calc_UV_conv(tempx[tt],  tempy[tt])) #total vertical heat transport in msk
+    end
+    var_exp = time_series
+    @save datadir(outdir * savename * filename*"_"*expname*".jld2") var_exp
 end
 
 """ compute volumes average heat budget"""
@@ -89,12 +143,10 @@ filenameE = "THETA_DFLXExplicit_";
 filenameI = "THETA_DFLXImplicit_";
 filenamesDHs = ["DFxE_TH_", "DFyE_TH_"]
 filenamesAHs = ["ADVx_TH_", "ADVy_TH_"]
-# expname = "noinitadjust"
-# expname = "nosfcadjust"
-
+expname = "_iter0_bulkformula"
 savename = "THETA_BUDG"
 for (key,values) in shortnames
-    expname = key; println(expname)
+    expname = keys; println(expname)
     θ_budget = Dict()
     θ_budget["AdvH"]  = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
     θ_budget["AdvR"]  = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
@@ -106,7 +158,6 @@ for (key,values) in shortnames
     Dify = slice_mavec(var_exp, lvls); var_exp = nothing 
     println("Computing diffusion horizontal convergences...")
     @time DiffH = calc_UV_conv(Difx,  Dify); Difx = nothing; Dify = nothing;
-    GC.gc()
 
     @time @load datadir(filedir*filenamesAHs[1]*expname*".jld2") var_exp; 
     Advx = slice_mavec(var_exp, lvls); var_exp = nothing 
@@ -114,7 +165,6 @@ for (key,values) in shortnames
     Advy = slice_mavec(var_exp, lvls); var_exp = nothing 
     println("Computing advection horizontal convergences...")
     @time AdvH = calc_UV_conv(Advx,  Advy); Advx = nothing; Advy = nothing; 
-    GC.gc()
 
     @time @load datadir(filedir*filenameA*expname*".jld2") var_exp; 
     AdvR = slice_mavec(var_exp, lvls); AdvRp1 = slice_mavec(var_exp, lvls.+1); var_exp = nothing
@@ -122,8 +172,7 @@ for (key,values) in shortnames
     DifER = slice_mavec(var_exp, lvls); DifERp1 = slice_mavec(var_exp, lvls.+1); var_exp = nothing
     @time @load datadir(filedir*filenameI*expname*".jld2") var_exp;
     DifIR = slice_mavec(var_exp, lvls); DifIRp1 = slice_mavec(var_exp, lvls.+1); var_exp = nothing
-    GC.gc()
-
+   
     @time for tt in 1:length(tecco)
         temp1 = @views (DifER[tt] .- DifERp1[tt]) 
         temp2 = @views (DifIR[tt] .- DifIRp1[tt]) 
@@ -144,5 +193,4 @@ end
 #check budget 
 # H = -DiffR .- AdvR .+ DifsH .+ AdvH
 #piecuch uses -H
-# println(H[1][6, 200] / cell_volumes[1, 30][6, 200]) #budget looks closed when normalized by volume! 
-
+println(H[1][6, 200] / cell_volumes[1, 30][6, 200]) #budget looks closed when normalized by volume! 

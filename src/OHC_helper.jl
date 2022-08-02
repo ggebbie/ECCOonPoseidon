@@ -7,14 +7,18 @@ export patchvolume, calc_OHC, get_cell_volumes, standardize,
        rm_vals, PAC_mask, plot_div_0bf!, plot_ts!, div_ma,
        smush, levels_2_string, level_mean, plot_field!,
        reduce_dict, vert_int_ma,  get_geothermalheating, calc_UV_conv,
-       plot_resids!, prune
+       plot_resids!, prune, central_diff, fwd_diff, fwd_mean, 
+       perc_diff, resid, slice, element_gs, volume_mean, slice_mavec, 
+       get_trend, ma_horiz_avg, remove_anomaly, ma_zonal_avg, ma_zonal_sum,
+       nanmaximum, nanminimum
 
 export RMSE, RelDiff
 using Revise
 using ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools,
     PyPlot, JLD2, DrWatson, FFTW, NetCDF,
-    Printf
+    Printf, PyCall
+
 
 import CairoMakie as Mkie
 import Base: vec
@@ -25,6 +29,17 @@ RMSE(Δ) = sqrt(sum(Δ.^2))
 RMSE(x, y) = sqrt(sum((x.-y).^2))
 RelDiff(x, y) = (x-y)/ (abs(x) + abs(y))
 notfinite(x) = isnan(x) || isinf(x)
+central_diff(x, dt) = (x[3:end] .- x[1:end-2]) ./ (dt)
+fwd_diff(x, dt) = (x[2:end] .- x[1:end-1]) ./ (dt)
+fwd_mean(x)=(x[2:end].+x[1:end-1])./2
+perc_diff(x, y) = 100 * (x - y)/y
+resid(x, y) = x - y
+slice(i) =pycall(pybuiltin("slice"), PyObject, i)
+slice(i, j) =pycall(pybuiltin("slice"), PyObject, i, j)
+element_gs(i,j, gs) = get(gs, (i,j))
+remove_anomaly(data) = Dict(key => data[key] .- mean(data[key]) for key in keys(data))
+nanmaximum(a) = maximum(filter(!isnan,a)) 
+nanminimum(a) = minimum(filter(!isnan,a)) 
 
 function div_ma(ma1::MeshArray, ma2::MeshArray; fillval = nothing)
     temp = similar(ma1)
@@ -37,7 +52,7 @@ function div_ma(ma1::MeshArray, ma2::MeshArray; fillval = nothing)
     return temp 
 end
 
-function mean(x::MeshArray; weights::MeshArray)
+function volume_mean(x::MeshArray; weights::MeshArray)
     numerator = [0.0]
     denom =[0.0]
     if size(x) == size(weights)
@@ -522,7 +537,7 @@ function rm_vals(dict, new_vals)
     return new_dict
 end
 
-function PAC_mask(Γ, basins, basin_list, ϕ; region = "")
+function PAC_mask(Γ, basins, basin_list, ϕ, λ; region = "")
     ocean_mask = wet_pts(Γ)
     basin_name="Pacific"
     
@@ -530,10 +545,12 @@ function PAC_mask(Γ, basins, basin_list, ϕ; region = "")
     basinID1 = findall(basin_list.=="Okhotsk Sea")[1]      
     basinID2 = findall(basin_list.== "Japan Sea")[1]   
     basinID3 = findall(basin_list.== "East China Sea")[1]   
+    basinID4 = findall(basin_list.== "South China Sea")[1]   
+    basinID5 =  findall(basin_list.== "Bering Sea")[1]   
     PAC_msk=similar(basins)
     bounds = [0.0, 0.0]
     if region == "NPAC"
-        bounds[1] = 60.0
+        bounds[1] = 80.0
         bounds[2] = 20.0
     elseif region == "SPAC"
         bounds[1] = 20.0
@@ -550,11 +567,17 @@ function PAC_mask(Γ, basins, basin_list, ϕ; region = "")
     end
     println(region)
     for ff in 1:5
-        above_SO = (bounds[2] .< ϕ[ff] .< bounds[1]) #removes southern ocean 
+        to_continents = (-180 .<= λ[ff] .<= -75) .+ (105 .<= λ[ff] .<= 180)
+        above_SO = (bounds[2] .< ϕ[ff] .< bounds[1]) #make this go to bering strait
         temp = (basins[ff].==basinID) .+ (basins[ff].==basinID1) .+
-        (basins[ff].==basinID2) .+ (basins[ff].==basinID3)
-        PAC_msk[ff] .= ocean_mask[ff].* temp .* above_SO
+        (basins[ff].==basinID2) .+ (basins[ff].==basinID3) .+ 
+        (basins[ff] .== basinID4) .+ (basins[ff] .== basinID5)
+        PAC_msk[ff] .= ocean_mask[ff] .* temp .* above_SO
     end
+
+    PAC_msk[findall(PAC_msk .== 0)] = 0f0
+    PAC_msk[findall(PAC_msk .> 0)] = 1f0 
+
     return PAC_msk
 end
  
@@ -576,10 +599,15 @@ function plot_div_0bf!(var_dict, tecco, shortnames, ignore_list, ax;
 end
 
 function plot_ts!(var_dict, tecco, shortnames, ignore_list, ax; 
-    ylabel = "", linestyle = "-", baseline = var_dict["iter0_bulkformula"][1])
+    ylabel = "", linestyle = "-", baseline = var_dict["iter0_bulkformula"][1],
+    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"])
+    i = 0
     for (keys,values) in shortnames
+        i+=1
+        c = colors[i]
         if values ∉ ignore_list
-            ax.plot(tecco, var_dict[keys] .- baseline, label = values, ls = linestyle)
+            ax.plot(tecco, var_dict[keys] .- baseline, label = values, ls = linestyle,
+                    color = c)
             ax.set_ylabel(ylabel)
             ax.set_xlabel("Time")
             ax.legend()
@@ -652,10 +680,23 @@ function vert_int_ma(ma, Δz, lvls, ts)
     return intVar
 end
 
-function get_geothermalheating(γ)
-    fname = "/batou/eccodrive/files/Version4/Release4/input_init/geothermalFlux.bin"
-    GTF = γ.read(fname,MeshArray(γ,Float32))
-    return GTF
+function get_geothermalheating(γ; bottom_level = nothing)
+    if isnothing(bottom_level)
+        fname = "/batou/eccodrive/files/Version4/Release4/input_init/geothermalFlux.bin"
+        GTF = γ.read(fname,MeshArray(γ,Float32))
+        return GTF
+    elseif bottom_level == "2to3"
+
+    elseif bottom_level == "2tobottom"
+
+    else
+        fname = "/batou/eccodrive/files/Version4/Release4/input_init/geothermalFlux.bin"
+        GTF = γ.read(fname,MeshArray(γ,Float32))
+        has_bottom = similar(bottom_level)
+        has_bottom[findall(bottom_level .> 0) ] .= 0.0
+        has_bottom[findall(bottom_level .== 0) ] .= 1.0
+        return has_bottom .* GTF
+    end
 end
 
 
@@ -729,6 +770,103 @@ function prune(x)
     y[idx[1:remove_amt]] .= 0.0 
     return y
 end
+
+function slice_mavec(mavec, lvls, γ)
+    nlevels = length(lvls)
+    nlevels > 1 ? numdims = 2 : numdims = 1
+    temp_vec = Vector{MeshArrays.gcmarray{Float32, numdims, Matrix{Float32}}}(undef, 0)
+    zero_ma = MeshArray(γ,Float32)
+    zero_ma .= 0.0
+    maxlevels=size(mavec[1],2)
+    nlevels = length(lvls)
+    nt = length(mavec)
+    for tt in 1:nt
+        if lvls[end]<=maxlevels
+            push!(temp_vec, mavec[tt][:, lvls])
+        else
+            tmp = MeshArray(γ,Float32,nlevels)
+            for k in 1:nlevels
+                if k < nlevels
+                    tmp[:, k] .=  mavec[tt][:, lvls[k]]
+                elseif k == nlevels
+                    tmp[:, k] .= zero_ma
+                end
+            end
+            push!(temp_vec, tmp)
+        end 
+    end
+    return temp_vec
 end
 
+function get_trend(var,tecco,F)
+    β = [0.0]
+    for tt in 1:length(tecco)
+        β .+= F[2,tt] * var[tt]
+    end
+    return β[1]
+end
+
+function ma_horiz_avg(ma, weights)
+    nlev = size(ma, 2)
+    numerator = @views [sum(ma[:, lvl] .* weights[:, lvl]) for lvl in 1:nlev]
+    denominator = @views [sum(weights[:, lvl]) for lvl in 1:nlev]
+    return Float32.(numerator) ./ Float32.(denominator)
+end
+
+function ma_zonal_sum(ma::MeshArrays.gcmarray{Float64, 1, Matrix{Float64}})
+    temp = zeros(270)
+    for ff in eachindex(ma) 
+	    if (ff==1) || (ff == 2)
+            temp[1:270] .+= @views sum( ma[ff], dims = 1)[:] 
+        elseif ff == 4 || ff == 5 
+            temp[1:270] .+= @views sum( reverse(ma[ff], dims = 1), dims = 2)[:] 
+        # elseif ff == 3
+        #     temp[271:end] .+= @views sum( reverse(ma[ff], dims = 1), dims = 2)[:]
+        end
+    end
+    return temp 
+end
+
+function ma_zonal_sum(ma::MeshArrays.gcmarray{Float32, 1, Matrix{Float32}})
+    temp = zeros(270)
+    for ff in eachindex(ma) 
+	    if (ff==1) || (ff == 2)
+            temp[1:270] .+= @views sum( ma[ff], dims = 1)[:] 
+        elseif ff == 4 || ff == 5 
+            temp[1:270] .+= @views sum( reverse(ma[ff], dims = 1), dims = 2)[:] 
+        # elseif ff == 3
+        #     temp[271:end] .+= @views sum( reverse(ma[ff], dims = 1), dims = 2)[:]
+        end
+    end
+    return temp 
+end
+
+
+function ma_zonal_avg(ma::MeshArrays.gcmarray{Float64, 2, Matrix{Float64}},
+    weights = ma::MeshArrays.gcmarray{Float64, 2, Matrix{Float64}})
+    nlev = size(ma, 2)
+    temp_num = zeros(nlev, 270)
+    temp_denom = zeros(nlev, 270)
+
+    for lvl in 1:nlev
+        temp_num[lvl, :] .= ma_zonal_sum(@views ma[:, lvl] .* weights[:, lvl])
+        temp_denom[lvl, :] .= ma_zonal_sum(@views weights[:, lvl])
+    end
+    return temp_num ./ temp_denom
+end
+
+function ma_zonal_avg(ma::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}},
+    weights = ma::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}})
+    nlev = size(ma, 2)
+    temp_num = zeros(nlev, 270)
+    temp_denom = zeros(nlev, 270)
+
+    for lvl in 1:nlev
+        temp_num[lvl, :] .= ma_zonal_sum(@views ma[:, lvl] .* weights[:, lvl])
+        temp_denom[lvl, :] .= ma_zonal_sum(@views weights[:, lvl])
+    end
+    return temp_num ./ temp_denom 
+end
+
+end
 # @load datadir("ECCO_vars/ADVx_TH_iter129_bulkformula.jld2")

@@ -21,7 +21,7 @@ output2file = true
 region = "NPAC"
 wet = wet_pts(Γ)
 
-basin_mask = PAC_mask(Γ, basins, basin_list, ϕ; region)
+basin_mask = PAC_mask(Γ, basins, basin_list, ϕ, λ; region)
 
 basin_mask[findall(basin_mask.==0.0)].=NaN
 fig = Mkie.Figure(resolution = (900,600), backgroundcolor = :grey95)
@@ -42,5 +42,5 @@ for ff in 1:length(Γ.RAC)
     !isempty(kk) && Mkie.scatter!(ax,adjust_lons(Γ.XC[ff][kk]),Γ.YC[ff][kk],color=:grey,markersize=2.0 )
 end
 Mkie.Colorbar(fig[1,2], height = Mkie.Relative(0.65))
-Mkie.save("GRID_LLC90_plotted_"*region*".png", fig)
+Mkie.save(plotsdir() * "/GRID_LLC90_plotted_"*region*".png", fig)
 
