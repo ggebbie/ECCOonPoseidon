@@ -1,11 +1,8 @@
 using Revise,ECCOonPoseidon, ECCOtour,
-MeshArrays, MITgcmTools,
-PyPlot, JLD2, DrWatson, Statistics, JLD2,
+MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, JLD2,
 GoogleDrive,NCDatasets, NetCDF, Printf, RollingFunctions
-using PyPlot   # important!
 using PyCall
-@pyimport seaborn as sns
-sns.set(); pygui(false)
+
 cm = pyimport("cmocean.cm");colorway = cm.balance;
 mpatches = pyimport("matplotlib.patches")
 lines = pyimport("matplotlib.lines")

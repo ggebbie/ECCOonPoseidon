@@ -1,12 +1,8 @@
 using Revise,ECCOonPoseidon, ECCOtour,
-MeshArrays, MITgcmTools,
-PyPlot, JLD2, DrWatson, Statistics, JLD2,
+MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, JLD2,
 GoogleDrive,NCDatasets, NetCDF, Printf,
 RollingFunctions
-using PyPlot   # important!
 using PyCall
-@pyimport seaborn as sns
-sns.set(); pygui(false)
 cm = pyimport("cmocean.cm");colorway = cm.balance;
 marks = expsymbols()
 nexp = length(shortnames) # number of experiments
@@ -50,9 +46,18 @@ tecco_off = tecco[1:end-1] .+  (diff(tecco) ./2)
 # tecco_off = tecco[2:end-1]
 fig, ax = plt.subplots(1, figsize = (12, 7))
 ax.set_title( region * " Heat Flux " * metric_name *", z=2-3km")
-plot_ts!(resids, tecco_off, shortnames, ignore_list, ax; ylabel =  metric_units, baseline =  0)
-tight_layout(); savefig(plotsdir() * "/OHC_Divergence/" * "TotθFlx" * metric_name * "_" 
+plot_ts!(resids, tecco_off, shortnames, ignore_list, ax; 
+ylabel =  metric_units, baseline =  0, colors = colors)
+sns.move_legend(ax, "lower center", bbox_to_anchor=(.5, 0), ncol=4)
+fig.tight_layout();fig.savefig(plotsdir() * "/OHC_Divergence/" * "TotθFlx" * metric_name * "_" 
 * region * suffix * "_2km3km.png")
+
+fig, ax = plt.subplots(1, figsize = (12, 7))
+ax.set_title(region * suffix * " Heat Flux Budget " * metric_name * ", z=2-3km")
+ax.set_ylabel(metric_units)
+sns.violinplot(data = pd.DataFrame(resids), ax = ax)
+fig.tight_layout();fig.savefig(plotsdir() * "/OHC_Divergence/" * "TotθFlx" * metric_name * "Violin_" 
+* region * suffix *  "_2km3km.png")
 
 fig = plt.figure( figsize = (12, 7))
 gs = fig.add_gridspec(4,5)
@@ -65,12 +70,12 @@ a.set_ylabel(metric_units)
 axs = [fig.add_subplot(element(0,slice(0,2))), fig.add_subplot(element(1,slice(0,2))), 
 fig.add_subplot(element(2,slice(0,2))), fig.add_subplot(element(3,slice(0,2)))]
 for (i, key) in enumerate(keys(shortnames))
-    axs[i].hist(resids[key], bins = 25, alpha = 0.3)
+    axs[i].hist(resids[key], bins = 25, alpha = 0.3, color = colors[i])
     axs[i].set_ylabel(L"Frequency")
     axs[i].set_xlabel(metric_units)
     axs[i].set_title(key)
 end
-tight_layout(); fig.savefig(plotsdir() * "/OHC_Divergence/" * "TotθFlx" * metric_name * "Stats_" 
+fig.tight_layout();fig.savefig(plotsdir() * "/OHC_Divergence/" * "TotθFlx" * metric_name * "Stats_" 
 * region * suffix *  "_2km3km.png")
 
 fig = plt.figure( figsize = (12, 7))
@@ -89,5 +94,5 @@ for (i, key) in enumerate(keys(shortnames))
     axs[i].set_title(key)
 end
 
-tight_layout(); fig.savefig(plotsdir() * "/OHC_Divergence/" * "TotθFlx" * metric_name * 
+fig.tight_layout();fig.savefig(plotsdir() * "/OHC_Divergence/" * "TotθFlx" * metric_name * 
 "StatsAnnual_" * region * suffix * "_2km3km.png")

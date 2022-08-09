@@ -1,15 +1,11 @@
 using Revise,ECCOonPoseidon, ECCOtour,
-MeshArrays, MITgcmTools,
-PyPlot, JLD2, DrWatson, Statistics, JLD2,
+MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, JLD2,
 GoogleDrive,NCDatasets, NetCDF, Printf, RollingFunctions
-using PyPlot   # important!
 using PyCall
-@pyimport seaborn as sns
-sns.set(); pygui(false)
-cm = pyimport("cmocean.cm");colorway = cm.balance;
+
 function ref_month_1(data, ref_key)
     baseline = data[ref_key][1]
-    temp_dict = Dict(key => (data[key] .- baseline) for key in keys(data))
+    temp_dict = Dict(key => (Float64.(data[key] .- baseline)) for key in keys(data))
     return temp_dict
 end    
 function remove_seasonal_keep_mean(x, Ecycle, Fcycle )

@@ -1,11 +1,6 @@
 using Revise,ECCOonPoseidon, ECCOtour,
-MeshArrays, MITgcmTools,
-PyPlot, JLD2, DrWatson, Statistics, JLD2,
+MeshArrays, MITgcmTools,JLD2, DrWatson, Statistics, JLD2,
 GoogleDrive,NCDatasets, NetCDF, Printf, RollingFunctions
-using PyPlot   # important!
-using PyCall
-@pyimport seaborn as sns
-sns.set(); pygui(false)
 cm = pyimport("cmocean.cm");colorway = cm.balance;
 mpatches = pyimport("matplotlib.patches")
 lines = pyimport("matplotlib.lines")
@@ -21,7 +16,7 @@ for key in keys(shortnames)
     θbarRHS[key] =  Float32.(reconstruct(start, dθz_RHS[key]))
 end
 
-fig, ax = subplots(2, 3, figsize = (12, 9))
+fig, ax = subplots(2, 3, figsize = (16, 14))
 fig.suptitle(region * " θ̄ Reconstructed from \n heat budget terms")
 start = 0.0 
 GTF_tot = GTF
@@ -44,12 +39,15 @@ ax[end].set_title(region *  " θ̄,  z=2-3km")
 plot_ts!(θbarLHS, tecco, shortnames, ignore_list, ax[end]; ylabel =  L" ^\circ C", linestyle = "--")
 # ax[end].set_title("Sum of all terms")
 plot_ts!(θbarRHS, tecco, shortnames, ignore_list, ax[end]; ylabel =  L" ^\circ C")
-ax[end].get_legend().remove()
-patches = [Line2D([0], [0], color=colors[i], label=collect(keys(shortnames))[i]) for i in 1:4]
+map(x -> x.get_legend().remove(), ax[2:6])
+# ax[4].get_legend().remove()
+patches = [Line2D([0], [0], color=colors[i], label=collect(values(shortnames))[i]) for i in 1:4]
 push!(patches, Line2D([0], [0],color="k", label="Reconstruction"))
 push!(patches, Line2D([0], [0],color="k", label="Approx θ", linestyle = "--"))
-ax[end].legend(handles = patches)
+ax[4].legend(handles = patches)
+sns.move_legend(ax[4], "lower center", bbox_to_anchor=(.5, -.5), ncol=2)
 fig.tight_layout()
+
 fig.savefig(plotsdir() * "/OHC_Divergence/" * "θReconstructAllTerms_" * region * suffix * "_2km3km.png")
 close("all")
 

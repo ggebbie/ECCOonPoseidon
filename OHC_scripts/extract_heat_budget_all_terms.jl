@@ -33,12 +33,10 @@ cell_depths_32 = Float32.(cell_depths)
 cell_volumes = get_cell_volumes(area, cell_depths);
 cell_volumes_Inf = Float32.(cell_depths)
 cell_volumes_Inf[findall(cell_volumes .== 0)] = Inf32
-uplvl = -2000; botlvl = -Inf
+uplvl = Inf; botlvl = -Inf
 tt3km = findall( botlvl .<= z[:].<= uplvl)
 lvls = tt3km
-lvls = [1]
-
-""" vertically integrate theta (should use eTan """
+lvls = [10, 11, 12]
 outdir = "ECCO_vars/"
 savename = "Surface_STHETA"
 
@@ -52,13 +50,14 @@ smush_depths =  Float32.(smush(cell_depths))
 smush_depths[findall(smush_depths .== 0)] = Inf32
 inv_depths = 1 ./ smush_depths
 
+""" vertically integrate theta (should use eTan """
 for (key,values) in shortnames
     expname = key; println(key)
     @time @load datadir(filedir*filename*"_"*expname*".jld2") var_exp; θ = var_exp
     @time @load datadir(filedir*filename2*"_"*expname*".jld2") var_exp; ETAN = var_exp
     var_exp  = Vector{MeshArrays.gcmarray{Float32, 1, Matrix{Float32}}}(undef, 0)
     temp = slice_mavec(θ, lvls, γ)
-    for tt in 1:length(temp)
+    @inbounds for tt in 1:length(temp)
         s1 = @views ((ETAN[tt] .* inv_depths) )
         s2 = (s1 .+ 1)
         s3 = @views s2 .* msk 
@@ -70,64 +69,104 @@ for (key,values) in shortnames
 end
 
 """ compute volumes average heat budget"""
-outdir = "ECCO_vars/"
 filedir = "ECCO_vars/"
 filenameA = "THETA_AFLX_";
 filenameE = "THETA_DFLXExplicit_";
 filenameI = "THETA_DFLXImplicit_";
 filenamesDHs = ["DFxE_TH_", "DFyE_TH_"]
 filenamesAHs = ["ADVx_TH_", "ADVy_TH_"]
-# expname = "noinitadjust"
-# expname = "nosfcadjust"
 
-savename = "THETA_BUDG"
-expnamez = ["iter129_bulkformula", "iter0_bulkformula", "nosfcadjust", "noinitadjust"]
-expname = expnamez[1] #loops cause major memory leaks! 
-println(expname)
-# expname = key; 
-θ_budget = Dict()
-θ_budget["AdvH"]  = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
-θ_budget["AdvR"]  = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
-θ_budget["DiffH"] = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
-θ_budget["DiffZ"] = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
-@time @load datadir(filedir*filenamesDHs[1]*expname*".jld2") var_exp; 
-Difx = slice_mavec(var_exp, lvls, γ); var_exp = nothing 
-@time @load datadir(filedir*filenamesDHs[2]*expname*".jld2") var_exp; 
-Dify = slice_mavec(var_exp, lvls, γ); var_exp = nothing 
-println("Computing diffusion horizontal convergences...")
-@time DiffH = calc_UV_conv(Difx,  Dify); Difx = nothing; Dify = nothing;
-@time GC.gc(true)
+# expnamez = ["iter129_bulkformula", "iter0_bulkformula", "nosfcadjust", "noinitadjust"]
+# expname = expnamez[1] #loops cause major memory leaks! 
+# println(expname)
 
-@time @load datadir(filedir*filenamesAHs[1]*expname*".jld2") var_exp; 
-Advx = slice_mavec(var_exp, lvls, γ); var_exp = nothing 
-@time @load datadir(filedir*filenamesAHs[2]*expname*".jld2") var_exp; 
-Advy = slice_mavec(var_exp, lvls, γ); var_exp = nothing 
-println("Computing advection horizontal convergences...")
-@time AdvH = calc_UV_conv(Advx,  Advy); Advx = nothing; Advy = nothing; 
-@time GC.gc(true)
-
-@time @load datadir(filedir*filenameA*expname*".jld2") var_exp; 
-AdvR = slice_mavec(var_exp, lvls, γ); AdvRp1 = slice_mavec(var_exp, lvls.+1, γ); var_exp = nothing
-@time @load datadir(filedir*filenameE*expname*".jld2") var_exp;
-DifER = slice_mavec(var_exp, lvls, γ); DifERp1 = slice_mavec(var_exp, lvls.+1, γ); var_exp = nothing
-@time @load datadir(filedir*filenameI*expname*".jld2") var_exp;
-DifIR = slice_mavec(var_exp, lvls, γ); DifIRp1 = slice_mavec(var_exp, lvls.+1, γ); var_exp = nothing
-@time GC.gc(true)
-
-@time for tt in 1:length(tecco)
-    temp1 = @views (DifER[tt] .- DifERp1[tt]) 
-    temp2 = @views (DifIR[tt] .- DifIRp1[tt]) 
-    temp3 = @views temp1 .+ temp2
-    temp4 = @views (AdvR[tt]  .- AdvRp1[tt]) 
-    push!(θ_budget["AdvH"], AdvH[tt] )
-    push!(θ_budget["DiffH"], DiffH[tt] )  
-    push!(θ_budget["DiffZ"], temp3)
-    push!(θ_budget["AdvR"], temp4)
+function diff_ma_vec(var_ts::Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}, 
+    lvls::Vector{Int64}, γ::gcmgrid; tecco = tecco)
+    temp_vec = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, length(tecco))
+    ma_vec = slice_mavec(var_ts, lvls, γ); ma_vecp1 = slice_mavec(var_ts, lvls.+1, γ);
+    @inbounds for tt in 1:length(tecco)
+        temp_vec[tt] = @views ma_vec[tt] .- ma_vecp1[tt]
+    end
+    return temp_vec
 end
-var_exp = θ_budget
-println("Saving budget")
-@time @save datadir(outdir * savename *"_"*expname*"_2tobot.jld2") var_exp
-GC.gc(true)
+function vecma2ma!(vecma::Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}, 
+    ma::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}, nt::Int64, nz::Int64)
+    i = [0] 
+    for tt in 1:nt
+        ma.f[:, (nz*i[1]) + 1: nz*(i[1]+1)] .= vecma[tt].f
+        i.+=1
+    end
+    return vecma
+end
+
+function load_and_calc_UV_conv(xpath::String, ypath::String, γ::gcmgrid)
+
+    var_exp = load_object_compress(xpath);
+    nt = length(var_exp)
+    nz = 50
+    x = MeshArray(γ,Float32,nt*nz) #50 levels times length of the run 
+    vecma2ma!(var_exp, x, nt, nz)
+    var_exp .= load_object_compress(ypath);
+    y = MeshArray(γ,Float32,nt*nz) #50 levels times length of the run 
+    vecma2ma!(var_exp, y, nt, nz)
+    println("Computing horizontal convergences...")
+    convH = calc_UV_conv(x,  y); x = nothing; y = nothing;
+    return convH
+end
+
+# function compute_budget(expname::String, lvls::Vector{Int64}, γ::gcmgrid, tecco::Vector{Float64}, 
+#                         filedir::String, filenamesAHs::Vector{String}, filenamesDHs::Vector{String}, 
+#                         filenameA::String, filenameE::String, filenameI::String) 
+    #MeshArray(γ,Float32,50 * 312)
+    expname = "iter129_bulkformula"
+    outdir = "ECCO_vars/"
+    savename = "THETA_BUDG"
+
+    θ_budget = Dict()
+    θ_budget["AdvH"]  = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, length(tecco))
+    θ_budget["AdvR"]  = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, length(tecco))
+    θ_budget["DiffH"] = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, length(tecco))
+    θ_budget["DiffZ"] = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, length(tecco))
+
+    Diffxpath = datadir(filedir*filenamesDHs[1]*expname*".jld2")
+    Diffypath = datadir(filedir*filenamesDHs[2]*expname*".jld2")
+    @time θ_budget["DiffH"] = OHC_helper.load_and_calc_UV_conv(Diffxpath, Diffypath, lvls, γ);
+
+    Advxpath = datadir(filedir*filenamesAHs[1]*expname*".jld2")
+    Advypath = datadir(filedir*filenamesAHs[2]*expname*".jld2")
+    @time θ_budget["AdvH"] = OHC_helper.load_and_calc_UV_conv(Advxpath, Advypath, lvls, γ)
+
+    @time var_exp = load_object_compress(datadir(filedir*filenameA*expname*".jld2")); 
+    @time θ_budget["AdvR"] = diff_ma_vec(var_exp, lvls, γ)
+    # AdvR = slice_mavec(var_exp, lvls, γ); AdvRp1 = slice_mavec(var_exp, lvls.+1, γ); var_exp = nothing
+    @time var_exp .= load_object_compress(datadir(filedir*filenameE*expname*".jld2"));
+    @time θ_budget["DiffZ"] = diff_ma_vec(var_exp, lvls, γ)
+    # DifER = slice_mavec(var_exp, lvls, γ); DifERp1 = slice_mavec(var_exp, lvls.+1, γ); var_exp = nothing
+    @time var_exp .= load_object_compress(datadir(filedir*filenameI*expname*".jld2"))
+    @time θ_budget["DiffZ"] .+= diff_ma_vec(var_exp, lvls, γ)
+    # DifIR = slice_mavec(var_exp, lvls, γ); DifIRp1 = slice_mavec(var_exp, lvls.+1, γ); var_exp = nothing
+    @time GC.gc(true)
+
+    @time @inbounds for tt in 1:length(tecco)
+        θ_budget["AdvH"][tt] =  AdvH[tt] 
+        θ_budget["DiffH"][tt] =  DiffH[tt]
+        θ_budget["DiffZ"][tt] =  @views divDifER[tt] .+ divDifIR[tt]
+        θ_budget["AdvR"][tt] =  divAdvR[tt]
+    end
+    var_exp = θ_budget
+    println("Saving budget")
+    @time save(datadir(outdir * savename *"_"*expname*"_test.jld2"), 
+    Dict("var_exp" => var_exp))
+    GC.gc(true)
+end    
+
+for (key,values) in shortnames
+    expname = key
+    @time compute_budget(expname, lvls, γ, tecco, 
+    filedir, filenamesAHs, filenamesDHs, filenameA, 
+    filenameE, filenameI);
+end
+
 
 #check budget 
 # H = -DiffR .- AdvR .+ DifsH .+ AdvH

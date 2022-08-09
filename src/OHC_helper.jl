@@ -10,15 +10,20 @@ export patchvolume, calc_OHC, get_cell_volumes, standardize,
        plot_resids!, prune, central_diff, fwd_diff, fwd_mean, 
        perc_diff, resid, slice, element_gs, volume_mean, slice_mavec, 
        get_trend, ma_horiz_avg, remove_anomaly, ma_zonal_avg, ma_zonal_sum,
-       nanmaximum, nanminimum
+       nanmaximum, nanminimum, load_object_compress, load_and_calc_UV_conv
+
 
 export RMSE, RelDiff
 using Revise
 using ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools,
-    PyPlot, JLD2, DrWatson, FFTW, NetCDF,
+    PyPlot, JLD2, CodecZlib, DrWatson, FFTW, NetCDF,
     Printf, PyCall
-
+@pyimport seaborn as sns
+@pyimport pandas as pd
+# colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
+colors =  sns.color_palette("deep")[1:4]
+sns.set_theme(context = "talk", palette = sns.color_palette("deep"));#sns.set_context("talk")
 
 import CairoMakie as Mkie
 import Base: vec
@@ -537,7 +542,8 @@ function rm_vals(dict, new_vals)
     return new_dict
 end
 
-function PAC_mask(Γ, basins, basin_list, ϕ, λ; region = "")
+function PAC_mask(Γ, basins, basin_list, ϕ, λ; region = "", 
+    extent = "model-defined")
     ocean_mask = wet_pts(Γ)
     basin_name="Pacific"
     
@@ -566,12 +572,15 @@ function PAC_mask(Γ, basins, basin_list, ϕ, λ; region = "")
         bounds[2] = -40.0
     end
     println(region)
+    full_extent = (extent == "full")
     for ff in 1:5
         to_continents = (-180 .<= λ[ff] .<= -75) .+ (105 .<= λ[ff] .<= 180)
         above_SO = (bounds[2] .< ϕ[ff] .< bounds[1]) #make this go to bering strait
-        temp = (basins[ff].==basinID) .+ (basins[ff].==basinID1) .+
-        (basins[ff].==basinID2) .+ (basins[ff].==basinID3) .+ 
-        (basins[ff] .== basinID4) .+ (basins[ff] .== basinID5)
+        marginal_seas = (basins[ff] .== basinID1) .+ (basins[ff] .== basinID2) .+ 
+                        (basins[ff] .== basinID3) .+ (basins[ff] .== basinID4) .+ 
+                        (basins[ff] .== basinID5)
+        model_PAC     = (basins[ff] .== basinID) 
+        temp = model_PAC .+ (full_extent .* marginal_seas)
         PAC_msk[ff] .= ocean_mask[ff] .* temp .* above_SO
     end
 
@@ -742,19 +751,20 @@ end
 
 function calc_UV_conv(fldU::Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}, 
     fldV::Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}})
-    temp = similar(fldU)
-    for tt in 1:length(fldU)
+    temp = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, length(fldU))
+    @inbounds for tt in 1:length(fldU)
         temp[tt] = calc_UV_conv(fldU[tt], fldV[tt])
     end
     return temp
 end
+
 function calc_UV_conv(fldU::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}, 
                         fldV::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}})
     temp = similar(fldU)
     nlvls = size(fldU, 2)
 
-    for lvl in 1:nlvls
-        temp[:, lvl] = MeshArrays.convergence(fldU[:, lvl], fldV[:, lvl])
+    @inbounds for lvl in 1:nlvls
+        temp[:, lvl].f .= MeshArrays.convergence(fldU[:, lvl], fldV[:, lvl]).f
     end
     return temp
 end
@@ -775,22 +785,20 @@ function slice_mavec(mavec, lvls, γ)
     nlevels = length(lvls)
     nlevels > 1 ? numdims = 2 : numdims = 1
     temp_vec = Vector{MeshArrays.gcmarray{Float32, numdims, Matrix{Float32}}}(undef, 0)
-    zero_ma = MeshArray(γ,Float32)
-    zero_ma .= 0.0
     maxlevels=size(mavec[1],2)
     nlevels = length(lvls)
     nt = length(mavec)
-    for tt in 1:nt
+    @inbounds for tt in 1:nt
         if lvls[end]<=maxlevels
             push!(temp_vec, mavec[tt][:, lvls])
         else
             tmp = MeshArray(γ,Float32,nlevels)
-            for k in 1:nlevels
-                if k < nlevels
-                    tmp[:, k] .=  mavec[tt][:, lvls[k]]
-                elseif k == nlevels
-                    tmp[:, k] .= zero_ma
+            clip_ma = mavec[tt][:, lvls[1:end-1]]
+            for ff in 1:5
+                for k in 1:nlevels-1
+                    tmp[ff, k] =  clip_ma[ff, k]
                 end
+                tmp[ff, nlevels] .= 0
             end
             push!(temp_vec, tmp)
         end 
@@ -867,6 +875,25 @@ function ma_zonal_avg(ma::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}},
     end
     return temp_num ./ temp_denom 
 end
+function load_object_compress(filename)
+    jldopen(filename, "r"; compress= true) do file
+        all_keys = keys(file)
+        length(all_keys) == 0 && throw(ArgumentError("File $filename does not contain any object"))
+        length(all_keys) > 1 && throw(ArgumentError("File $filename contains more than one object. Use `load` or `@load` instead"))
+        file[all_keys[1]] #Uses HDF5 functionality of treating the file like a dict
+    end
+end
+
+function load_and_calc_UV_conv(xpath::String, ypath::String, lvls::Vector{Int64}, γ::gcmgrid)
+    var_exp = load_object_compress(xpath);
+    x = slice_mavec(var_exp, lvls, γ); var_exp = nothing ;
+    var_exp = load_object_compress(ypath);
+    y = slice_mavec(var_exp, lvls, γ); var_exp = nothing 
+    println("Computing horizontal convergences...")
+    convH = calc_UV_conv(x,  y); x = nothing; y = nothing;
+    return convH
+end
+
 
 end
 # @load datadir("ECCO_vars/ADVx_TH_iter129_bulkformula.jld2")

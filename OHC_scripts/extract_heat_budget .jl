@@ -77,7 +77,7 @@ for (keys,values) in shortnames, filename in filenames
     
     θC[filename][keys] = Vector{MeshArrays.gcmarray{Float32, 1, Matrix{Float32}}}(undef, 0)
     expname = keys
-    @load datadir(filedir*filename*"_"*expname*".jld2") var_exp
+    var_exp = load_object(datadir(filedir*filename*"_"*expname*".jld2"))
     for tt in 1:length(tecco)
         temp = (var_exp[tt][:, lvls[end]+1] .- var_exp[tt][:, lvls[1]])  #extract msk points
         # must reallocate temp every time, else it will be a pointer in θF
@@ -153,26 +153,28 @@ for (key,values) in shortnames
     θ_budget["DiffH"] = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
     θ_budget["DiffZ"] = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, 0)
     @time @load datadir(filedir*filenamesDHs[1]*expname*".jld2") var_exp; 
-    Difx = slice_mavec(var_exp, lvls); var_exp = nothing 
+    Difx = slice_mavec(var_exp, lvls); 
     @time @load datadir(filedir*filenamesDHs[2]*expname*".jld2") var_exp; 
     Dify = slice_mavec(var_exp, lvls); var_exp = nothing 
     println("Computing diffusion horizontal convergences...")
     @time DiffH = calc_UV_conv(Difx,  Dify); Difx = nothing; Dify = nothing;
-
+    GC.gc(true)
     @time @load datadir(filedir*filenamesAHs[1]*expname*".jld2") var_exp; 
     Advx = slice_mavec(var_exp, lvls); var_exp = nothing 
     @time @load datadir(filedir*filenamesAHs[2]*expname*".jld2") var_exp; 
     Advy = slice_mavec(var_exp, lvls); var_exp = nothing 
     println("Computing advection horizontal convergences...")
     @time AdvH = calc_UV_conv(Advx,  Advy); Advx = nothing; Advy = nothing; 
+    GC.gc(true)
 
     @time @load datadir(filedir*filenameA*expname*".jld2") var_exp; 
-    AdvR = slice_mavec(var_exp, lvls); AdvRp1 = slice_mavec(var_exp, lvls.+1); var_exp = nothing
+    AdvR = slice_mavec(var_exp, lvls); AdvRp1 = slice_mavec(var_exp, lvls.+1); 
     @time @load datadir(filedir*filenameE*expname*".jld2") var_exp;
-    DifER = slice_mavec(var_exp, lvls); DifERp1 = slice_mavec(var_exp, lvls.+1); var_exp = nothing
+    DifER = slice_mavec(var_exp, lvls); DifERp1 = slice_mavec(var_exp, lvls.+1); 
     @time @load datadir(filedir*filenameI*expname*".jld2") var_exp;
     DifIR = slice_mavec(var_exp, lvls); DifIRp1 = slice_mavec(var_exp, lvls.+1); var_exp = nothing
-   
+    GC.gc(true)
+
     @time for tt in 1:length(tecco)
         temp1 = @views (DifER[tt] .- DifERp1[tt]) 
         temp2 = @views (DifIR[tt] .- DifIRp1[tt]) 
