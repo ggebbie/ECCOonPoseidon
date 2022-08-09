@@ -89,30 +89,6 @@ function diff_ma_vec(var_ts::Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float
     end
     return temp_vec
 end
-function vecma2ma!(vecma::Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}, 
-    ma::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}, nt::Int64, nz::Int64)
-    i = [0] 
-    for tt in 1:nt
-        ma.f[:, (nz*i[1]) + 1: nz*(i[1]+1)] .= vecma[tt].f
-        i.+=1
-    end
-    return vecma
-end
-
-function load_and_calc_UV_conv(xpath::String, ypath::String, γ::gcmgrid)
-
-    var_exp = load_object_compress(xpath);
-    nt = length(var_exp)
-    nz = 50
-    x = MeshArray(γ,Float32,nt*nz) #50 levels times length of the run 
-    vecma2ma!(var_exp, x, nt, nz)
-    var_exp .= load_object_compress(ypath);
-    y = MeshArray(γ,Float32,nt*nz) #50 levels times length of the run 
-    vecma2ma!(var_exp, y, nt, nz)
-    println("Computing horizontal convergences...")
-    convH = calc_UV_conv(x,  y); x = nothing; y = nothing;
-    return convH
-end
 
 # function compute_budget(expname::String, lvls::Vector{Int64}, γ::gcmgrid, tecco::Vector{Float64}, 
 #                         filedir::String, filenamesAHs::Vector{String}, filenamesDHs::Vector{String}, 
