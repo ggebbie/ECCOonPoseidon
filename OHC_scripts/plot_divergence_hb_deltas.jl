@@ -88,13 +88,13 @@ label = "slope = " *string(round(β, digits = 3)))
 axs_scat.legend()
 
 fig_deep.tight_layout()
-fig_deep.savefig(plotsdir() * "/OHC_Divergence/" * "DeepθTrends_" * region * suffix * "_2km3km.png")
+fig_deep.savefig(plotsdir() * "/OHC_Divergence/" * "DeepθTrends_" * region * "_" *suffix * ".png")
 fig_surf.tight_layout()
-fig_surf.savefig(plotsdir() * "/OHC_Divergence/" * "SurfθTrends_" * region * suffix * ".png")
+fig_surf.savefig(plotsdir() * "/OHC_Divergence/" * "SurfθTrends_" * region * "_surface.png")
 fig_scat.tight_layout()
-fig_scat.savefig(plotsdir() * "/OHC_Divergence/" * "ScatθTrends_" * region * suffix * "_2km3km.png")
+fig_scat.savefig(plotsdir() * "/OHC_Divergence/" * "ScatθTrends_" * region * "_" *suffix * ".png")
 fig_smooth.tight_layout()
-fig_smooth.savefig(plotsdir() * "/OHC_Divergence/" * "θAnomalies_" * region * suffix * ".png")
+fig_smooth.savefig(plotsdir() * "/OHC_Divergence/" * "θAnomalies_" * region * "_surface.png")
 
 #Now see if there is any correlation 
 #(plot surface warming as a trends as a function of deep cooling)

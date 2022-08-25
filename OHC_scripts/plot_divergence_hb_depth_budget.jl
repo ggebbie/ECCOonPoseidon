@@ -39,6 +39,6 @@ cbar_ax = fig.add_axes([0.1, 0.1, 0.8, 0.05])
 cbar = fig.colorbar(cs[1], cax=cbar_ax,orientation="horizontal")
 cbar.set_label("C")
 
-fig.savefig(plotsdir() * "/OHC_Divergence/Contours/" * "θVertTrendAnom_" * region *"_" * suffix * ".png",
+fig.savefig(plotsdir() * "/OHC_Divergence/" * "θVertTrendAnom_" * region * suffix * ".png",
 dpi = 1500)
 close("all")

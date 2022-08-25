@@ -1,6 +1,7 @@
 using Revise,ECCOonPoseidon, ECCOtour,
 MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, JLD2,
-GoogleDrive,NCDatasets, NetCDF, Printf, RollingFunctions
+GoogleDrive,NCDatasets, NetCDF, Printf, RollingFunctions,
+LaTeXStrings
 using PyCall
 using DataFrames, GLM
 
@@ -12,9 +13,13 @@ fig.suptitle(region * " θ Profile over experiment run")
 tmat = repeat(tecco', length(lvls), 1)
 zmat = repeat(z[lvls], 1, length(tecco))
 extr = [Inf, -Inf]
+
+#finds the min and max of all ts
+extremas = [extrema(θ_depth_anom[key]) for key in keys(shortnames)]
+extr[1] = minimum(extremas[i][1] for i in 1:4)
+extr[2] = maximum(extremas[i][2] for i in 1:4)
 for key in keys(shortnames)
-    baseline = θ_depth_anom["iter0_bulkformula"] 
-    var = θ_depth_anom[key] .- baseline
+    var = θ_depth_anom[key]
     (minimum(var)  < extr[1]) && 
     (extr[1] = minimum(var))
     (maximum(var) > extr[2]) && 
@@ -38,6 +43,6 @@ cbar_ax = fig.add_axes([0.1, 0.1, 0.8, 0.05])
 cbar = fig.colorbar(cs[1], cax=cbar_ax,orientation="horizontal")
 cbar.set_label("C")
 
-fig.savefig(plotsdir() * "/OHC_Divergence/" * "θVertTrend_" * region * suffix * ".png",
+fig.savefig(plotsdir() * "/OHC_Divergence/Contours/" * "θVertTrend_" * region * "_" * suffix * ".png",
 dpi = 1500)
 close("all")

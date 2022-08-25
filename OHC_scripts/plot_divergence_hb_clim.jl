@@ -13,11 +13,12 @@ import Plots: contourf as jcontourf
 θ_flat = Dict()
 for (key,values) in shortnames
     expname = key; println(key)
-    @time sθ = load(datadir(filedir*fname1*"_"*expname * suffix * ".jld2"), "var_exp")
     θ_flat[expname] = Vector{MeshArrays.gcmarray{Float64, 1, Matrix{Float64}}}(undef, length(tecco))
     println("constructing time series")
     @time for tt in 1:length(tecco)
-        θ_flat[expname][tt] = OHC_helper.smush(sθ[tt] .* crop_vols) ./ OHC_helper.smush(crop_vols)
+        fdir1 = filedir * expname * "/" * fname1 * "_" * suffix * "_"*"$tt" *"_.jld2"
+        sθ = load_object(datadir(fdir1))
+        θ_flat[expname][tt] = OHC_helper.smush(sθ .* crop_vols) ./ OHC_helper.smush(crop_vols)
     end
     @time GC.gc(true) #garbage collecting 
 end
@@ -51,29 +52,32 @@ function nanmax(ma::MeshArrays.gcmarray)
     end
     return temp[1]
 end
-
-tt = 1
+tt = 312
+fig, ax = plt.subplots(2, 2, figsize=(12,5), subplot_kw=Dict("projection"=> proj0))
 cf = Vector{Any}(undef ,1)
-fig, ax = plt.subplots(1, 1, figsize=(7,5), subplot_kw=Dict("projection"=> proj0))
-ax.set_title("Average Temperature in ECCO, " * region)
-# θ_flat["iter129_bulkformula"][tt][findall(θ_flat["iter129_bulkformula"][tt] .== 0)] .= NaN
-b1 = nanmin(θ_flat["iter129_bulkformula"][tt])
-b2 = nanmax(θ_flat["iter129_bulkformula"][tt])
-ax.set_global()
-ax.coastlines()
-ax.set_extent((110, -70, -0, 60))
-ax.gridlines(crs=proj, draw_labels=true,
-                    linewidth=2, color="gray", alpha=0, linestyle="--")
-for ff in 1:5
-        cf[1] = ax.pcolormesh(λ[ff], ϕ[ff],  θ_flat["iter129_bulkformula"][tt][ff],
-        vmin = b1, vmax = b2, shading="nearest", transform=projPC, rasterized = true, cmap = colorway)            
-end
+fig.suptitle("Δθ in ECCO")
 
+for (i, expname) in enumerate(collect(keys(shortnames)))
+    ax[i].set_title(region)
+    # θ_flat["iter129_bulkformula"][tt][findall(θ_flat["iter129_bulkformula"][tt] .== 0)] .= NaN
+    var = θ_flat[expname]
+    baseline = θ_flat["iter0_bulkformula"][tt] 
+    b1 = nanmin(θ_flat[expname][tt] .- baseline)
+    b2 = nanmax(θ_flat[expname][tt] .- baseline)
+    ax[i].set_global()
+    ax[i].coastlines()
+    ax[i].set_extent((110, -70, -0, 60))
+    ax[i].gridlines(crs=proj, draw_labels=true,
+                        linewidth=2, color="gray", alpha=0, linestyle="--")
+    for ff in 1:5
+            cf[1] = ax[i].pcolormesh(λ[ff], ϕ[ff],  θ_flat[expname][tt][ff],
+            vmin = b1, vmax = b2, shading="nearest", transform=projPC, rasterized = true, cmap = colorway)            
+    end
+
+end
 cbar = fig.colorbar(cf[1], label = L"^\circ"*"C",
 orientation = "horizontal")
-tight_layout()
-
-fig.savefig(plotsdir() * "/OHC_Divergence/" * "θClim_" * region * suffix * ".png",
+fig.tight_layout()
+fig.savefig(plotsdir() * "/OHC_Divergence/Clims/" * "θClimAnom_$tt" * region * suffix *".png",
 dpi = 1500)
-
 close("all")

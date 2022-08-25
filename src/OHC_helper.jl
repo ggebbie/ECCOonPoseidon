@@ -10,7 +10,8 @@ export patchvolume, calc_OHC, get_cell_volumes, standardize,
        plot_resids!, prune, central_diff, fwd_diff, fwd_mean, 
        perc_diff, resid, slice, element_gs, volume_mean, slice_mavec, 
        get_trend, ma_horiz_avg, remove_anomaly, ma_zonal_avg, ma_zonal_sum,
-       nanmaximum, nanminimum, load_object_compress, load_and_calc_UV_conv
+       nanmaximum, nanminimum, load_object_compress, load_and_calc_UV_conv,
+       diff_ma_vec, level_timeseries!, total_level_change
 
 
 export RMSE, RelDiff
@@ -18,16 +19,17 @@ using Revise
 using ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools,
     PyPlot, JLD2, CodecZlib, DrWatson, FFTW, NetCDF,
-    Printf, PyCall
+    Printf, PyCall, RollingFunctions
+import CairoMakie as Mkie
+import Base: vec
+import Statistics: mean, std
+
 @pyimport seaborn as sns
 @pyimport pandas as pd
 # colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
 colors =  sns.color_palette("deep")[1:4]
 sns.set_theme(context = "talk", palette = sns.color_palette("deep"));#sns.set_context("talk")
 
-import CairoMakie as Mkie
-import Base: vec
-import Statistics: mean, std
 mean(x::Vector, weights::Vector) = sum(x .* weights) / sum(weights)
 std(x::Vector,  weights::Vector) = sqrt(inv(sum(weights)) * sum((x .- mean(x, weights)).^2))
 RMSE(Δ) = sqrt(sum(Δ.^2))
@@ -134,10 +136,10 @@ function extract_3d_var(γ, nc, diagpath, expname, datafilelist, nz)
     end
     for fname in datafilelist
         tt += 1
-        x = γ.read(diagpath[expname]*fname,MeshArray(γ,Float32,nc*nz))
         lbound = (nc-1)*nz
         rbound = (nc)*nz
-        push!(vart, x[:,lbound+1:rbound]) # load potential temperature
+        x = γ.read(diagpath[expname]*fname,MeshArray(γ,Float32,nc*nz))[:,lbound+1:rbound]
+        push!(vart, x) # load potential temperature
     end
     return vart
 end
@@ -372,7 +374,7 @@ end
 
 
 function depth_weighted_mean(ma, γ::gcmgrid, 
-    cell_depths::MeshArrays.gcmarray{Float64, 2, Matrix{Float64}})
+    cell_depths::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
     #This should be rewritten to match volume_weighted_avg
     num_dims = ndims(ma)
     if num_dims > 1
@@ -625,6 +627,15 @@ function plot_ts!(var_dict, tecco, shortnames, ignore_list, ax;
 end
 
 function smush(ma)
+    temp = similar(ma[:, 1])
+    temp .= 0.0f0
+    for ijk in eachindex(ma)
+        temp.f[ijk[1]] .+= ma.f[ijk] #ijk[1] is the face
+    end
+    return temp 
+end
+
+function depth_sum(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
     temp = 0.0f0 .* similar(ma[:, 1])
     temp .= 0.0f0
     for ff in eachindex(ma)
@@ -632,6 +643,7 @@ function smush(ma)
     end
     return temp 
 end
+
 
 function levels_2_string(uplvl, botlvl)
     return string(abs(uplvl)) * " to " * string(abs(botlvl))
@@ -708,70 +720,26 @@ function get_geothermalheating(γ; bottom_level = nothing)
     end
 end
 
-
-"""
-    function calc_UV_conv(fldU,fldV)
-        - fldU 
-        - fldV
-    This function calculates the divergences within a control volume 
-    for the llc90 grid. Some faces must be rotated to to fit with the others, 
-    so this cannot be looped through easily using the standard ECCO output. 
-    Divergences for the cap cannot be computed at this time. 
-     
-
-
-"""
-# function calc_UV_conv(fldU::MeshArrays.gcmarray{Float32, 1, Matrix{Float32}},
-#     fldV::MeshArrays.gcmarray{Float32, 1, Matrix{Float32}})
-#     ∇ₕ = similar(fldV)
-#     ∇ₕ .= 0.0
-
-#     ∇ₕ[1][1:end-1, 1:end-1] .= (fldV[1][1:end-1, 2:end] -  fldV[1][1:end-1, 1:end-1]) + 
-#                                  (fldU[1][2:end, 1:end-1] -  fldU[1][1:end-1, 1:end-1]);
-#     ∇ₕ[1][end, :] .+= fldU[1][end, :] - fldU[2][1, :]
-#     ∇ₕ[1][:, end] .+= reverse(fldV[3][1, :]) .- fldV[1][:, end]   
-
-#     ∇ₕ[2][1:end-1, 1:end-1] .= (fldV[2][1:end-1, 2:end] -  fldV[2][1:end-1, 1:end-1]) + 
-#                                  (fldU[2][2:end, 1:end-1] -  fldU[2][1:end-1, 1:end-1])
-#     ∇ₕ[2][end, :] .+= reverse(fldU[4][:, 1]) .- fldU[2][end, :]
-#     #2 does not connect to face 3(the poles)
-
-#     ∇ₕ[4][2:end, 1:end-1] .= (fldV[4][1:end-1, 1:end-1] - fldV[4][2:end, 1:end-1]) + 
-#                                (fldU[4][2:end, 2:end] -  fldU[4][2:end, 1:end-1]) 
-#     ∇ₕ[4][:, end] .+= fldU[5][:, 1]- fldU[4][:, end]
-#     ∇ₕ[4][1, :] .+= fldV[3][end, :] - fldV[4][1, :]   
-
-#     ∇ₕ[5][2:end, 1:end-1] .= (fldV[5][1:end-1, 1:end-1] - fldV[5][2:end, 1:end-1]) + 
-#                                (fldU[5][2:end, 2:end] -  fldU[5][2:end, 1:end-1]) 
-#     ∇ₕ[5][:, end] .+= reverse(fldU[1][1, :]) - fldU[5][:, end]   
-#     ∇ₕ[5][1, :] .+= reverse(fldV[3][:, end]) - fldV[5][1, :]   
-
-#     return ∇ₕ 
-# end
-
-function calc_UV_conv(fldU::Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}, 
-    fldV::Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}})
-    temp = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, length(fldU))
-    @inbounds for tt in 1:length(fldU)
+function calc_UV_conv(fldU::Vector{MeshArrays.gcmarray{T, 2, Matrix{T}}}, 
+    fldV::Vector{MeshArrays.gcmarray{T, 2, Matrix{T}}}) where T<:Real
+    temp = Vector{MeshArrays.gcmarray{T, 2, Matrix{T}}}(undef, length(fldU))
+    for tt in 1:length(fldU)
         temp[tt] = calc_UV_conv(fldU[tt], fldV[tt])
     end
     return temp
 end
 
-function calc_UV_conv(fldU::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}, 
-                        fldV::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}})
+function calc_UV_conv(fldU::MeshArrays.gcmarray{T, 2, Matrix{T}}, 
+                        fldV::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
     temp = similar(fldU)
     nlvls = size(fldU, 2)
 
-    @inbounds for lvl in 1:nlvls
-        temp[:, lvl].f .= MeshArrays.convergence(fldU[:, lvl], fldV[:, lvl]).f
+    for lvl in 1:nlvls
+        temp.f[:, lvl] .= MeshArrays.convergence(fldU[:, lvl], fldV[:, lvl]).f
     end
     return temp
 end
 
-function plot_resids_!(ax)
-    NaN
-end 
 function prune(x)
     idx = sortperm(x)
     remove_amt = Int(round(length(idx) * 0.025))
@@ -781,26 +749,28 @@ function prune(x)
     return y
 end
 
-function slice_mavec(mavec, lvls, γ)
+function slice_mavec(mavec::Vector{MeshArrays.gcmarray{T, 2, Matrix{T}}}, 
+                    lvls::Vector{Int64}, γ::gcmgrid) where T <: Real
     nlevels = length(lvls)
     nlevels > 1 ? numdims = 2 : numdims = 1
-    temp_vec = Vector{MeshArrays.gcmarray{Float32, numdims, Matrix{Float32}}}(undef, 0)
-    maxlevels=size(mavec[1],2)
+    nt = length(mavec)
+    temp_vec = Vector{MeshArrays.gcmarray{Float32, numdims, Matrix{Float32}}}(undef, nt)
+    maxlevels=50
     nlevels = length(lvls)
     nt = length(mavec)
     @inbounds for tt in 1:nt
-        if lvls[end]<=maxlevels
-            push!(temp_vec, mavec[tt][:, lvls])
+        if lvls[end]< (maxlevels+1)
+            temp_vec[tt] = mavec[tt][:, lvls]
         else
             tmp = MeshArray(γ,Float32,nlevels)
-            clip_ma = mavec[tt][:, lvls[1:end-1]]
+            clip_ma = mavec[tt].f[:, lvls[1:end-1]]
             for ff in 1:5
                 for k in 1:nlevels-1
-                    tmp[ff, k] =  clip_ma[ff, k]
+                    tmp.f[ff, k] .=  clip_ma[ff, k]
                 end
                 tmp[ff, nlevels] .= 0
             end
-            push!(temp_vec, tmp)
+            temp_vec[tt] = tmp
         end 
     end
     return temp_vec
@@ -814,14 +784,15 @@ function get_trend(var,tecco,F)
     return β[1]
 end
 
-function ma_horiz_avg(ma, weights)
+function ma_horiz_avg(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}, 
+    weights::MeshArrays.gcmarray{S, 2, Matrix{S}}) where {T<:Real, S<:Real}
     nlev = size(ma, 2)
     numerator = @views [sum(ma[:, lvl] .* weights[:, lvl]) for lvl in 1:nlev]
     denominator = @views [sum(weights[:, lvl]) for lvl in 1:nlev]
     return Float32.(numerator) ./ Float32.(denominator)
 end
 
-function ma_zonal_sum(ma::MeshArrays.gcmarray{Float64, 1, Matrix{Float64}})
+function ma_zonal_sum(ma::MeshArrays.gcmarray{T, 1, Matrix{T}}) where T<:Real
     temp = zeros(270)
     for ff in eachindex(ma) 
 	    if (ff==1) || (ff == 2)
@@ -835,23 +806,8 @@ function ma_zonal_sum(ma::MeshArrays.gcmarray{Float64, 1, Matrix{Float64}})
     return temp 
 end
 
-function ma_zonal_sum(ma::MeshArrays.gcmarray{Float32, 1, Matrix{Float32}})
-    temp = zeros(270)
-    for ff in eachindex(ma) 
-	    if (ff==1) || (ff == 2)
-            temp[1:270] .+= @views sum( ma[ff], dims = 1)[:] 
-        elseif ff == 4 || ff == 5 
-            temp[1:270] .+= @views sum( reverse(ma[ff], dims = 1), dims = 2)[:] 
-        # elseif ff == 3
-        #     temp[271:end] .+= @views sum( reverse(ma[ff], dims = 1), dims = 2)[:]
-        end
-    end
-    return temp 
-end
-
-
-function ma_zonal_avg(ma::MeshArrays.gcmarray{Float64, 2, Matrix{Float64}},
-    weights = ma::MeshArrays.gcmarray{Float64, 2, Matrix{Float64}})
+function ma_zonal_avg(ma::MeshArrays.gcmarray{T, 2, Matrix{T}},
+    weights ::MeshArrays.gcmarray{S, 2, Matrix{S}}) where {T<:Real, S<:Real}
     nlev = size(ma, 2)
     temp_num = zeros(nlev, 270)
     temp_denom = zeros(nlev, 270)
@@ -863,19 +819,7 @@ function ma_zonal_avg(ma::MeshArrays.gcmarray{Float64, 2, Matrix{Float64}},
     return temp_num ./ temp_denom
 end
 
-function ma_zonal_avg(ma::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}},
-    weights = ma::MeshArrays.gcmarray{Float32, 2, Matrix{Float32}})
-    nlev = size(ma, 2)
-    temp_num = zeros(nlev, 270)
-    temp_denom = zeros(nlev, 270)
-
-    for lvl in 1:nlev
-        temp_num[lvl, :] .= ma_zonal_sum(@views ma[:, lvl] .* weights[:, lvl])
-        temp_denom[lvl, :] .= ma_zonal_sum(@views weights[:, lvl])
-    end
-    return temp_num ./ temp_denom 
-end
-function load_object_compress(filename)
+function load_object_compress(filename::String)
     jldopen(filename, "r"; compress= true) do file
         all_keys = keys(file)
         length(all_keys) == 0 && throw(ArgumentError("File $filename does not contain any object"))
@@ -886,12 +830,132 @@ end
 
 function load_and_calc_UV_conv(xpath::String, ypath::String, lvls::Vector{Int64}, γ::gcmgrid)
     var_exp = load_object_compress(xpath);
-    x = slice_mavec(var_exp, lvls, γ); var_exp = nothing ;
+    x = slice_mavec(var_exp, lvls, γ)
     var_exp = load_object_compress(ypath);
-    y = slice_mavec(var_exp, lvls, γ); var_exp = nothing 
+    y = slice_mavec(var_exp, lvls, γ)
     println("Computing horizontal convergences...")
-    convH = calc_UV_conv(x,  y); x = nothing; y = nothing;
+    convH = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, length(x))
+    for tt in 1:length(fldU)
+        convH[tt] = calc_UV_conv(x[tt], y[tt])
+    end
     return convH
+end
+
+function load_and_calc_UV_conv(xpath::String, ypath::String)
+    x = load_object_compress(xpath);
+    y = load_object_compress(ypath);
+    println("Computing horizontal convergences...")
+    nt = length(x)
+    convH = Vector{MeshArrays.gcmarray{Float32, 2, Matrix{Float32}}}(undef, nt)
+    for tt in 1:nt
+        convH[tt] = calc_UV_conv(x[tt], y[tt])
+    end
+    return convH
+end
+
+function diff_ma_vec(var_ts::Vector{MeshArrays.gcmarray{T, 2, Matrix{T}}}, 
+    lvls::Vector{Int64}, γ::gcmgrid, nt::Int64) where T<:Real
+    temp_vec = Vector{MeshArrays.gcmarray{T, 2, Matrix{T}}}(undef, nt)
+    ma_vec = slice_mavec(var_ts, lvls, γ); 
+    ma_vecp1 = slice_mavec(var_ts, lvls.+1, γ);
+    temp_vec = @views ma_vec .- ma_vecp1
+    return temp_vec
+end
+
+function diff_ma_vec(var_ts::Vector{MeshArrays.gcmarray{T, 2, Matrix{T}}}, 
+    γ::gcmgrid) where T<:Real
+    ma_vec = var_ts
+    ma_vecp1 = slice_mavec(var_ts, collect(2:51), γ);
+    temp_vec = @views ma_vec .- ma_vecp1
+    return temp_vec
+end
+
+function xz_avg(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}, 
+    weights::MeshArrays.gcmarray{S, 2, Matrix{S}}) where {T<:Real,S<:Real} 
+    numer = ma_zonal_sum(depth_sum(ma .* weights))
+    denom = ma_zonal_sum(depth_sum(weights))
+    returval = numer ./ denom
+    return returval
+end
+function integratedθ(dθ::Vector{T}, θ₀) where T<:Real
+    avgdθ = fwd_mean(dθ) #put dθ onto beginning of the month 
+    dt = 2.628f6 # one month time step 
+    return cumsum(vcat(θ₀, avgdθ .* dt))
+end
+
+
+function level_timeseries(θC, θT, crop_vols, msk, lvls)
+    level_reconstruction = Dict()
+    nt = length(θC["AdvH"])
+    nlvls = length(lvls)
+    depths_arrays = zeros(nlvls, nt)
+
+    for key in collect(keys(θC))
+        level_reconstruction[key] = zeros(nlvls, nt)
+        for tt in 1:nt, i in 1:nlvls
+            depths_arrays[i, tt] = sum(θC[key][tt][:, i] .* msk) / sum(crop_vols[:, i])
+            if (key == "AdvR") || (key == "DiffZ")
+                depths_arrays[i, tt] = -depths_arrays[i, tt]
+            end
+        end
+        θ₀ = [OHC_helper.volume_mean(θT[1][:, lvl]; weights =  crop_vols[:, lvl]) for lvl in 1:nlvls]
+        for i in 1:nlvls
+            level_reconstruction[key][i, :] .= integratedθ(depths_arrays[i, :], θ₀[i])
+        end
+    end
+    return level_reconstruction
+end
+
+function level_timeseries!(level_reconstruction, θC, crop_vols, lvls, msk, tt)
+    nlvls = length(lvls)
+
+    for key in collect(keys(level_reconstruction))
+        for i in 1:nlvls
+            level_reconstruction[key][i, tt] = sum(θC[key][:, i] .* msk) / sum(crop_vols[:, i])
+            if (key == "AdvR") || (key == "DiffR")
+                level_reconstruction[key][i, tt] = -level_reconstruction[key][i, tt]
+            end
+        end
+
+    end
+end
+
+
+function total_level_change(level_reconstruction::Dict, tecco, F)
+    total_change = Dict()
+    nlvls = size(level_reconstruction["AdvH"], 1)
+    level_reconstruction["total"] = level_reconstruction["AdvH"] .+ level_reconstruction["DiffH"]+ 
+                                level_reconstruction["DiffZ"] .+ level_reconstruction["AdvR"]
+    for key in keys(level_reconstruction)
+        total_change[key] = zeros(nlvls)
+        for lvl in 1:nlvls
+            diff_ = level_reconstruction[key][lvl, end] - level_reconstruction[key][lvl,1]
+            total_change[key][lvl] = diff_ * 26
+        end
+
+    end
+    return total_change
+end
+
+function total_level_change(level_reconstruction::Dict, θ1, crop_vols, lvls)
+    nlev = length(lvls)
+    θ₀ = [volume_mean(θ1[:, i]; weights =  crop_vols[:, i]) for i in 1:nlev]
+    for key in collect(keys(level_reconstruction)), i in 1:nlev
+        level_reconstruction[key][i, :] .= integratedθ(level_reconstruction[key][i, :], θ₀[i])
+    end
+
+    total_change = Dict()
+    level_reconstruction["total"] = level_reconstruction["AdvH"] .+ level_reconstruction["DiffH"]+ 
+                                level_reconstruction["DiffR"] .+ level_reconstruction["AdvR"]
+    for key in keys(level_reconstruction)
+        total_change[key] = zeros(nlev)
+        for lvl in 1:nlev
+            diff_ = level_reconstruction[key][lvl, end] - level_reconstruction[key][lvl,1]
+            total_change[key][lvl] = diff_ * 26
+        end
+
+    end
+    return total_change
 end
 
 
