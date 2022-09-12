@@ -12,12 +12,18 @@ budget_colors = sns.color_palette("Paired")[7:11]
 budget_colors[end] = (0, 0, 0)
 extr = [0, 0]
 labels_L = [L"\theta^{129}", L"\theta^{\Delta F}",  L"\theta^{\Delta T}", L"\theta^{0}"]
+budg_terms = ["AdvH", "AdvR", "DiffH", "DiffR", "total"]
+baseline = θ_budget_deltas["iter129_bulkformula"]
+
+
+Dict(key1 => Dict(key2 => d[key1][key2] .- d["2"][key2] for 
+key2 in keys(d[key1])) for key1 in keys(d))
 
 for (i, key) in enumerate(keys(shortnames))
     expname = key
     axs[i].set_title(labels_L[i])
     j = 0 
-    for contr in ["AdvH", "AdvR", "DiffH", "DiffR", "total"]
+    for contr in budg_terms
         j+=1
         axs[i].plot(θ_budget_deltas[key][contr], z[lvls], color = budget_colors[j], 
         label = contr)

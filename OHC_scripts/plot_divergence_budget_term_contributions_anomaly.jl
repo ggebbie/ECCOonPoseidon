@@ -34,7 +34,7 @@ end
 # axs[2].legend(bbox_to_anchor=(0.5, -0.15), loc="upper center", ncol = 5,borderaxespad= 0.0)
 fig.tight_layout()
 fig.savefig(plotsdir() * "/OHC_Divergence/Depth_Plots/" * "DepthθBudgChangeAnom_" * region * suffix * ".png")
-close("all")
+# close("all")
 
 #Now see if there is any correlation 
 #(plot surface warming as a trends as a function of deep cooling)

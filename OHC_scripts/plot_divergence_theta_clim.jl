@@ -10,7 +10,12 @@ import Plots: contourf as jcontourf
 @pyimport imageio
 @pyimport matplotlib.animation as animation
 
+import NaNMath as nm
+nanmin(ma::MeshArrays.gcmarray) = minimum(nm.minimum.(ma.f))
+nanmax(ma::MeshArrays.gcmarray) = maximum(nm.maximum.(ma.f))
+
 θ_flat = Dict()
+λ360 = deepcopy(λ)
 for (key,values) in shortnames
     expname = key; println(key)
     θ_flat[expname] = Vector{MeshArrays.gcmarray{Float64, 1, Matrix{Float64}}}(undef, length(tecco))
@@ -22,42 +27,25 @@ for (key,values) in shortnames
     end
     @time GC.gc(true) #garbage collecting 
 end
+
 for ff ∈ [3,4] 
-    λ[ff][λ[ff] .<= 0 ] = λ[ff][λ[ff] .<= 0 ] .+ 360
+    λ360[ff][λ[ff] .<= 0 ] = λ360[ff][λ[ff] .<= 0 ] .+ 360
 end
+
 
 proj = ECCOonPoseidon.cartopy.crs.PlateCarree()
 proj0 = ECCOonPoseidon.cartopy.crs.PlateCarree(central_longitude=-150)
 projPC = ECCOonPoseidon.cartopy.crs.PlateCarree()
+
 filenames = [plotsdir() * "/OHC_Divergence/temp"*string(tt)*".png"
              for tt in 1:length(tecco)]
 
-nanmaxi(a) = maximum(filter(!isnan,a)) 
-nanmini(a) = minimum(filter(!isnan,a)) 
-
-function nanmin(ma::MeshArrays.gcmarray)
-    temp = [Inf]
-    temp_ma = MeshArrays.mask(ma, Inf)
-    for ff in 1:5
-        (nanmini(temp_ma[ff][:]) < temp[1]) && (temp .= nanmini(temp_ma[ff][:]))
-    end
-    return temp[1]
-end
-
-function nanmax(ma::MeshArrays.gcmarray)
-    temp = [-Inf]
-    temp_ma = MeshArrays.mask(ma, -Inf)
-    for ff in 1:5
-        (nanmaxi(temp_ma[ff][:]) > temp[1]) && (temp .= nanmaxi(temp_ma[ff][:]))
-    end
-    return temp[1]
-end
 tt = 312
 fig, ax = plt.subplots(2, 2, figsize=(12,5), subplot_kw=Dict("projection"=> proj0))
 cf = Vector{Any}(undef ,1)
 fig.suptitle("Δθ in ECCO")
 
-for (i, expname) in enumerate(collect(keys(shortnames)))
+for (i, expname) in enumerate(collect(keys(θ_flat)))
     ax[i].set_title(region)
     # θ_flat["iter129_bulkformula"][tt][findall(θ_flat["iter129_bulkformula"][tt] .== 0)] .= NaN
     var = θ_flat[expname]

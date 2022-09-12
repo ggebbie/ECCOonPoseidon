@@ -4,7 +4,7 @@ using Revise,ECCOonPoseidon, ECCOtour,
 MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, JLD2,
 NCDatasets, Printf, 
 DataFrames, LaTeXStrings,
-Plots, Plots.Measures
+Plots
 gr()
 import NaNMath as nm
 using .OHC_helper
@@ -88,10 +88,8 @@ function filter_heat_budget_terms!(expname::String, lvls::Vector{Int64},
         end
         sθ = load_object(datadir(fdir1))
         θ̄ = volume_mean(sθ; weights = crop_vols)
-        variance = sθ .- θ̄
-        variance = variance.^2
-        σ = sqrt(volume_mean(variance; weights = crop_vols))
-        push!(θz_std[expname], Float32.(σ))
+        # σ = sqrt(volume_mean(variance; weights = crop_vols))
+        # push!(θz_std[expname], Float32.(σ))
         push!(θz[expname], Float32.(θ̄))
         θ_depths[expname][:, tt] .= ma_horiz_avg(sθ, crop_vols)
         θ_zonal[expname][:, :, tt] .= ma_zonal_avg(sθ, crop_vols)
@@ -100,8 +98,7 @@ function filter_heat_budget_terms!(expname::String, lvls::Vector{Int64},
     θ1 = load_object(datadir(fdir))
     θ_budget_deltas[expname] = total_level_change(θ_contribution_TS, θ1, crop_vols, lvls)
     @time GC.gc() #garbage collecting 
-    sθ = nothing 
-    HBUDG = nothing 
+
 end
 
 for (key,values) in shortnames
@@ -117,43 +114,21 @@ PDtoDict(x) = Dict(name => x[name].values for name in x.columns)
 DFtoPD(x) = pd.DataFrame(Dict(name => x[!, name] for name in names(x)))
 PDtoDF(x) = DataFrame(Dict(name => x[name].values for name in x.columns))
 
-#creates a depth-latitude plot of temperature changes
-@time include("plot_divergence_hb_zonal.jl") 
-#=reates a depth-latitude plot of temperature changes
-with respect to iter0
-=#
-@time include("plot_divergence_hb_zonal_anom.jl") 
-#=Creates a time-depth plot that shows how each volume-averaged temperature 
-changes over time 
-=#
-@time include("plot_divergence_hb_verticaltrends.jl")
-#=Same as above but instead plots temperature anomalies. 
-Anomalies are taken about iter0
-=#
-@time include("plot_divergence_hb_verticaltrends_diff.jl")
 #=Plots heat budget terms (advection, diffusion) statistics=#
 @time include("plot_divergence_hb_residual.jl")
 #=Reconstructs temperature time series from the heat budget terms=#
 @time include("plot_divergence_hb_reconstruction.jl")
-#=Reconstructs moving averaged temperature time series from the heat budget terms=#
-@time include("plot_divergence_hb_reconstruction_smoothed.jl")
 #=Plots Δθ for deep (however defined) and surface. Also plots these values against each other
 The question here is there a relationship between deep and surface values 
 In future, surface should be taken as surface to 2km
 =#
 @time include("plot_divergence_hb_deltas.jl")
-#=Tries to reconstruct iter129 from iter0, nosfc & no init 
-using MLR
-=#
-@time include("plot_divergence_LinReg.jl")
-#=Plots temperature climatologies, could also plot changes
-=#
-@time include("plot_divergence_hb_clim.jl")
+
 #=Depth plot for heat gain from individual heat budget terms 
 =#
-@time include("plot_divergence_depth.jl")
-#=Same as above but looking at anomalies about iter0
-=#
+# @time include("plot_divergence_depth.jl")
+# #=Same as above but looking at anomalies about iter0
+# =#
 @time include("plot_divergence_depth_deltas.jl")
 @time include("plot_divergence_depth_deltas_anomaly.jl")
 

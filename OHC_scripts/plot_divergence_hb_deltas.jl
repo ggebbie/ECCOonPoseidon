@@ -49,14 +49,7 @@ pts = zeros(2, 4)
 for (i, key) in enumerate(keys(shortnames))
     expname = key
     println("loading surface θ")
-    @time @load datadir(filedir*surf_fname*"_"*expname* ".jld2") var_exp
-    θ_surf = []
-    for tt in 1:length(tecco)
-        push!(θ_surf, volume_mean(var_exp[tt]; weights = cell_volumes[:, 1]))
-    end
-
-    θ_surf = remove_seasonal_keep_mean(θ_surf,Ecycle,Fcycle)
-    θsurf_noszn[key] = θ_surf
+    θsurf_noszn[key] = remove_seasonal_keep_mean(θ_surf[key],Ecycle,Fcycle)
     θ_deep = remove_seasonal_keep_mean(θz[key],Ecycle,Fcycle)
 
     axs_smooth[1].plot(tecco, θ_surf, label = key)
