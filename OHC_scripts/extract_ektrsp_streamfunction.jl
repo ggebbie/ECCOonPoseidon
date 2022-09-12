@@ -5,7 +5,8 @@ include("../src/OHC_helper.jl")
 
 using Revise
 using ECCOonPoseidon, ECCOtour,
-    MeshArrays, MITgcmTools, JLD2, DrWatson, BenchmarkTools
+    MeshArrays, MITgcmTools, JLD2, 
+    DrWatson, BenchmarkTools, LaTeXStrings
 using .OHC_helper
 using Plots
 using ColorSchemes
@@ -52,7 +53,7 @@ end
 function extract_meridionalΨEK(expname,diagpath,fileroot, Γ, γ, Hinv, finv, mask)
     #exf_zflux_set1
     filelist = searchdir(diagpath[expname],fileroot) # first filter for state_3d_set1
-    datafilelist  = filter(x -> occursin("data",x),filelist)[24:288] # second filter for "data"
+    datafilelist  = filter(x -> occursin("data",x),filelist)[24:30] # second filter for "data"
     LC=LatitudeCircles(-89.0:89.0,Γ)
     nz=size(Γ.hFacC,2); nl=length(LC); nt = length(datafilelist)
 
@@ -104,11 +105,13 @@ function plot_zonal_contours(X, Y, zonal_var, clims, title)
     return jcf
 end
 
-function plot_Ψ_mean(X, Y, Ψ_zonal, clims, Ψ_sym)
+function plot_Ψ_mean(X, Y, Ψ_zonal, Ψ_labels, clims, Ψ_sym)
     ps = Vector{Any}(missing, length(keys(Ψ_zonal)))
+    i = [0] 
     for (i, ex) in enumerate(keys(Ψ_zonal))
-        ps[i] = plot_zonal_contours(X, Y, 1e-6 .* Ψ_zonal[ex]', 
-        clims, ex)
+        i .+= 1 
+        ps[i[1]] = plot_zonal_contours(X, Y, 1e-6 .* Ψ_zonal[ex]', 
+        clims, Ψ_labels[i[1]])
     end
     l = @layout [a;b;c]
     p = Plots.plot(ps[1], ps[2], ps[3], size=(1401,1401), link = :both,
@@ -125,7 +128,7 @@ Hinv = smush(get_cell_depths(msk, ΔzF, Γ.hFacC)); Hinv[findall(Hinv .== 0)] = 
 Hinv = 1 ./ Hinv; Hinv = Float32.(Hinv)
 
 f0(ϕ) = abs(ϕ) > 2 ? (2 * (2π / 86400) * sind(ϕ)) : Inf32
-fs = MeshArray(γ,Float32,1)[:, 1]; fs.f .= map.(x -> f0(x), ϕ.f)
+fs = MeshArray(γ,Float32,1)[:, 1]; fs.f .= map.(x -> f0.(x), ϕ.f)
 finv = 1 ./ fs; finv = Float32.(finv) 
 
 @time for (key,values) in shortnames
@@ -139,15 +142,18 @@ end
 clims = 1e-6 .* extrema(Ψ_exp_mean)
 clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
 Ψ_sym = L"\Psi_{Ek}"
-p = plot_Ψ_mean(X, Y, Ψ_exp_mean, clims, Ψ_sym)
+Ψ_exp_labels = [L"\Psi_{129}", L"\Psi_{\Delta F}",
+                L"\Psi_{\Delta T}", L"\Psi_{0}"]
+p = plot_Ψ_mean(X, Y, Ψ_exp_mean, Ψ_exp_labels, clims, Ψ_sym)
 savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean_zonal_"* 
 region * ".png")
 
 Ψ_exp_mean_anom = Dict(key => Ψ_exp_mean[key] .- Ψ_exp_mean["iter0_bulkformula"] 
                     for key in keys(Ψ_exp_mean))
+Ψ̄_anom_labels = [exp * L"- \Psi_{0}" for exp in Ψ_exp_labels]      
 clims = 1e-6 .* extrema(Ψ_exp_mean_anom)
 clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
-Ψ_sym = L"\Psi_{Ek}'"
-p = plot_Ψ_mean(X, Y, Ψ_exp_mean, clims, Ψ_sym)
+Ψ_sym = L"\Psi_{Ek}" * "Anomalies"
+p = plot_Ψ_mean(X, Y, Ψ_exp_mean_anom, Ψ̄_anom_labels, clims, Ψ_sym)
 savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean_zonal_initanom_"* 
 region * ".png")

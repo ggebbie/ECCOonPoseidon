@@ -11,7 +11,9 @@ export patchvolume, calc_OHC, get_cell_volumes, standardize,
        perc_diff, resid, slice, element_gs, volume_mean, slice_mavec, 
        get_trend, ma_horiz_avg, remove_anomaly, ma_zonal_avg, ma_zonal_sum,
        nanmaximum, nanminimum, load_object_compress, load_and_calc_UV_conv,
-       diff_ma_vec, level_timeseries!, total_level_change
+       diff_ma_vec, level_timeseries!, total_level_change, 
+       extract_θRbudget, extract_θHbudget, calc_UV_conv3D!, exch_UV_cs3D,
+       filter_heat_budget, extract_sθ, ThroughFlowDim, extract_meridionalΨ
 
 
 export RMSE, RelDiff
@@ -20,6 +22,7 @@ using ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools,
     PyPlot, JLD2, CodecZlib, DrWatson, FFTW, NetCDF,
     Printf, PyCall, RollingFunctions
+import NaNMath as nm 
 import CairoMakie as Mkie
 import Base: vec
 import Statistics: mean, std
@@ -47,6 +50,15 @@ element_gs(i,j, gs) = get(gs, (i,j))
 remove_anomaly(data) = Dict(key => data[key] .- mean(data[key]) for key in keys(data))
 nanmaximum(a) = maximum(filter(!isnan,a)) 
 nanminimum(a) = minimum(filter(!isnan,a)) 
+
+
+import Base: extrema
+function extrema(d::Dict)
+    extremas = map(x-> nm.extrema(x), values(d))
+    clims = (minimum(minimum.(extremas)), maximum(maximum.(extremas)))
+    return clims
+end
+
 
 function div_ma(ma1::MeshArray, ma2::MeshArray; fillval = nothing)
     temp = similar(ma1)
@@ -545,7 +557,7 @@ function rm_vals(dict, new_vals)
 end
 
 function PAC_mask(Γ, basins, basin_list, ϕ, λ; region = "", 
-    extent = "model-defined")
+    extent = "model-defined", include_bering = false)
     ocean_mask = wet_pts(Γ)
     basin_name="Pacific"
     
@@ -570,19 +582,20 @@ function PAC_mask(Γ, basins, basin_list, ϕ, λ; region = "",
         bounds[1] = 50.0
         bounds[2] = -56.0
     else 
-        bounds[1] = 50.0
+        bounds[1] = 80.0
         bounds[2] = -40.0
     end
-    println(region)
     full_extent = (extent == "full")
+    (full_extent) && (include_bering = true )
+
     for ff in 1:5
         to_continents = (-180 .<= λ[ff] .<= -75) .+ (105 .<= λ[ff] .<= 180)
         above_SO = (bounds[2] .< ϕ[ff] .< bounds[1]) #make this go to bering strait
         marginal_seas = (basins[ff] .== basinID1) .+ (basins[ff] .== basinID2) .+ 
-                        (basins[ff] .== basinID3) .+ (basins[ff] .== basinID4) .+ 
-                        (basins[ff] .== basinID5)
+                        (basins[ff] .== basinID3) .+ (basins[ff] .== basinID4)
+        BeringSea     = (basins[ff] .== basinID5)
         model_PAC     = (basins[ff] .== basinID) 
-        temp = model_PAC .+ (full_extent .* marginal_seas)
+        temp = model_PAC .+ (full_extent .* marginal_seas) .+ (include_bering .* BeringSea)
         PAC_msk[ff] .= ocean_mask[ff] .* temp .* above_SO
     end
 
@@ -624,7 +637,7 @@ function plot_ts!(var_dict, tecco, shortnames, ignore_list, ax;
             ax.legend()
         end
     end
-end
+end 
 
 function smush(ma)
     temp = similar(ma[:, 1])
@@ -731,14 +744,16 @@ end
 
 function calc_UV_conv(fldU::MeshArrays.gcmarray{T, 2, Matrix{T}}, 
                         fldV::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
-    temp = similar(fldU)
+                        
     nlvls = size(fldU, 2)
+    temp = similar(fldU)
 
     for lvl in 1:nlvls
         temp.f[:, lvl] .= MeshArrays.convergence(fldU[:, lvl], fldV[:, lvl]).f
     end
     return temp
 end
+
 
 function prune(x)
     idx = sortperm(x)
@@ -958,6 +973,184 @@ function total_level_change(level_reconstruction::Dict, θ1, crop_vols, lvls)
     return total_change
 end
 
+function exch_UV_cs3D(fldU::MeshArrays.gcmarray{T, 2, Matrix{T}},
+    fldV::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
+    fillval=0f0
+    #step 1
+
+    s=size.(fldU[:, 1].f)
+    nz = size(fldU, 2)
+    nf=fldU.grid.nFaces
+    s=vcat(s,s[3]) #always has 5 faces in LLC90
+    tp=fldU.grid.class
+
+    FLDU=similar(fldU)
+    FLDV=similar(fldV)
+    (ovfW,ovfE,ovfS,ovfN,evfW,evfE,evfS,evfN)=MeshArrays.exch_cs_viewfunctions();
+    for lvl=1:nz, a=1:nf
+        @inbounds FLDU.f[a, lvl] = fill(fillval,s[a][1]+1,s[a][2]);
+        @inbounds FLDV.f[a, lvl] = fill(fillval,s[a][1],s[a][2]+1);
+        @inbounds @views FLDU.f[a, lvl][1:s[a][1],1:s[a][2]] = fldU.f[a, lvl];
+        @inbounds @views FLDV.f[a, lvl][1:s[a][1],1:s[a][2]] = fldV.f[a, lvl];
+
+        (jW, jE, jS, jN)=MeshArrays.exch_cs_target(s[a],1)
+        (aW,aE,aS,aN,iW,iE,iS,iN)=MeshArrays.exch_cs_sources(a,s,1)
+
+        if (!iseven)(a)
+            (aE <= nf) && (@inbounds FLDU.f[a, lvl][jE[1].-1,jE[2].-1].=ovfE(fldU.f[aE, lvl],iE[1],iE[2]))
+            (aN <= nf) && (@inbounds FLDV.f[a, lvl][jN[1].-1,jN[2].-1].=ovfN(fldU.f[aN, lvl],iN[1],iN[2]))
+        else
+            (aE <= nf) && (@inbounds FLDU.f[a, lvl][jE[1].-1,jE[2].-1].=evfE(fldV.f[aE, lvl],iE[1],iE[2]))
+            (aN <= nf) && (@inbounds FLDV.f[a, lvl][jN[1].-1,jN[2].-1].=evfN(fldV.f[aN, lvl],iN[1],iN[2]))
+        end
+    end
+    return FLDU,FLDV
+
+end
+
+function calc_UV_conv3D!(uFLD::MeshArrays.gcmarray{T, 2, Matrix{T}}, 
+vFLD::MeshArrays.gcmarray{T, 2, Matrix{T}}, CONV::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
+    tmpU, tmpV = exch_UV_cs3D(uFLD,vFLD)
+    for a in eachindex(uFLD.f)
+        (s1,s2)=size(uFLD.f[a])
+        @inbounds tmpU1=view(tmpU.f[a],1:s1,1:s2)
+        @inbounds tmpU2=view(tmpU.f[a],2:s1+1,1:s2)
+        @inbounds tmpV1=view(tmpV.f[a],1:s1,1:s2)
+        @inbounds tmpV2=view(tmpV.f[a],1:s1,2:s2+1)
+        @inbounds CONV.f[a] = tmpU1-tmpU2+tmpV1-tmpV2
+    end
+end
+
+"""
+function extract_sst34
+extract by reading multiple files
+"""
+function extract_θHbudget(expname::String,diagpath::Dict{String, String}, 
+γ::gcmgrid, fnameH::String)
+    dθλ = γ.read(diagpath[expname]*fnameH,MeshArray(γ,Float32,200))
+    κθx, κθy = MeshArray(γ,Float32,50),MeshArray(γ,Float32,50) 
+    uθx, uθy = MeshArray(γ,Float32,50),MeshArray(γ,Float32,50)
+    d = Dict(name => MeshArray(γ,Float32,50) for name in ["AdvH", "DiffH"])
+    @inbounds κθx.f .= dθλ.f[ :, 1:50]; @inbounds κθy.f .= dθλ.f[:, 51:100]
+    @inbounds uθx.f .= dθλ.f[:, 101:150]; @inbounds uθy.f .= dθλ.f[:, 151:200]
+    calc_UV_conv3D!(κθx, κθy, d["DiffH"]); 
+    calc_UV_conv3D!(uθx, uθy, d["AdvH"]);
+    return d
+end
+
+function extract_θRbudget(expname::String,diagpath::Dict{String, String}, 
+γ::gcmgrid, fnameR::String)
+    d = Dict(name => MeshArray(γ,Float32,50) for name in ["AdvR", "DiffR"])
+    dθr = γ.read(diagpath[expname]*fnameR,MeshArray(γ,Float32,150))
+    @inbounds d["AdvR"].f .= dθr.f[:, 1:50];
+    @inbounds d["DiffR"].f .= @views dθr.f[ :, 51:100] .+ dθr.f[ :, 101:150];
+    @inbounds d["AdvR"].f[ :, 1:49] .= @views d["AdvR"].f[:, 1:49] .- d["AdvR"].f[:, 2:50]
+    @inbounds d["DiffR"].f[ :, 1:49] .= @views d["DiffR"].f[:, 1:49] .- d["DiffR"].f[:, 2:50]
+    return d
+end
+function extract_sθ(expname::String,diagpath::Dict{String, String}, 
+    γ::gcmgrid, fnameS::String, fnameθ::String, 
+    inv_depths::MeshArrays.gcmarray{T, 1, Matrix{T}}) where T 
+    θ = γ.read(diagpath[expname]*fnameθ,MeshArray(γ,Float32,50))
+    ETAN = γ.read(diagpath[expname]*fnameS,MeshArray(γ,Float32,1))
+    sθ = similar(θ)
+
+    s1 = ETAN .* inv_depths
+    s1 .+= 1
+    sθ = θ .* s1
+    return sθ
+end
+
+
+"""
+    ThroughFlow(VectorField,IntegralPath,Γ::NamedTuple)
+
+Compute transport through an integration path. Taken from Forget JuliaClimate/transport 
+notebook. Removed if-statements and related code for a speedup. 
+"""
+function ThroughFlowDim(U::MeshArrays.gcmarray{T, 1, Matrix{T}}, 
+                        V::MeshArrays.gcmarray{T, 1, Matrix{T}}, 
+                        IntegralPath) where {T<:Real}
+
+    #Note: vertical intergration is not always wanted; left for user to do outside
+    nd=ndims(U)
+    n=fill(1,4)
+    tmp=size(U)
+    n[1:nd].=tmp[1:nd]
+    trsp=Array{Float64}(undef,1,n[3],n[4])
+    for i3=1:n[3]
+        tabW=IntegralPath.tabW
+        tabS=IntegralPath.tabS
+        for i4=1:n[4]
+            trsp[1,i3,i4]=0.0
+            for k=1:size(tabW,1)
+                @inbounds (a,i1,i2,w)=tabW[k,:]
+                @inbounds u=U.f[a,i3,i4][i1,i2]
+                @inbounds trsp[1,i3,i4]=trsp[1,i3,i4]+w*u
+            end
+            for k=1:size(tabS,1)
+                @inbounds (a,i1,i2,w)=tabS[k,:]
+                @inbounds v=V.f[a,i3,i4][i1,i2]
+                @inbounds trsp[1,i3,i4]=trsp[1,i3,i4]+w*v
+            end
+        end
+    end
+    return trsp[1]
+end
+
+
+"""
+    function extract_sst34
+    extract by reading multiple files
+"""
+function extract_meridionalΨ(expname,diagpath, Γ, γ, mask)
+    fileroot = "trsp_3d_set1"
+    filelist = searchdir(diagpath[expname],fileroot) # first filter for state_3d_set1
+    datafilelist  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+
+    LC=LatitudeCircles(-89.0:89.0,Γ)
+    nz=size(Γ.hFacC,2); nl=length(LC); nt = length(datafilelist)
+    Ψs = zeros(nt, nl, nz)
+    Threads.@threads for tt=1:nt
+        fname = datafilelist[tt]
+        UVTrsp = γ.read(diagpath[expname]*fname,MeshArray(γ,Float32,100))
+        UVTrsp = UVTrsp .* mask
+        @inbounds UTrsp = UVTrsp[:, 1:50] #small speed-up
+        @inbounds VTrsp = UVTrsp[:, 51:100]
+        (Utr,Vtr) = UVtoTransport(UTrsp,VTrsp,Γ)
+        ov=Array{Float64,2}(undef,nl,nz)
+        for z=1:nz
+            #do this to efficiently access data over "l" loop
+            #speed up is 6x (from 1hr to 12 minutes)
+            @inbounds Uz = Utr[:,z] 
+            @inbounds Vz = Vtr[:,z]
+            for l=1:nl
+                @inbounds ov[l,z] = ThroughFlowDim(Uz,Vz, LC[l])            
+            end
+        end
+        ov=reverse(cumsum(reverse(ov,dims=2),dims=2),dims=2)
+        ψ = ov; ψ[ψ.==0.0].=NaN
+        Ψs[tt, :, :] .= ψ
+        GC.safepoint()
+    end
+    return Ψs
+end
+
+
+
+function plot_zonal_contours(X, Y, zonal_var, clims, title)
+    jcf = Plots.contourf(X, Y, reverse(zonal_var, dims = 1),
+    xlabel = "latitude [º]",
+    xticks = -70:20:70,
+    ylabel = "depth [m]", 
+    linewidth = 0.1,
+    clim = clims,
+    c = :balance, 
+    colorbar_title= "°C",
+    title = title, 
+    titlefontsize = 12)
+    return jcf
+end
 
 end
 # @load datadir("ECCO_vars/ADVx_TH_iter129_bulkformula.jld2")
