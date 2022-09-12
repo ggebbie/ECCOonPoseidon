@@ -104,40 +104,18 @@ function plot_zonal_contours(X, Y, zonal_var, clims, title)
     return jcf
 end
 
-function plot_all_zonal_Ψ(X, Y, Ψ_zonal, nt::Int64, tecco, clims)
-    Ψ_sym = L"\Psi_{Ek}" * " "
-    exps = collect(keys(Ψ_zonal))
-    a = Animation()
-    ps = Vector{Any}(missing, length(exps))
-    for tt in 1:nt
-        for (i, ex) in enumerate(exps)
-            ps[i] = plot_zonal_contours(X, Y, 1e-6 .* Ψ_zonal[ex][tt, :, :]', 
-            clims, ex)
-        end
-        l = @layout [a;b;c; d]
-        p = Plots.plot(ps[1], ps[2], ps[3], ps[4], size=(1401, 1867), link = :both,
-        plot_title =  "Zonally averaged " * Ψ_sym * region * "\n Time: " * 
-        string(round(tecco[tt], digits = 6)),
-        plot_titlefontsize	= 17, plot_titlevspan = 0.075, layout = l)
-        frame(a, p)
+function plot_Ψ_mean(X, Y, Ψ_zonal, clims, Ψ_sym)
+    ps = Vector{Any}(missing, length(keys(Ψ_zonal)))
+    for (i, ex) in enumerate(keys(Ψ_zonal))
+        ps[i] = plot_zonal_contours(X, Y, 1e-6 .* Ψ_zonal[ex]', 
+        clims, ex)
     end
-    return a
+    l = @layout [a;b;c]
+    p = Plots.plot(ps[1], ps[2], ps[3], size=(1401,1401), link = :both,
+    plot_title =  "Time mean "* Ψ_sym  * " "* region,
+    plot_titlefontsize	= 17, plot_titlevspan = 0.1, layout = l)
+    return p 
 end
-
-function plot_Ψ(X, Y, Ψ_zonal, expname, nt::Int64, tecco, clims)
-    a = Animation()
-    for tt in 1:nt
-        ps = plot_zonal_contours(X, Y, 1e-6 .* Ψ_zonal[expname][tt, :, :]', 
-        clims, expname)
-        p = Plots.plot(ps, size=(1400, 700), link = :both,
-        plot_title =  "Zonally averaged Ψ "* region * "\n Time: " * 
-        string(round(tecco[tt], digits = 6)),
-        plot_titlefontsize = 12, plot_titlevspan = 0.1)
-        frame(a, p)
-    end
-    return a
-end
-
 
 fileroot = "state_2d_set1"
 Ψ_exp = Dict()
@@ -146,8 +124,8 @@ X=(collect(-89.0:89.0)); Y=reverse(z); #coordinate variables
 Hinv = smush(get_cell_depths(msk, ΔzF, Γ.hFacC)); Hinv[findall(Hinv .== 0)] = Inf
 Hinv = 1 ./ Hinv; Hinv = Float32.(Hinv)
 
-f(ϕ) = abs(ϕ) > 2 ? (2 * (2π / 86400) * sin(deg2rad(ϕ))) : Inf32
-fs = MeshArray(γ,Float32,1)[:, 1]; fs.f .= map.(x -> f(x), ϕ)
+f0(ϕ) = abs(ϕ) > 2 ? (2 * (2π / 86400) * sind(ϕ)) : Inf32
+fs = MeshArray(γ,Float32,1)[:, 1]; fs.f .= map.(x -> f0(x), ϕ.f)
 finv = 1 ./ fs; finv = Float32.(finv) 
 
 @time for (key,values) in shortnames
@@ -160,16 +138,8 @@ end
 
 clims = 1e-6 .* extrema(Ψ_exp_mean)
 clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
-
-ps = Vector{Any}(missing, length(keys(shortnames)))
-for (i, ex) in enumerate(keys(shortnames))
-    ps[i] = plot_zonal_contours(X, Y, 1e-6 .* Ψ_exp_mean[ex]', 
-    clims, ex)
-end
-l = @layout [a;b;c]
-p = Plots.plot(ps[1], ps[2], ps[3], size=(1401,1401), link = :both,
-plot_title =  "Zonally averaged Ψ̄ "* region ,
-plot_titlefontsize	= 17, plot_titlevspan = 0.1, layout = l)
+Ψ_sym = L"\Psi_{Ek}"
+p = plot_Ψ_mean(X, Y, Ψ_exp_mean, clims, Ψ_sym)
 savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean_zonal_"* 
 region * ".png")
 
@@ -177,41 +147,7 @@ region * ".png")
                     for key in keys(Ψ_exp_mean))
 clims = 1e-6 .* extrema(Ψ_exp_mean_anom)
 clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
-
-for (i, ex) in enumerate(keys(shortnames))
-    ps[i] = plot_zonal_contours(X, Y, 1e-6 .* Ψ_exp_mean_anom[ex]', 
-    clims, ex)
-end
-l = @layout [a;b;c]
-p = Plots.plot(ps[1], ps[2], ps[3], size=(1401,1401), link = :both,
-plot_title =  "Zonally averaged Ψ̄ Anomaly "* region,
-plot_titlefontsize	= 17, plot_titlevspan = 0.1, layout = l)
+Ψ_sym = L"\Psi_{Ek}'"
+p = plot_Ψ_mean(X, Y, Ψ_exp_mean, clims, Ψ_sym)
 savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean_zonal_initanom_"* 
 region * ".png")
-
-# clims = 1e-6 .* extrema(Ψ_exp)
-# nt = length(tecco)
-# a = plot_all_zonal_Ψ(X, Y, Ψ_exp, nt, tecco, clims)
-# mp4(a, plotsdir() * "/OHC_Divergence/Gifs/" * "Ψ_zonalavg_" * 
-# region * ".mp4", fps = 5)
-
-# expname = "iter129_bulkformula"
-# explabel = "iter129"
-# a = plot_Ψ(X, Y, Ψ_exp, expname, nt, tecco, clims)
-# mp4(a, plotsdir() * "/OHC_Divergence/Gifs/" * "Ψ_zonalavg_" * explabel * "_" *  
-# region * ".mp4", fps = 5)
-
-# Ψ_exp_anom = Dict(key => Ψ_exp[key] .- Ψ_exp["iter0_bulkformula"] 
-#                     for key in keys(Ψ_exp))
-# clims = 1e-6 .* extrema(Ψ_exp_anom)
-# clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
-
-# a = plot_all_zonal_Ψ(X, Y, Ψ_exp_anom, nt, tecco, clims)
-# mp4(a, plotsdir() * "/OHC_Divergence/Gifs/" * "Ψ_zonalavg_iter0anom_" * 
-# region * ".mp4", fps = 5)
-
-# expname = "iter129_bulkformula"
-# explabel = "iter129"
-# a = plot_Ψ(X, Y, Ψ_exp_anom, expname, nt, tecco, clims)
-# mp4(a, plotsdir() * "/OHC_Divergence/Gifs/" * "Ψ_zonalavg_iter0anom_" * explabel * "_" *  
-# region * ".mp4", fps = 5)
