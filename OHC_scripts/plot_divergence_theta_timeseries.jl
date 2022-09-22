@@ -6,11 +6,11 @@ mpatches = pyimport("matplotlib.patches")
 lines = pyimport("matplotlib.lines")
 Line2D = lines.Line2D
 
+tecco = 1992+1/24:1/12:2018; tecco = collect(tecco)
 
 fig, ax = plt.subplots(1, 1, figsize = (12, 9))
 ax.set_title(region *  " θ̄,  z=2-3km")
 plot_ts!(θz, tecco, shortnames, ignore_list, ax; ylabel =  L" ^\circ C", linestyle = "-")
 fig.tight_layout()
-fig.savefig(plotsdir() * "/OHC_Divergence/Reconstructions/" * "θAverage_" * region * suffix * ".png")
+fig.savefig(plotsdir() * "/OHC_Divergence/Reconstructions/" * "AvgθTS_" * region * suffix * ".png")
 close("all")
-

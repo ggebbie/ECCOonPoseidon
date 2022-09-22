@@ -1,6 +1,6 @@
 #analysis should complete within 4 minutes 
 #using 1 threads 
-# julia --threads=4 --project=@. ./extract_heat_budget_native.jl
+# julia --threads=4 --project=@. ./extract_theta_native.jl
 
 include("../src/intro.jl")
 include("../src/OHC_helper.jl")
@@ -38,20 +38,23 @@ PAC_msk = OHC_helper.PAC_mask(Γ, basins, basin_list, ϕ, λ;
                             region, include_bering = false)
 msk = PAC_msk;
 (msk == ocean_mask) && (region = "GLOB")
-suffix = "2to3"
-uplvl = -2e3; botlvl = -3e3
+suffix = ""
+uplvl = -Inf; botlvl = -Inf
 lvls = findall( botlvl .<= z[:].<= uplvl)
 
-cell_depths = get_cell_depths(msk, ΔzF, Γ.hFacC); cell_volumes = get_cell_volumes(area, cell_depths);
+cell_depths = get_cell_depths(msk, ΔzF, Γ.hFacC); 
+cell_volumes = get_cell_volumes(area, cell_depths);
 smush_depths = smush(cell_depths); smush_depths[findall(smush_depths .== 0)] = Inf
 inv_depths = 1 ./ smush_depths
 
 function filter_θ(γ::gcmgrid, diagpath::Dict{String, String}, expname::String, 
     θz::Dict, θ_depths::Dict, θ_zonal::Dict, θsurf::Dict, 
-    lvls::Vector{Int64}, inv_depths::MeshArrays.gcmarray{T, 1, Matrix{T}},
+    lvls::Vector{Int64}, 
+    mask ::MeshArray,
+    inv_depths::MeshArrays.gcmarray{T, 1, Matrix{T}},
     cell_volumes::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T <: Real
 
-    vol_weight(x) = Float32(sum(x .* msk) / tot_vol)
+    vol_weight(x::MeshArray) = Float32(sum(x .* mask) / tot_vol)
 
     filelist = searchdir(diagpath[expname],"state_2d_set1") # first filter for state_3d_set1
     datafilelist_S  = filter(x -> occursin("data",x),filelist) # second filter for "data"
@@ -70,12 +73,13 @@ function filter_θ(γ::gcmgrid, diagpath::Dict{String, String}, expname::String,
         fnameS = datafilelist_S[tt]
         fnameθ = datafilelist_θ[tt]
         sθ = extract_sθ(expname,diagpath, γ, fnameS, fnameθ, inv_depths)
-        sθ_mask = sθ[:, lvls] .* msk #apply mask and crop 
+        sθ_mask = sθ[:, lvls] .* mask #apply mask and crop 
 
-        θsurf[expname][tt] = Float32.(volume_mean(sθ[:, 1] .* msk; weights = cell_volumes[:, 1]))
+        θsurf[expname][tt] = Float32.(volume_mean(sθ[:, 1] .* mask; weights = cell_volumes[:, 1]))
         θz[expname][tt] = Float32.(volume_mean(sθ_mask; weights = cell_volumes[:, lvls]))
         θ_depths[expname][:, tt] .= ma_horiz_avg(sθ_mask, cell_volumes[:, lvls])
         θ_zonal[expname][:, :, tt] .= ma_zonal_avg(sθ_mask, cell_volumes[:, lvls])
+        θ_zonal[expname][:, :, tt][θ_zonal[expname][:, :, tt] .== 0.0].=NaN
         GC.safepoint()
     end
 end
@@ -85,14 +89,18 @@ end
 @time for expname in keys(shortnames)
     println(expname)
     filter_θ(γ, diagpath, expname, 
-                       θz, θ_depths, θ_zonal, θsurf, 
-                       lvls, inv_depths, cell_volumes)
+             θz, θ_depths, θ_zonal, θsurf, 
+             lvls, msk, inv_depths, cell_volumes)
 end
 
 #=Tries to reconstruct iter129 from iter0, nosfc & no init 
 using MLR
 =#
 @time include("plot_divergence_theta_LinReg.jl")
+
+#constrained parameter search on convex domain
+@time include("plot_divergence_theta_LinRegConvex.jl")
+
 
 #=Plots temperature climatologies, could also plot changes
 =#
@@ -102,9 +110,9 @@ using MLR
 #=ceates a depth-latitude plot of temperature changes
 with respect to iter0
 =#
-@time include("plot_divergence_theta_verticalTS.jl")
+# @time include("plot_divergence_theta_verticalTS.jl")
 
 
-#creates a depth-latitude plot of temperature changes
+# #creates a depth-latitude plot of temperature changes
 
-@time include("plot_divergence_theta_zonal.jl") 
+# @time include("plot_divergence_theta_zonal.jl") 

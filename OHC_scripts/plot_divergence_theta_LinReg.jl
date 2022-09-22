@@ -16,19 +16,13 @@ noinit_predict = (df_anom.noinitadjust) .+ df.iter129_bulkformula
 nosfc_predict = (df_anom.nosfcadjust) .+ df.iter129_bulkformula 
 
 fig, ax = plt.subplots(1, figsize = (15, 10))
-ax.set_title(L"θ^{0}" * " ≈  $ΔF ΔF + $ΔT ΔT + " *L"θ^{129}" * "\n"*
-             L"θ^{\Delta T}" * " = ΔT + " *L"θ^{129}" * "\n"*
-             L"θ^{\Delta F}" * " = ΔF + " *L"θ^{129}")
+ax.set_title(L"θ^{0}" * " ≈  $ΔF ΔF + $ΔT ΔT + " *L"θ^{129}" * "\n")
 
 # fig.suptitle("Applying NNLinear Regression using sensitivity Experiments \n " * suffix * " " * region * reference_text)
 ax.plot(tecco, df.iter129_bulkformula, c = colors[1], label = L"\theta^{129}")
-ax.plot(tecco, df.noinitadjust,  c = colors[2], label = L"\theta^{\Delta F}")
-ax.plot(tecco, df.nosfcadjust,  c = colors[3], label = L"\theta^{\Delta T}")
 ax.plot(tecco, df.iter0_bulkformula,  c = colors[4], label = L"\theta^{0}")
 
 ax.plot(tecco, iter129_predict, c = colors[1], linestyle = "--")
-ax.plot(tecco, noinit_predict,c = colors[2], linestyle = "--")
-ax.plot(tecco, nosfc_predict, c = colors[3], linestyle = "--")
 ax.plot(tecco, iter0_predict, c = colors[4], linestyle = "--")
 
 # ax.fill_between(tecco, iter129_predict, df.iter129_bulkformula, color = "grey", 
@@ -55,19 +49,13 @@ nosfc_predict = (df_anom.nosfcadjust) .+ df.iter0_bulkformula
 # iter0_predict = Float32.(iter0_predict)
 
 fig, ax = plt.subplots(1, figsize = (15, 10))
-ax.set_title(L"θ^{129}" * " ≈  $ΔF ΔF + $ΔT ΔT + " *L"θ^{0}" * "\n"*
-             L"θ^{\Delta T}" * " = ΔT + " *L"θ^{0}" * "\n"*
-             L"θ^{\Delta F}" * " = ΔF + " *L"θ^{0}")
+ax.set_title(L"θ^{129}" * " ≈  $ΔF ΔF + $ΔT ΔT + " *L"θ^{0}" * "\n")
 
 # fig.suptitle("Applying NNLinear Regression using sensitivity Experiments \n " * suffix * " " * region * reference_text)
 ax.plot(tecco, df.iter129_bulkformula, c = colors[1], label = L"\theta^{129}")
-ax.plot(tecco, df.noinitadjust,  c = colors[2], label = L"\theta^{\Delta F}")
-ax.plot(tecco, df.nosfcadjust,  c = colors[3], label = L"\theta^{\Delta T}")
 ax.plot(tecco, df.iter0_bulkformula,  c = colors[4], label = L"\theta^{0}")
 
 ax.plot(tecco, iter129_predict, c = colors[1], linestyle = "--")
-ax.plot(tecco, noinit_predict,c = colors[2], linestyle = "--")
-ax.plot(tecco, nosfc_predict, c = colors[3], linestyle = "--")
 ax.plot(tecco, iter0_predict, c = colors[4], linestyle = "--")
 
 # ax.fill_between(tecco, iter129_predict, df.iter129_bulkformula, color = "grey", 
