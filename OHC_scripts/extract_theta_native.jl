@@ -38,8 +38,8 @@ PAC_msk = OHC_helper.PAC_mask(Γ, basins, basin_list, ϕ, λ;
                             region, include_bering = false)
 msk = PAC_msk;
 (msk == ocean_mask) && (region = "GLOB")
-suffix = ""
-uplvl = -Inf; botlvl = -Inf
+suffix = "2to3"
+uplvl = -2e3; botlvl = -3e3
 lvls = findall( botlvl .<= z[:].<= uplvl)
 
 cell_depths = get_cell_depths(msk, ΔzF, Γ.hFacC); 
@@ -77,11 +77,11 @@ function filter_θ(γ::gcmgrid, diagpath::Dict{String, String}, expname::String,
 
         θsurf[expname][tt] = Float32.(volume_mean(sθ[:, 1] .* mask; weights = cell_volumes[:, 1]))
         θz[expname][tt] = Float32.(volume_mean(sθ_mask; weights = cell_volumes[:, lvls]))
-        θ_depths[expname][:, tt] .= ma_horiz_avg(sθ_mask, cell_volumes[:, lvls])
+        θ_depths[expname][:, tt] .= OHC_helper.ma_horiz_avg(sθ_mask, cell_volumes[:, lvls])
         θ_zonal[expname][:, :, tt] .= ma_zonal_avg(sθ_mask, cell_volumes[:, lvls])
-        θ_zonal[expname][:, :, tt][θ_zonal[expname][:, :, tt] .== 0.0].=NaN
         GC.safepoint()
     end
+    θ_zonal[expname][θ_zonal[expname] .== 0 ] .= NaN
 end
 
 θz, θ_depths, θ_zonal = Dict(), Dict(), Dict()
@@ -116,3 +116,4 @@ with respect to iter0
 # #creates a depth-latitude plot of temperature changes
 
 # @time include("plot_divergence_theta_zonal.jl") 
+# @time include("plot_divergence_theta_zonal_mean.jl") 

@@ -25,45 +25,45 @@ ocean_mask = wet_pts(Γ)
 region = "NPAC"; 
 PAC_msk = OHC_helper.PAC_mask(Γ, basins, basin_list, ϕ, λ; 
 region, extent = "full")
-msk = PAC_msk;
+msk = ocean_mask;
 (msk == ocean_mask) && (region = "GLOB")
 tecco = 1992+1/24:1/12:2018
 
-"""
-    function getUeVe!
-    computes velocities resulting Geoman Transport and compensating return flow
-    U, V : empty arrays to be filled
-    η : (unrotated) windstress on sea surface 
-    finv : 1/f
-    Hinv : 1 / (total depth of column at (x, y))
-    hinv : 1 / (depth of surface cell at (x, y))
+# """
+#     function getUeVe!
+#     computes velocities resulting Geoman Transport and compensating return flow
+#     U, V : empty arrays to be filled
+#     η : (unrotated) windstress on sea surface 
+#     finv : 1/f
+#     Hinv : 1 / (total depth of column at (x, y))
+#     hinv : 1 / (depth of surface cell at (x, y))
 
-"""
-function getUVgeo!(U::MeshArrays.gcmarray{T, 2, Matrix{T}}, V::MeshArrays.gcmarray{T, 2, Matrix{T}}, 
-    η::MeshArrays.gcmarray{T, 1, Matrix{T}}, 
-    Φ_hyd::MeshArrays.gcmarray{T, 2, Matrix{T}},
-    iDXC::MeshArrays.gcmarray{T, 1, Matrix{T}}, 
-    iDYC::MeshArrays.gcmarray{T, 1, Matrix{T}},
-    finv::MeshArrays.gcmarray{T, 1, Matrix{T}}) where {T<:Real}
-    g = 0.0; ρ0 = 1
-    P_anom = Φ_hyd
-    ∂xP = MeshArray(γ,Float32,50); ∂yP = MeshArray(γ,Float32,50); 
-    for z=1:50
-        P_anom_z = P_anom[:, z]
-        ∂xP_temp, ∂yP_temp = gradient(P_anom_z, iDXC, iDYC) 
-        ∂xP.f[:, z] .= ∂xP_temp.f; ∂yP.f[:, z] .= ∂yP_temp.f
-    end    
-    ∂xη, ∂yη = gradient(η, iDXC, iDYC) 
-    for ff in 1:5
-        ∂xη_ff = ∂xη.f[ff]; ∂yη_ff = ∂yη.f[ff]
-        ∂xP_ff = ∂xP.f[ff]; ∂yP_ff = ∂yP.f[ff]
-        finv_ff = finv[ff]
-        for k in 1:50
-            V.f[ff, k] .=  finv_ff .* (g.*∂xη_ff .+ ∂xP_ff)
-            U.f[ff, k] .= -finv_ff .* (g.*∂yη_ff .+ ∂yP_ff)
-        end
-    end
-end
+# """
+# function getUVgeo!(U::MeshArrays.gcmarray{T, 2, Matrix{T}}, V::MeshArrays.gcmarray{T, 2, Matrix{T}}, 
+#     η::MeshArrays.gcmarray{T, 1, Matrix{T}}, 
+#     Φ_hyd::MeshArrays.gcmarray{T, 2, Matrix{T}},
+#     iDXC::MeshArrays.gcmarray{T, 1, Matrix{T}}, 
+#     iDYC::MeshArrays.gcmarray{T, 1, Matrix{T}},
+#     finv::MeshArrays.gcmarray{T, 1, Matrix{T}}) where {T<:Real}
+#     g = 0.0; ρ0 = 1
+#     P_anom = Φ_hyd
+#     ∂xP = MeshArray(γ,Float32,50); ∂yP = MeshArray(γ,Float32,50); 
+#     for z=1:50
+#         P_anom_z = P_anom[:, z]
+#         ∂xP_temp, ∂yP_temp = gradient(P_anom_z, iDXC, iDYC) 
+#         ∂xP.f[:, z] .= ∂xP_temp.f; ∂yP.f[:, z] .= ∂yP_temp.f
+#     end    
+#     ∂xη, ∂yη = gradient(η, iDXC, iDYC) 
+#     for ff in 1:5
+#         ∂xη_ff = ∂xη.f[ff]; ∂yη_ff = ∂yη.f[ff]
+#         ∂xP_ff = ∂xP.f[ff]; ∂yP_ff = ∂yP.f[ff]
+#         finv_ff = finv[ff]
+#         for k in 1:50
+#             V.f[ff, k] .=  finv_ff .* (g.*∂xη_ff .+ ∂xP_ff)
+#             U.f[ff, k] .= -finv_ff .* (g.*∂yη_ff .+ ∂yP_ff)
+#         end
+#     end
+# end
 
 
 """
@@ -84,42 +84,43 @@ function getUVgeo_P0!(U::MeshArrays.gcmarray{T, 2, Matrix{T}}, V::MeshArrays.gcm
     iDXC::MeshArrays.gcmarray{T, 1, Matrix{T}}, iDYC::MeshArrays.gcmarray{T, 1, Matrix{T}}) where {T<:Real}
     
     g = 9.81
-    HηH = H .+ η; HηH = Hinv .*  HηH
+    HηH = (H .+ η); HηH = Hinv .* HηH 
     ∂xHηH, ∂yHηH = gradient(HηH, iDXC, iDYC) 
 
     zstar = MeshArray(γ,Float32,50)
-    for (ij, k) in eachindex(zstar)
-        @inbounds zstar.f[ij, k] .= H.f[ij] .* (z[k] .- η.f[ij]) .* inv.(H.f[ij] .+  η.f[ij])        
+    for ijk in eachindex(zstar)
+        @inbounds zstar.f[ijk] .= H.f[ijk[1]] .* (z[ijk[2]] .- η.f[ijk[1]]) .* inv.(H.f[ijk[1]] .+  η.f[ijk[1]])        
     end
-    
+    zstar[findall(zstar .== Inf)] .= 0
     for ff in 1:5
         ∂xHηH_ff = ∂xHηH.f[ff]; ∂yHηH_ff = ∂yHηH.f[ff]; finv_ff = finv[ff]
         for k in 1:50
-            V.f[ff, k] .= zstar[ff] .* finv_ff .* g .* ∂xHηH_ff
-            U.f[ff, k] .= -zstar[ff] .* finv_ff .* g .* ∂yHηH_ff
+            zstar_ffk = zstar.f[ff, k]
+
+            V.f[ff, k] .=  zstar_ffk .* finv_ff .* g .* ∂xHηH_ff
+            U.f[ff, k] .= -zstar_ffk .* finv_ff .* g .* ∂yHηH_ff
         end
     end
 end
 
-function extract_meridionalΨGeo(expname,diagpath, Γ, γ, H, Hinv, finv, z,mask)
+function extract_meridionalΨGeo(expname,diagpath, Γ, γ, H, Hinv, finv, z, mask)
     #exf_zflux_set1
     # fileroot2 = "state_3d_set2"
     # filelist = searchdir(diagpath[expname],fileroot2) # first filter for state_3d_set1
     # datafilelist2  = filter(x -> occursin("data",x),filelist) # second filter for "data"
     fileroot1 = "state_2d_set1"
     filelist = searchdir(diagpath[expname],fileroot1) # first filter for state_3d_set1
-    datafilelist1  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+    datafilelist1  = filter(x -> occursin("data",x),filelist)[1:36] # second filter for "data"
 
     LC=LatitudeCircles(-89.0:89.0,Γ)
     nz=size(Γ.hFacC,2); nl=length(LC); nt = length(datafilelist1)
     Ψs = zeros(nt, nl, nz)
     iDXC=MeshArray(γ,Float32,1)[:, 1]; iDYC=MeshArray(γ,Float32,1)[:, 1]
     for a=1:5
-        iDXC.f[a].= inv.(Γ.DXC.f[a])
-        iDYC.f[a].= inv.(Γ.DYC.f[a])
+        iDXC.f[a].= inv.(Γ.DXC.f[a]); iDYC.f[a].= inv.(Γ.DYC.f[a])
     end
     hFacC =  Γ.hFacC .* mask
-    Threads.@threads for tt=1:5
+    Threads.@threads for tt=1:nt
         #fname2 = datafilelist2[tt]
         # Φ_hyd= γ.read(diagpath[expname]*fname2,MeshArray(γ,Float32,100))[:, 51:end] #hydrostatic pressure
         fname1 = datafilelist1[tt]
@@ -130,10 +131,10 @@ function extract_meridionalΨGeo(expname,diagpath, Γ, γ, H, Hinv, finv, z,mask
         (Utr,Vtr) = UVtoTransport(U,V,Γ)
         ov=Array{Float64,2}(undef,nl,nz)
         for z=1:nz
-            @inbounds Uz = Utr[:,z] 
-            @inbounds Vz = Vtr[:,z]
+            @inbounds Utrz = Utr[:,z] 
+            @inbounds Vtrz = Vtr[:,z]
             for l=1:nl
-                @inbounds ov[l,z] = ThroughFlowDim(Uz,Vz, LC[l])            
+                @inbounds ov[l,z] = ThroughFlowDim(Utrz,Vtrz, LC[l])            
             end
         end
         ov=reverse(cumsum(reverse(ov,dims=2),dims=2),dims=2)

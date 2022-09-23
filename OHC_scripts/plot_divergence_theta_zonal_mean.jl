@@ -48,16 +48,17 @@ X = OHC_helper.ma_zonal_sum(ϕ .* area) ./ OHC_helper.ma_zonal_sum(area)
 θ_zonal_mean_anom = Dict(key => value .- θ_zonal_mean["iter0_bulkformula"] 
                         for (key, value) in θ_zonal_mean)
             
-θ_labels = [L"\theta^{129}", L"\theta^{\Delta F}",L"\theta^{\Delta T}", L"\theta^{0}"]
+θ_labels = [L"\theta^{\Delta F, \Delta T}", L"\theta^{\Delta F}",L"\theta^{\Delta T}", L"\theta^{0}"]
 θ_sym = "θ"
 clims =  extrema(θ_zonal_mean);
 
 p = plot_θ_mean(X, Y, θ_zonal_mean, θ_labels, clims, θ_sym)
 savefig(p,plotsdir() * "/OHC_Divergence/Contours/" * "θmean_"* 
-region * ".png")
+region * "_" * suffix * ".png")
 
 clims = extrema(θ_zonal_mean_anom); clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
-
-p = plot_θ_mean(X, Y, θ_zonal_mean_anom, θ_labels, clims, θ_sym)
+θ_sym = "θ Anomaly"
+θ_labels_anom = [sym * L" - \theta^{0}" for sym in θ_labels]
+p = plot_θ_mean(X, Y, θ_zonal_mean_anom, θ_labels_anom, clims, θ_sym)
 savefig(p,plotsdir() * "/OHC_Divergence/Contours/" * "θmean_iter0_anom_"* 
-region * ".png")
+region * "_" * suffix * ".png")

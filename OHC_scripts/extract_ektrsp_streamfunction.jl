@@ -121,15 +121,16 @@ end
 clims = 1e-6 .* extrema(Ψ_exp_mean)
 clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
 Ψ_sym = L"\Psi^{Ek}"
-Ψ_exp_labels = [L"\Psi_{129}", L"\Psi_{\Delta F}",
-                L"\Psi_{\Delta T}", L"\Psi_{0}"]
+Ψ_exp_labels = [L"\Psi^{\Delta F, \Delta T }", L"\Psi^{\Delta F}",
+                L"\Psi^{\Delta T}", L"\Psi^{0}"]
+
 p = plot_Ψ_mean(X, Y, Ψ_exp_mean, Ψ_exp_labels, clims, Ψ_sym)
 savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean_"* 
 region * ".png")
 
 Ψ_exp_mean_anom = Dict(key => Ψ_exp_mean[key] .- Ψ_exp_mean["iter0_bulkformula"] 
                     for key in keys(Ψ_exp_mean))
-Ψ̄_anom_labels = [exp * L"- \Psi_{0}" for exp in Ψ_exp_labels]      
+Ψ̄_anom_labels = [exp * L"- \Psi^{0}" for exp in Ψ_exp_labels]      
 clims = 1e-6 .* extrema(Ψ_exp_mean_anom)
 clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
 Ψ_sym = L"\Psi^{Ek}" * "Anomalies"
@@ -139,7 +140,7 @@ region * ".png")
 
 Ψ_exp_mean_anom = Dict(key => Ψ_exp_mean[key] .- Ψ_exp_mean["iter129_bulkformula"] 
                     for key in keys(Ψ_exp_mean))
-Ψ̄_anom_labels = [exp * L"- \Psi_{129}" for exp in Ψ_exp_labels]      
+Ψ̄_anom_labels = [exp * L"- \Psi^{\Delta F, \Delta T}" for exp in Ψ_exp_labels]      
 clims = 1e-6 .* extrema(Ψ_exp_mean_anom)
 clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
 Ψ_sym = L"\Psi_{Ek}" * "Anomalies"
