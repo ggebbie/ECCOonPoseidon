@@ -62,7 +62,7 @@ function extract_meridionalΨEK(expname,diagpath,fileroot, Γ, γ, Hinv, finv, m
         end
         ov=reverse(cumsum(reverse(ov,dims=2),dims=2),dims=2)
         ψ =ov ; ψ[ψ.==0.0].=NaN
-        Ψs[tt, :, :] .= ψ
+        Ψs[tt, :, :] .= -ψ
         GC.safepoint()
         println(tt)
     end
@@ -125,7 +125,7 @@ clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
                 L"\Psi^{\Delta T}", L"\Psi^{0}"]
 
 p = plot_Ψ_mean(X, Y, Ψ_exp_mean, Ψ_exp_labels, clims, Ψ_sym)
-savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean_"* 
+savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean2_"* 
 region * ".png")
 
 Ψ_exp_mean_anom = Dict(key => Ψ_exp_mean[key] .- Ψ_exp_mean["iter0_bulkformula"] 
@@ -135,7 +135,7 @@ clims = 1e-6 .* extrema(Ψ_exp_mean_anom)
 clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
 Ψ_sym = L"\Psi^{Ek}" * "Anomalies"
 p = plot_Ψ_mean(X, Y, Ψ_exp_mean_anom, Ψ̄_anom_labels, clims, Ψ_sym)
-savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean_0anom_"* 
+savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean2_0anom_"* 
 region * ".png")
 
 Ψ_exp_mean_anom = Dict(key => Ψ_exp_mean[key] .- Ψ_exp_mean["iter129_bulkformula"] 
@@ -145,5 +145,5 @@ clims = 1e-6 .* extrema(Ψ_exp_mean_anom)
 clims = (-maximum(abs.(clims)), maximum(abs.(clims)))
 Ψ_sym = L"\Psi_{Ek}" * "Anomalies"
 p = plot_Ψ_mean(X, Y, Ψ_exp_mean_anom, Ψ̄_anom_labels, clims, Ψ_sym)
-savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean_129anom_"* 
+savefig(p,plotsdir() * "/OHC_Divergence/MassTransport/" * "ΨEKmean2_129anom_"* 
 region * ".png")

@@ -33,7 +33,7 @@ labels_L = [L"\theta^{129}", L"\theta^{\Delta F}",L"\theta^{\Delta T}", L"\theta
 tecco = 1992+1/24:1/12:2018
 
 ocean_mask = OHC_helper.wet_pts(Γ)
-region = "NPAC"; 
+region = "PAC"; 
 PAC_msk = OHC_helper.PAC_mask(Γ, basins, basin_list, ϕ, λ; 
                             region, include_bering = false)
 msk = PAC_msk;
@@ -116,4 +116,5 @@ with respect to iter0
 # #creates a depth-latitude plot of temperature changes
 
 # @time include("plot_divergence_theta_zonal.jl") 
-# @time include("plot_divergence_theta_zonal_mean.jl") 
+@time include("plot_divergence_theta_zonal_mean.jl") 
+@time include("plot_divergence_theta_zonal_derivative.jl") 

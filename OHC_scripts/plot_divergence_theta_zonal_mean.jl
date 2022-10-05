@@ -21,7 +21,7 @@ function plot_zonal_contours(X, Y, zonal_var, clims, title)
     levels = 25,
     clim = clims,
     c = :delta, 
-    colorbar_title= "Sv",
+    colorbar_title= L"^\circ " * "C",
     title = title, 
     thickness_scaling = 1.5)
     return jcf
@@ -32,6 +32,7 @@ function plot_θ_mean(X, Y, θ_zonal, θ_labels, clims, θ_sym)
     i = [0] 
     for ex in keys(θ_zonal)
         i .+= 1
+        θ_zonal[ex][θ_zonal[ex] .== 0 ] .= NaN
         ps[i[1]] = plot_zonal_contours(X, Y, reverse(θ_zonal[ex], dims = 1),
         clims, θ_labels[i[1]])
     end
