@@ -36,7 +36,6 @@ E,F = trend_matrices(tecco)
 # pre-allocate β, linear trends
 nz = length(z)
 
-
 # cycle through all chosen experiments
 for expt in exps
 
