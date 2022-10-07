@@ -43,84 +43,62 @@ lvls = findall( botlvl .<= z[:].<= uplvl)
 ϕ_mask_Inf = ϕ .* PAC_msk; ϕ_mask_Inf[findall(ϕ_mask_Inf .== 0 )] .= Inf
 ϕ_mask_min = minimum(ϕ_mask_Inf)
 
-ϕ_mask_mInf = ϕ .* PAC_msk; ϕ_mask_mInf[findall(ϕ_mask_Inf .== 0 )] .= -Inf
-ϕ_mask_max= maximum(ϕ_mask_mInf)
-
-
 area = readarea(γ)
-
 area_masked = area .* PAC_msk
 area_sum = sum(area_masked)
 
 ϕ_S = (ϕ .≈ ϕ_mask_min)
 ϕ_S = ϕ_S .* PAC_msk
-Area_S = MeshArray(γ,Float32,50)
+
 cell_depths = get_cell_depths(PAC_msk, ΔzF, Γ.hFacC); 
-for ff = 1:5, k = 1:50
-    Area_S.f[ff, k] .=  (Γ.DXG.f[ff] .* ϕ_S.f[ff]) .* cell_depths[ff, k] .* (k ∈ lvls)
-end
-Area_S_sum = sum(Area_S)
-
-ϕ_N = (ϕ .≈ ϕ_mask_max)
-ϕ_N = ϕ_N .* PAC_msk
-
-
-expname = "iter0_bulkformula"
-filelist = searchdir(diagpath[expname],"trsp_3d_set2") # first filter for state_3d_set1
-datafilelist_H  = filter(x -> occursin("data",x),filelist) # second filter for "data"
-filelist = searchdir(diagpath[expname],"trsp_3d_set3") # first filter for state_3d_set1
-datafilelist_R  = filter(x -> occursin("data",x),filelist) # second filter for "data"
-nt = length(datafilelist_R)
-filelist = searchdir(diagpath[expname],"state_3d_set1") # first filter for state_3d_set1
-datafilelist_θ  = filter(x -> occursin("data",x),filelist) # second filter for "data"
-filelist = searchdir(diagpath[expname],"state_2d_set1") # first filter for state_3d_set1
-datafilelist_S  = filter(x -> occursin("data",x),filelist) # second filter for "data"
-
 smush_depths = smush(cell_depths); 
 cell_volumes = get_cell_volumes(area, cell_depths);
 
 smush_depths[findall(smush_depths .== 0)] = Inf; 
 inv_depths = 1 ./ smush_depths
 
-sθ̄ = []; AdvH = []; AdvR = [];AdvH2 = [];
+Advective_Heat_Budgets = Dict()
 masked_volume = cell_volumes[:, lvls]
-@time for tt=1:10
-    fnameH = datafilelist_H[tt]
-    fnameR = datafilelist_R[tt]
-    fnameθ = datafilelist_θ[tt]
-    fnameS = datafilelist_S[tt]
 
-    sθ = extract_sθ(expname,diagpath, γ, fnameS, fnameθ, inv_depths)
+@time for expname in keys(shortnames)
+    Advective_Heat_Budgets[expname] = Dict()
+    filelist = searchdir(diagpath[expname],"trsp_3d_set2") # first filter for state_3d_set1
+    datafilelist_H  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+    filelist = searchdir(diagpath[expname],"trsp_3d_set3") # first filter for state_3d_set1
+    datafilelist_R  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+    nt = length(datafilelist_R)
+    filelist = searchdir(diagpath[expname],"state_3d_set1") # first filter for state_3d_set1
+    datafilelist_θ  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+    filelist = searchdir(diagpath[expname],"state_2d_set1") # first filter for state_3d_set1
+    datafilelist_S  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+    bot_lev = lvls[end]; top_lev = lvls[1]    
+    sθ̄ = []; AdvH = []; AdvR = [];AdvH2 = [];
+    @time for tt=1:nt
+        fnameH = datafilelist_H[tt]
+        fnameR = datafilelist_R[tt]
+        fnameθ = datafilelist_θ[tt]
+        fnameS = datafilelist_S[tt]
 
-    dθλ = γ.read(diagpath[expname]*fnameH,MeshArray(γ,Float32,200))
-    uθ = dθλ[:, 151:200]
-    vθ = dθλ[:, 151:200]
-    Nθ = MeshArray(γ,Float32,50)
-    Eθ, Nθ = rotate_uv(uθ, vθ, Γ)
-    uvθ = MeshArray(γ,Float32,50)
-    wθ_conv = MeshArray(γ,Float32,50)
-    fill!(wθ_conv, 0.0)
-    calc_UV_conv3D!(uθ, vθ, uvθ);
-    wθ = γ.read(diagpath[expname]*fnameR,MeshArray(γ,Float32,50))
-    @inbounds wθ_conv.f[ :, 1:49] .= @views wθ.f[:, 1:49] .- wθ.f[:, 2:50]
-    push!(AdvH2, sum(Nθ[:, lvls] .* ϕ_S) / sum(masked_volume))
+        sθ = extract_sθ(expname,diagpath, γ, fnameS, fnameθ, inv_depths)
 
-    push!(AdvH, sum(uvθ[:, lvls] .* PAC_msk) / sum(masked_volume))
-    push!(AdvR, sum(wθ_conv[:, lvls] .* PAC_msk)  / sum(masked_volume))
-    push!(sθ̄, volume_mean(sθ[:, lvls]; weights=masked_volume))
+        dθλ = γ.read(diagpath[expname]*fnameH,MeshArray(γ,Float32,200))
+        uθ = dθλ[:, 101:150]; vθ = dθλ[:, 151:200]
+        wθ = γ.read(diagpath[expname]*fnameR,MeshArray(γ,Float32,50))
+
+        Eθ, Nθ = rotate_uv(uθ, vθ, Γ)
+        wθ_conv = wθ[:, bot_lev+1] .- wθ[:, top_lev] 
+
+        push!(AdvH, sum(Nθ[:, lvls] .* ϕ_S) / sum(masked_volume))
+        push!(AdvR, sum(wθ_conv .* PAC_msk)  / sum(masked_volume))
+        push!(sθ̄, volume_mean(sθ[:, lvls]; weights=masked_volume))
+    end
+    AdvH_sum = cumsum(cat(0.0, AdvH .* 2.628e+6, dims = 1))
+    AdvR_sum = cumsum(cat(0.0, AdvR .* 2.628e+6, dims = 1))
+    Advective_Heat_Budgets[expname]["AdvH"] = AdvH_sum
+    Advective_Heat_Budgets[expname]["AdvR"] = AdvR_sum
+    Advective_Heat_Budgets[expname]["θ"] = sθ̄
 end
-
-dθdt =  Float32.((-AdvH - AdvR))
-
-θ_approx =  cumsum(cat(sθ̄[1], -dθdt .* 2.628e+6, dims = 1))
-plot(tecco[1:10], θ_approx[1:end-1], label = "Advective fluxes approximation", 
-ylabel = "Temperature", xlabel = "Time")
-plot!(tecco[1:10], sθ̄[1:10], label = "true θ")
-
-
-
-weighted_means = randn((11, 15))
-get_range(x) = maximum(x) - minimum(x)
-for i in 1:size(weighted_means)[1]    
-    println(weighted_means[i, :])
-end
+AdvH = Advective_Heat_Budgets["iter129_bulkformula"]["AdvH"]
+AdvR = Advective_Heat_Budgets["iter129_bulkformula"]["AdvR"]
+θ = Advective_Heat_Budgets[expname]["θ"]
+jldsave(datadir("HeatBudgetTrue_NPAC_2to3.jld2"); Advective_Heat_Budgets)
