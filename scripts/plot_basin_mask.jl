@@ -18,7 +18,7 @@ basin_list=["Pacific","Atlantic","indian","Arctic","Bering Sea",
             "Japan Sea", "Timor Sea","East China Sea","Red Sea",
             "Gulf","Baffin Bay","GIN Seas","Barents Sea"];
 
-basin_name="Pacific"
+basin_name="Pacfic"
 # basin_name = "Atlantic"
 
 plot_basin = true
