@@ -246,4 +246,27 @@ function readNino34()
     return SST_nino34
 end
 
+"""
+    function basin_mask(basin_name,hemisphere)
+# Arguments
+- `latpt`: latitude grid
+- `lonpt`: longitude grid
+- `basin_name`: options are "Arctic, "Atlantic", "BaffinBay", "BarentsSea", "BeringSea",
+EastChinaSea, GINSeas, Gulf, GulfofMexico, HudsonBay, indian, JapanSea, JavaSea,
+MediterraneanSea, NorthSea, OkhotskSea, Pacific, RedSea, SouthChinaSea, TimorSea
+- hemisphere: options are N, S, both
+# Output
+- 'mask': space and time field of surface forcing, value of zero inside
+designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
+because this field ends up being SUBTRACTED from the total forcing
+"""
+function basin_mask(latpt,lonpt,basin_name,hemisphere)
+file = matopen("ECCOonPoseidon/basin_grids/GRID_LLC90_"*basin_name)
+for ii in 1:5
+    mask[ii] = read(file,basin_name*"_mask"*string(ii))
+end 
+close(file)
+
+    return mask
+end
 end
