@@ -2,7 +2,7 @@ module ECCOonPoseidon
 #
 # Define functions that are specific to the ECCO runs stored on Poseidon @ WHOI.
 
-using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, PyCall, PyPlot
+using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, PyCall, PyPlot, MAT
 
 export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
@@ -261,7 +261,7 @@ designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. T
 because this field ends up being SUBTRACTED from the total forcing
 """
 function basin_mask(latpt,lonpt,basin_name,hemisphere)
-file = matopen("ECCOonPoseidon/basin_grids/GRID_LLC90_"*basin_name)
+file = matopen(datadir("basin_grids/GRID_LLC90_"*basin_name))
 for ii in 1:5
     mask[ii] = read(file,basin_name*"_mask"*string(ii))
 end 

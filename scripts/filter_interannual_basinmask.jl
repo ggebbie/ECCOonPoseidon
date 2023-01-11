@@ -8,9 +8,16 @@
 include("../src/intro.jl")
 
 using Revise
-using ECCOtour, ECCOonPoseidon
-using Statistics, PyPlot, Distributions, FFTW, LinearAlgebra, StatsBase
-using MeshArrays, MITgcmTools
+using ECCOtour
+using ECCOonPoseidon
+using Statistics
+using PyPlot
+using Distributions
+using FFTW
+using LinearAlgebra
+using StatsBase
+using MeshArrays
+using MITgcmTools
 using MAT
 
 # from intro.jl, default is nointerannual
