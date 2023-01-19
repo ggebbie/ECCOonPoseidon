@@ -28,7 +28,9 @@ include(srcdir("config_exp.jl"))
 
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
-outputdir = fluxdir(expt)
+
+# lets use a test directory so we don't overwrite something
+outputdir = fluxdir(expt)*"test"
 
 # read lat, lon at center of grid cell
 (ϕC,λC) = latlonC(γ)
