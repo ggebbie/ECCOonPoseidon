@@ -26,6 +26,8 @@ println("Experiment: ",expt)
 
 include(srcdir("config_exp.jl"));
 
+include(srcdir("config_regularpoles.jl"))
+
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
 
@@ -38,22 +40,22 @@ outputdir = fluxdir(expt)*"test"
 (ϕG,λG) = latlonG(γ)
  
 ## Define region of interest where interannual fluxes are kept.
-region = "test"
-if keepregion
-    latrect, lonrect = rectangle(region)
+# region = "test"
+# if keepregion
+#     latrect, lonrect = rectangle(region)
 
-    # should dlat, dlon go into src?
-    dlat = 10
-    dlon = 10
+#     # should dlat, dlon go into src?
+#     dlat = 10
+#     dlon = 10
     
-    lonmid =  (lonrect[1]+lonrect[2])/2
-    centerlon!(λC,lonmid)
-    centerlon!(λG,lonmid)
-end
+#     lonmid =  (lonrect[1]+lonrect[2])/2
+#     centerlon!(λC,lonmid)
+#     centerlon!(λG,lonmid)
+# end
 
-if !isdir(outputdir)
-    mkpath(outputdir)
-end
+# if !isdir(outputdir)
+#     mkpath(outputdir)
+# end
 midname = "_6hourlyavg_"
 varnames = ("atmPload","oceFWflx","oceQsw","oceSflux","oceSPflx","oceTAUE","oceTAUN","oceTAUX",
             "oceTAUY","sIceLoad","sIceLoadPatmPload","sIceLoadPatmPload_nopabar","TFLUX")
@@ -99,12 +101,15 @@ Thann = 100.0 # days
 
 # clash with `mask` name
 if keepregion
+    # run plot_basinmasks first
+    # read MATLAB output
     msk = basin_mask(ϕC,λC,"Pacific","N")
 
+    ## THIS SECTION NOT NEEDED DUE TO CONFIG_REGULARPOLES ABOVE
     # check the spatial pattern of the mask
     # Set up Cartesian grid for interpolation.
-    λCregpoles,λGregpoles,ϕCregpoles,ϕGregpoles,nx,ny,nyarc,nyantarc,farc,iarc,jarc,warc,fantarc,iantarc,jantarc,wantarc =
-        factors4regularpoles(γ)
+    #λCregpoles,λGregpoles,ϕCregpoles,ϕGregpoles,nx,ny,nyarc,nyantarc,farc,iarc,jarc,warc,fantarc,iantarc,jantarc,wantarc =
+    #    factors4regularpoles(γ)
     msk_regpoles =  var2regularpoles(msk,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
 
     figure()
