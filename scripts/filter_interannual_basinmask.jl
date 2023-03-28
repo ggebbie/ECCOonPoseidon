@@ -24,7 +24,7 @@ using MAT
 expt == "nointerannual" ? keepregion = false : keepregion = true
 println("Experiment: ",expt)
 
-include(srcdir("config_exp.jl"))
+include(srcdir("config_exp.jl"));
 
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
