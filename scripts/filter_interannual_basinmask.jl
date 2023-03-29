@@ -28,6 +28,34 @@ include(srcdir("config_exp.jl"));
 
 include(srcdir("config_regularpoles.jl"))
 
+basin1 = basin_mask("Pacific",γ)
+
+# clash with `mask` name
+if keepregion
+    # plot_basinmask
+    #msk = basin_mask(ϕC,λC,"Pacific","N")
+    msk = basin_mask("Pacific",γ)
+
+    msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+
+    figure()
+    clf()
+    cmap_seismic =get_cmap("seismic")
+    lims = range(0.0,step=0.05,stop=1.0)
+    contourf(λCregpoles,ϕCregpoles,msk_regpoles',lims,cmap=cmap_seismic)
+    colorbar(label="weight",orientation="vertical",ticks=lims)
+    mkpath(plotsdir())
+    outfname = plotsdir("southpac_mask.eps")
+    xlbl = "longitude "*L"[\degree E]"
+    ylbl = "latitude "*L"[\degree N]"
+    titlelbl = expt*" mask"
+    title(titlelbl)
+    xlabel(xlbl)
+    ylabel(ylbl)
+    savefig(outfname)
+end
+
+
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
 
@@ -98,36 +126,6 @@ Ecycle,Fcycle = seasonal_matrices(fcycle,t14day)
 
 # interannual filter is a Hann(ing) filter
 Thann = 100.0 # days
-
-# clash with `mask` name
-if keepregion
-    # run plot_basinmasks first
-    # read MATLAB output
-    msk = basin_mask(ϕC,λC,"Pacific","N")
-
-    ## THIS SECTION NOT NEEDED DUE TO CONFIG_REGULARPOLES ABOVE
-    # check the spatial pattern of the mask
-    # Set up Cartesian grid for interpolation.
-    #λCregpoles,λGregpoles,ϕCregpoles,ϕGregpoles,nx,ny,nyarc,nyantarc,farc,iarc,jarc,warc,fantarc,iantarc,jantarc,wantarc =
-    #    factors4regularpoles(γ)
-    msk_regpoles =  var2regularpoles(msk,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
-
-    figure()
-    clf()
-    cmap_seismic =get_cmap("seismic")
-    lims = range(0.0,step=0.05,stop=1.0)
-    contourf(λCregpoles,ϕCregpoles,msk_regpoles',lims,cmap=cmap_seismic)
-    colorbar(label="weight",orientation="vertical",ticks=lims)
-    mkpath(plotsdir())
-    outfname = plotsdir("southpac_mask.eps")
-    xlbl = "longitude "*L"[\degree E]"
-    ylbl = "latitude "*L"[\degree N]"
-    titlelbl = expt*" mask"
-    title(titlelbl)
-    xlabel(xlbl)
-    ylabel(ylbl)
-    savefig(outfname)
-end
 
 #vname = varnames[1] # for interactive use
 for vname ∈ varnames
