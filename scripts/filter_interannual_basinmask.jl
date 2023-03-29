@@ -28,33 +28,27 @@ include(srcdir("config_exp.jl"));
 
 include(srcdir("config_regularpoles.jl"))
 
-basin1 = basin_mask("Pacific",γ)
+maskname =  "Pacific"
+msk = basin_mask(maskname,γ)
 
-# clash with `mask` name
-if keepregion # why keepregion?
-    # plot_basinmask
-    #msk = basin_mask(ϕC,λC,"Pacific","N")
-    maskname =  "Pacific"
-    msk = basin_mask(maskname,γ)
+msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
-    msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+figure()
+clf()
+cmap_seismic =get_cmap("seismic")
+lims = range(0.0,step=0.05,stop=1.0)
+contourf(λC,ϕC,msk_regpoles',lims,cmap=cmap_seismic)
+colorbar(label="weight",orientation="vertical",ticks=lims)
+!ispath(plotsdir()) && mkpath(plotsdir())
+outfname = plotsdir("mask_temp.eps")
+xlbl = "longitude "*L"[\degree E]"
+ylbl = "latitude "*L"[\degree N]"
+titlelbl = maskname*" mask"
+title(titlelbl)
+xlabel(xlbl)
+ylabel(ylbl)
+savefig(outfname)
 
-    figure()
-    clf()
-    cmap_seismic =get_cmap("seismic")
-    lims = range(0.0,step=0.05,stop=1.0)
-    contourf(λC,ϕC,msk_regpoles',lims,cmap=cmap_seismic)
-    colorbar(label="weight",orientation="vertical",ticks=lims)
-    !ispath(plotsdir()) && mkpath(plotsdir())
-    outfname = plotsdir("mask_temp.eps")
-    xlbl = "longitude "*L"[\degree E]"
-    ylbl = "latitude "*L"[\degree N]"
-    titlelbl = maskname*" mask"
-    title(titlelbl)
-    xlabel(xlbl)
-    ylabel(ylbl)
-    savefig(outfname)
-end
 
 ## UNTESTED AFTER HERE, GG 29-MAR-2023
 
