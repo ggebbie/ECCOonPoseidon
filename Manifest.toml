@@ -340,7 +340,9 @@ version = "0.6.8"
 
 [[deps.ECCOtour]]
 deps = ["Conda", "DelimitedFiles", "Dierckx", "Distributions", "FFTW", "GoogleDrive", "Interpolations", "IsopycnalSurfaces", "JLD2", "LaTeXStrings", "LinearAlgebra", "MAT", "MITgcmTools", "MeshArrays", "NetCDF", "Pkg", "PyCall", "PyPlot", "Revise", "Statistics", "StatsBase"]
-path = "/home/gebbie/projects/ECCOtour.jl/"
+git-tree-sha1 = "d5de7cdf94cf2b6543be362d5ff3bf32cf50498d"
+repo-rev = "main"
+repo-url = "https://github.com/ggebbie/ECCOtour.jl"
 uuid = "414fb998-b5a0-4a85-b76f-da39d21445ca"
 version = "0.1.12"
 
