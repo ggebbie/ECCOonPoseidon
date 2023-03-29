@@ -30,7 +30,7 @@ include(srcdir("config_regularpoles.jl"))
 
 maskname =  "Pacific"
 msk = basin_mask(maskname,γ)
-
+ECCOtour.land2nan!(msk,γ)
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
 figure()
@@ -50,9 +50,31 @@ ylabel(ylbl)
 savefig(outfname)
 
 
+## SMOOTH the EDGES
+X = 5
+msk_smooth = smooth(msk,X,γ)
+msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+
+figure()
+clf()
+cmap_seismic =get_cmap("seismic")
+lims = range(0.0,step=0.05,stop=1.0)
+contourf(λC,ϕC,msk_smooth_regpoles',lims,cmap=cmap_seismic)
+colorbar(label="weight",orientation="vertical",ticks=lims)
+!ispath(plotsdir()) && mkpath(plotsdir())
+outfname = plotsdir("mask_smooth_temp.eps")
+xlbl = "longitude "*L"[\degree E]"
+ylbl = "latitude "*L"[\degree N]"
+titlelbl = maskname*" mask"
+title(titlelbl)
+xlabel(xlbl)
+ylabel(ylbl)
+savefig(outfname)
+
 ## UNTESTED AFTER HERE, GG 29-MAR-2023
 
 
+## START FILTERING
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
 

@@ -8,7 +8,7 @@ export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
     expnames, expsymbols, regpolesdir, rundir,
     Nino34file, historicalNino34, readNino34,
-    sigma1grid, basin_mask
+    sigma1grid, basin_mask, smooth
 
 # add a method to this function
 import ECCOtour.sigma1grid
@@ -270,32 +270,39 @@ close(file)
     return mask
 end
 
+basinlist()=["Pacific","Atlantic","Indian","Arctic","Bering Sea",
+                "South China Sea","Gulf of Mexico","Okhotsk Sea",
+                "Hudson Bay","Mediterranean Sea","Java Sea","North Sea",
+                "Japan Sea", "Timor Sea","East China Sea","Red Sea",
+                "Gulf","Baffin Bay","GIN Seas","Barents Sea"]
+
 function basin_mask(basin_name,γ)
     pth = MeshArrays.GRID_LLC90
     #γ = GridSpec("LatLonCap",pth)
     Γ = GridLoad(γ;option="full")
     basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
-
-    basin_list=["Pacific","Atlantic","Indian","Arctic","Bering Sea",
-                "South China Sea","Gulf of Mexico","Okhotsk Sea",
-                "Hudson Bay","Mediterranean Sea","Java Sea","North Sea",
-                "Japan Sea", "Timor Sea","East China Sea","Red Sea",
-                "Gulf","Baffin Bay","GIN Seas","Barents Sea"];
-
-    #plot_basin = true
-    #output2file = true
-
-    # Γ.hFacC[:,1] can be used as an indicator for wet points
-    # (there might be a better way to do this)
-    ocean_mask = Γ.hFacC[:,1]
-    ocean_mask[findall(ocean_mask.>0.0)].=1.0
-
+    basin_list=ECCOonPoseidon.basinlist()
     basinID=findall(basin_list.==basin_name)[1]
-    basin_mask=similar(basins)
+    basinmask=similar(basins)
+
     for ff in 1:5
-        basin_mask[ff] .= ocean_mask[ff].*(basins[ff].==basinID) #put this into mat file
+        basinmask[ff] .= (basins[ff].==basinID) 
     end
-    return basin_mask
+    return basinmask
+end
+
+"""
+    function smooth(msk::MeshArrays.gcmarray,lengthscale)
+
+    Smooth a gcmarray with a lengthscale of `X` points
+
+    Based off Gael Forget, MeshArrays.jl
+"""
+function smooth(msk::MeshArrays.gcmarray,X,γ)
+    Γ = GridLoad(γ;option="full")
+    DXCsm=X*Γ.DXC; DYCsm=X*Γ.DYC;
+    #apply smoother
+    return msk_smooth=MeshArrays.smooth(msk,DXCsm,DYCsm,Γ);
 end
 
 end
