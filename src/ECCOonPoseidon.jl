@@ -2,13 +2,13 @@ module ECCOonPoseidon
 #
 # Define functions that are specific to the ECCO runs stored on Poseidon @ WHOI.
 
-using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, PyCall, PyPlot
+using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, PyCall, PyPlot, MeshArrays
 
 export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
     expnames, expsymbols, regpolesdir, rundir,
     Nino34file, historicalNino34, readNino34,
-    sigma1grid
+    sigma1grid, basin_mask
 
 # add a method to this function
 import ECCOtour.sigma1grid
@@ -247,26 +247,49 @@ function readNino34()
 end
 
 """
-    function basin_mask(basin_name,hemisphere)
+    function basin_mask(basin_name)
 # Arguments
-- `latpt`: latitude grid
-- `lonpt`: longitude grid
 - `basin_name`: options are "Arctic, "Atlantic", "BaffinBay", "BarentsSea", "BeringSea",
 EastChinaSea, GINSeas, Gulf, GulfofMexico, HudsonBay, indian, JapanSea, JavaSea,
 MediterraneanSea, NorthSea, OkhotskSea, Pacific, RedSea, SouthChinaSea, TimorSea
-- hemisphere: options are N, S, both
 # Output
 - 'mask': space and time field of surface forcing, value of zero inside
 designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
 because this field ends up being SUBTRACTED from the total forcing
-"""
-function basin_mask(latpt,lonpt,basin_name,hemisphere)
-file = matopen("ECCOonPoseidon/basin_grids/GRID_LLC90_"*basin_name)
-for ii in 1:5
-    mask[ii] = read(file,basin_name*"_mask"*string(ii))
-end 
-close(file)
+""" 
 
-    return mask
+function basin_mask(basin_name,hemisphere)
+
+    pth = MeshArrays.GRID_LLC90
+    γ = GridSpec("LatLonCap",pth)
+    Γ = GridLoad(γ;option="full")
+    basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
+
+    basin_list=["Pacific","Atlantic","indian","Arctic","Bering Sea",
+            "South China Sea","Gulf of Mexico","Okhotsk Sea",
+            "Hudson Bay","Mediterranean Sea","Java Sea","North Sea",
+            "Japan Sea", "Timor Sea","East China Sea","Red Sea",
+            "Gulf","Baffin Bay","GIN Seas","Barents Sea"];
+
+    # Γ.hFacC[:,1] can be used as an indicator for wet points
+    # (there might be a better way to do this)
+    ocean_mask = Γ.hFacC[:,1]
+    ocean_mask[findall(ocean_mask.>0.0)].=1.0
+    if hemisphere == 0 #North
+    hemisphere_mask = Γ.YC .> 0.0;
+    elseif hemisphere == 1 #South
+        hemisphere_mask = Γ.YC < 0.0;
+    elseif hemisphere == 2 #both
+        hemisphere_mask = Γ.YC > 0.0 | Γ.YC <= 0.0; #optional argument?
+    end
+
+    basinID=findall(basin_list.==basin_name)[1]
+    basin_mask=similar(basins)
+    for ff in 1:5
+        basin_mask[ff] .= hemisphere_mask[ff].*ocean_mask[ff].*(basins[ff].==basinID) #put this into mat file
+    end
+
+    return basin_mask 
+
 end
 end

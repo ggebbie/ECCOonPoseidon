@@ -8,80 +8,59 @@
 include("./src/intro.jl")
 
 using Revise
-using ECCOtour
-using ECCOonPoseidon
-using Statistics
-using PyPlot
-using Distributions
-using FFTW
-using LinearAlgebra
-using StatsBase
-using MeshArrays
-using MITgcmTools
+using ECCOtour, ECCOonPoseidon
+using Statistics, PyPlot, Distributions, FFTW, LinearAlgebra, StatsBase
+using MeshArrays, MITgcmTools
 using MAT
 
 # from intro.jl, default is nointerannual
 expt == "nointerannual" ? keepregion = false : keepregion = true
 println("Experiment: ",expt)
 
-include(srcdir("config_exp.jl"));
+basin_name="Pacfic" #see below for full list of basin options
+hemisphere = "N" #"N" , "S", "both"
 
-include(srcdir("config_regularpoles.jl")) #why is this closing my repl??
+include(srcdir("config_exp.jl"))
+include(srcdir("config_regularpoles.jl"))
 
-maskname = "Pacific"
-hemisphere = 0;
-msk = basin_mask(maskname,hemisphere)
+if keepregion
+    msk = ECCOonPoseidon.basin_mask(basin_name)
 
-msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+    # check the spatial pattern of the mask
+    # Set up Cartesian grid for interpolation.
+    λCregpoles,λGregpoles,ϕCregpoles,ϕGregpoles,nx,ny,nyarc,nyantarc,farc,iarc,jarc,warc,fantarc,iantarc,jantarc,wantarc =
+        factors4regularpoles(γ)
+    msk_regpoles =  var2regularpoles(msk,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
 
-figure()
-clf()
-cmap_seismic =get_cmap("seismic")
-lims = range(0.0,step=0.05,stop=1.0)
-contourf(λC,ϕC,msk_regpoles',lims,cmap=cmap_seismic)
-colorbar(label="weight",orientation="vertical",ticks=lims)
-!ispath(plotsdir()) && mkpath(plotsdir())
-outfname = plotsdir("mask_temp.pdf")
-xlbl = "longitude "*L"[\degree E]"
-ylbl = "latitude "*L"[\degree N]"
-titlelbl = maskname*" mask"
-title(titlelbl)
-xlabel(xlbl)
-ylabel(ylbl)
-savefig(outfname)
-
-
-## UNTESTED AFTER HERE, GG 29-MAR-2023
-
+    figure()
+    clf()
+    cmap_seismic =get_cmap("seismic")
+    lims = range(0.0,step=0.05,stop=1.0)
+    contourf(λCregpoles,ϕCregpoles,msk_regpoles',lims,cmap=cmap_seismic)
+    colorbar(label="weight",orientation="vertical",ticks=lims)
+    mkpath(plotsdir())
+    outfname = plotsdir("test_mask.eps")
+    xlbl = "longitude "*L"[\degree E]"
+    ylbl = "latitude "*L"[\degree N]"
+    titlelbl = expt*" mask"
+    title(titlelbl)
+    xlabel(xlbl)
+    ylabel(ylbl)
+    savefig(outfname)
+end
 
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
-
-# lets use a test directory so we don't overwrite something
-outputdir = fluxdir(expt)*"test"
+outputdir = fluxdir(expt)
 
 # read lat, lon at center of grid cell
 (ϕC,λC) = latlonC(γ)
 # on the vector (Staggered) grid
 (ϕG,λG) = latlonG(γ)
- 
-## Define region of interest where interannual fluxes are kept.
-# region = "test"
-# if keepregion
-#     latrect, lonrect = rectangle(region)
 
-#     # should dlat, dlon go into src?
-#     dlat = 10
-#     dlon = 10
-    
-#     lonmid =  (lonrect[1]+lonrect[2])/2
-#     centerlon!(λC,lonmid)
-#     centerlon!(λG,lonmid)
-# end
-
-# if !isdir(outputdir)
-#     mkpath(outputdir)
-# end
+if !isdir(outputdir)
+    mkpath(outputdir)
+end
 midname = "_6hourlyavg_"
 varnames = ("atmPload","oceFWflx","oceQsw","oceSflux","oceSPflx","oceTAUE","oceTAUN","oceTAUX",
             "oceTAUY","sIceLoad","sIceLoadPatmPload","sIceLoadPatmPload_nopabar","TFLUX")
@@ -124,6 +103,8 @@ Ecycle,Fcycle = seasonal_matrices(fcycle,t14day)
 
 # interannual filter is a Hann(ing) filter
 Thann = 100.0 # days
+
+# clash with `mask` name
 
 #vname = varnames[1] # for interactive use
 for vname ∈ varnames
