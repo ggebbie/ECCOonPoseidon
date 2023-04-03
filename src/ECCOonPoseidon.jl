@@ -249,7 +249,7 @@ end
 """
     function basin_mask(basin_name,hemisphere)
 # Arguments
-- `basin_name`: options are "Arctic, "Atlantic", "Baffin Bay", "Barents Sea", "Bering Sea",
+- `basin_name`: string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
 East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
 Mediterranean Sea, North Sea, Okhotsk Sea, Pacific, Red Sea, South China Sea, Timor Sea. Create a vector of 
 strings to combine multiple basins into the mask.
@@ -260,7 +260,7 @@ designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. T
 because this field ends up being SUBTRACTED from the total forcing
 """ 
 
-function basin_mask(basin_name,hemisphere=2)
+function basin_mask(basin_name,hemisphere)
 #add option to combine multiple basin names
     nbasins = length(basin_name)
     pth = MeshArrays.GRID_LLC90
@@ -286,17 +286,19 @@ function basin_mask(basin_name,hemisphere=2)
         hemisphere_mask = Γ.YC > 0.0 | Γ.YC <= 0.0; #optional argument?
     end
 
-    basin_mask=similar(basins)
-    
-    for bb = 1:nbasins
-        basinID=findall(basin_list.==basin_name)[1]
-    end
-    
-   
-    for ff in 1:5
-        basin_mask[ff] .= hemisphere_mask[ff].*ocean_mask[ff].*(basins[ff].==basinID) #put this into mat file
+    total_basin_mask = similar(basins) #or just make a new function to combine that calls the simpler one?
+    for bb =  1:nbasins
+        basinID=findall(basin_list.==basin_name[bb])[1]
+        basin_mask=similar(basins)
+
+        for ff in 1:5
+            basin_mask[ff] .= hemisphere_mask[ff].*ocean_mask[ff].*(basins[ff].==basinID) #put this into mat file
+        end
+
+        total_basin_mask += basin_mask
     end
 
+    basin_mask = total_basin_mask;
     return basin_mask 
 
 end

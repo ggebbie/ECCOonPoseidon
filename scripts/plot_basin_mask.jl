@@ -57,8 +57,29 @@ if plot_basin == true
         kk=findall((col.==0.0).*(!isnan).(ocean_mask[ff][:]))
         !isempty(kk) ? Mkie.scatter!(ax,Γ.XC[ff][kk],Γ.YC[ff][kk],color=basins[ff][kk],
             colorrange=(0.0,mx),markersize=2.0,colormap=:lisbon) : nothing
+#    end
+#    Mkie.Colorbar(fig[1,2], colormap=:lisbon, colorrange=(0.0, mx), height = Mkie.Relative(0.65))
+#    Mkie.save("GRID_LLC90_plotted_"*basin_name*".png", fig)
+#    ocean_mask[findall(isnan.(ocean_mask))].=0.0
+#end
+
+if plot_basin == true
+    #ocean_mask[findall(ocean_mask.==0.0)].=NaN #replace()
+    fig = Mkie.Figure(resolution = (900,600), backgroundcolor = :grey95)
+    ax = Mkie.Axis(fig[1,1],xlabel="longitude",ylabel="latitude",title=basin_name* " (shown in red)")
+
+    mx=maximum(basins)
+
+    #used to plot basins
+    for ff in 1:length(Γ.RAC)
+        col=(basins[ff][:].==basinID)
+        kk=findall(col.>0.0)
+        !isempty(kk) ? Mkie.scatter!(ax,Γ.XC[ff][kk],Γ.YC[ff][kk],color=:red,markersize=2.0) : nothing
+        #kk=findall((col.==0.0).*(!isnan).(ocean_mask[ff][:]))
+        !isempty(kk) ? Mkie.scatter!(ax,Γ.XC[ff][kk],Γ.YC[ff][kk],color=basins[ff][kk],
+            colorrange=(0.0,mx),markersize=2.0,colormap=:lisbon) : nothing
     end
     Mkie.Colorbar(fig[1,2], colormap=:lisbon, colorrange=(0.0, mx), height = Mkie.Relative(0.65))
-    Mkie.save("GRID_LLC90_plotted_"*basin_name*".png", fig)
-    ocean_mask[findall(isnan.(ocean_mask))].=0.0
+    Mkie.save("testGRID_LLC90_plotted_"*basin_name*".png", fig)
+    #ocean_mask[findall(isnan.(ocean_mask))].=0.0
 end
