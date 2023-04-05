@@ -249,17 +249,51 @@ end
 """
     function basin_mask(basin_name,hemisphere)
 # Arguments
-- `latpt`: latitude grid
-- `lonpt`: longitude grid
-- `basin_name`: options are "Arctic, "Atlantic", "BaffinBay", "BarentsSea", "BeringSea",
-EastChinaSea, GINSeas, Gulf, GulfofMexico, HudsonBay, indian, JapanSea, JavaSea,
-MediterraneanSea, NorthSea, OkhotskSea, Pacific, RedSea, SouthChinaSea, TimorSea
-- hemisphere: options are N, S, both
+- `basin_name`: string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
+East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
+Mediterranean Sea, North Sea, Okhotsk Sea, Pacific, Red Sea, South China Sea, Timor Sea.
+-'hemisphere': optional argument. 0 = North, 1 = South, 2 = both
 # Output
 - 'mask': space and time field of surface forcing, value of zero inside
 designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
 because this field ends up being SUBTRACTED from the total forcing
-"""
+""" 
+
+function basin_mask(basin_name,hemisphere)
+
+    pth = MeshArrays.GRID_LLC90
+    γ = GridSpec("LatLonCap",pth)
+    Γ = GridLoad(γ;option="full")
+    basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
+
+    basin_list=["Pacific","Atlantic","indian","Arctic","Bering Sea",
+            "South China Sea","Gulf of Mexico","Okhotsk Sea",
+            "Hudson Bay","Mediterranean Sea","Java Sea","North Sea",
+            "Japan Sea", "Timor Sea","East China Sea","Red Sea",
+            "Gulf","Baffin Bay","GIN Seas","Barents Sea"];
+
+    # Γ.hFacC[:,1] can be used as an indicator for wet points
+    # (there might be a better way to do this)
+    ocean_mask = Γ.hFacC[:,1]
+    ocean_mask[findall(ocean_mask.>0.0)].=1.0
+    if hemisphere == 0 #North
+    hemisphere_mask = Γ.YC .> 0.0;
+    elseif hemisphere == 1 #South
+        hemisphere_mask = Γ.YC < 0.0;
+    elseif hemisphere == 2 #both
+        hemisphere_mask = Γ.YC > 0.0 | Γ.YC <= 0.0; #optional argument?
+    end
+
+    basinID=findall(basin_list.==basin_name)[1]
+    basin_mask=similar(basins)
+    for ff in 1:5
+        basin_mask[ff] .= hemisphere_mask[ff].*ocean_mask[ff].*(basins[ff].==basinID)
+    end
+
+    return basin_mask 
+
+end
+
 function basin_mask(latpt,lonpt,basin_name,hemisphere)
 file = matopen(datadir("basin_grids/GRID_LLC90_"*basin_name))
 for ii in 1:5
@@ -303,6 +337,32 @@ function smooth(msk::MeshArrays.gcmarray,X,γ)
     DXCsm=X*Γ.DXC; DYCsm=X*Γ.DYC;
     #apply smoother
     return msk_smooth=MeshArrays.smooth(msk,DXCsm,DYCsm,Γ);
+end
+
+end
+    function combined_mask(basin_names,hemisphere)
+# Arguments
+- `basin_name`: vector of strings. string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
+East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
+Mediterranean Sea, North Sea, Okhotsk Sea, Pacific, Red Sea, South China Sea, Timor Sea.
+-'hemisphere': optional argument. 0 = North, 1 = South, 2 = both
+# Output
+- 'mask': space and time field of surface forcing, value of zero inside
+designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
+because this field ends up being SUBTRACTED from the total forcing
+""" 
+function combined_mask(basin_names,hemisphere)
+    pth = MeshArrays.GRID_LLC90
+    γ = GridSpec("LatLonCap",pth)
+    Γ = GridLoad(γ;option="full")
+    basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
+
+    combined_mask = similar(basins)
+    for bb = 1:length(basin_names)
+        mask = basin_mask(basin_names[bb],hemisphere)
+        combined_mask .+= mask
+    end
+    return combined_mask
 end
 
 end

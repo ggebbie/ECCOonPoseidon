@@ -73,7 +73,6 @@ savefig(outfname)
 
 ## UNTESTED AFTER HERE, GG 29-MAR-2023
 
-
 ## START FILTERING
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
@@ -235,3 +234,4 @@ if diags # this section requires updating to paths
     ylabel(ylbl)
     savefig(outfname)
 end
+=#
