@@ -8,7 +8,7 @@ export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
     expnames, expsymbols, regpolesdir, rundir,
     Nino34file, historicalNino34, readNino34,
-    sigma1grid, basin_mask
+    sigma1grid, basin_mask, combined_mask
 
 # add a method to this function
 import ECCOtour.sigma1grid

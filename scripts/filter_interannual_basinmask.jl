@@ -5,7 +5,7 @@
 #  Script argument: region (must be defined in `src/ECCOonPoseidon.jl`)
 #  If no arguments are passed, then interannual variability is removed everywhere.
 
-include("../src/intro.jl")
+include("./src/intro.jl")
 
 using Revise
 using ECCOtour
@@ -28,9 +28,9 @@ include(srcdir("config_exp.jl"));
 
 include(srcdir("config_regularpoles.jl")) #why is this closing my repl??
 
-maskname = "Pacific" #["Pacific","Japan Sea","South China Sea","East China Sea"]
+maskname = ["Pacific","Atlantic"] #["Pacific","Japan Sea","South China Sea","East China Sea"]
 hemisphere = 0;
-msk = basin_mask(maskname,hemisphere)
+msk = combined_mask(maskname,hemisphere)
 
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
