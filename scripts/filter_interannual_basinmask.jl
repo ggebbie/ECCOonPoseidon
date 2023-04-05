@@ -51,7 +51,7 @@ savefig(outfname)
 
 
 ## SMOOTH the EDGES
-X = 5
+X = 30
 msk_smooth = smooth(msk,X,γ)
 msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
