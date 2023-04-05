@@ -340,7 +340,9 @@ function smooth(msk::MeshArrays.gcmarray,X,γ)
 end
 
 end
-    function combined_mask(basin_names,hemisphere)
+
+"""
+function combined_mask(basin_names,hemisphere)
 # Arguments
 - `basin_name`: vector of strings. string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
 East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
