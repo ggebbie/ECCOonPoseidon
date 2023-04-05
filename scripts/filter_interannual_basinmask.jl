@@ -5,7 +5,7 @@
 #  Script argument: region (must be defined in `src/ECCOonPoseidon.jl`)
 #  If no arguments are passed, then interannual variability is removed everywhere.
 
-include("./src/intro.jl")
+include("../src/intro.jl")
 
 using Revise
 using ECCOtour
@@ -28,7 +28,7 @@ include(srcdir("config_exp.jl"));
 
 include(srcdir("config_regularpoles.jl")) #why is this closing my repl??
 
-maskname = "Pacific"
+maskname = "Pacific" #["Pacific","Japan Sea","South China Sea","East China Sea"]
 hemisphere = 0;
 msk = basin_mask(maskname,hemisphere)
 
@@ -44,13 +44,13 @@ colorbar(label="weight",orientation="vertical",ticks=lims)
 outfname = plotsdir("mask_temp.pdf")
 xlbl = "longitude "*L"[\degree E]"
 ylbl = "latitude "*L"[\degree N]"
-titlelbl = maskname*" mask"
-title(titlelbl)
+#titlelbl = maskname*" mask"
+#title(titlelbl)
 xlabel(xlbl)
 ylabel(ylbl)
 savefig(outfname)
 
-
+#=
 ## UNTESTED AFTER HERE, GG 29-MAR-2023
 
 
@@ -214,3 +214,4 @@ if diags # this section requires updating to paths
     ylabel(ylbl)
     savefig(outfname)
 end
+=#
