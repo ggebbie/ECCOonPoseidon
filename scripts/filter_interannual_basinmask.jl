@@ -28,8 +28,9 @@ include(srcdir("config_exp.jl"));
 
 include(srcdir("config_regularpoles.jl"))
 
-maskname =  "Pacific"
-msk = basin_mask(maskname,γ)
+maskname =  ["Pacific","Atlantic"]
+msk = combined_mask(maskname,γ,0)
+#msk = basin_mask(maskname,γ,0)
 ECCOtour.land2nan!(msk,γ)
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
@@ -40,7 +41,7 @@ lims = range(0.0,step=0.05,stop=1.0)
 contourf(λC,ϕC,msk_regpoles',lims,cmap=cmap_seismic)
 colorbar(label="weight",orientation="vertical",ticks=lims)
 !ispath(plotsdir()) && mkpath(plotsdir())
-outfname = plotsdir("mask_temp.eps")
+outfname = plotsdir("mask_temp.pdf")
 xlbl = "longitude "*L"[\degree E]"
 ylbl = "latitude "*L"[\degree N]"
 titlelbl = maskname*" mask"

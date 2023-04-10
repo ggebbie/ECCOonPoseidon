@@ -8,7 +8,7 @@ export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
     expnames, expsymbols, regpolesdir, rundir,
     Nino34file, historicalNino34, readNino34,
-    sigma1grid, basin_mask, smooth
+    sigma1grid, basin_mask, smooth, combined_mask
 
 # add a method to this function
 import ECCOtour.sigma1grid
@@ -246,49 +246,84 @@ function readNino34()
     return SST_nino34
 end
 
-"""
-    function basin_mask(basin_name,hemisphere)
-# Arguments
-- `latpt`: latitude grid
-- `lonpt`: longitude grid
-- `basin_name`: options are "Arctic, "Atlantic", "BaffinBay", "BarentsSea", "BeringSea",
-EastChinaSea, GINSeas, Gulf, GulfofMexico, HudsonBay, indian, JapanSea, JavaSea,
-MediterraneanSea, NorthSea, OkhotskSea, Pacific, RedSea, SouthChinaSea, TimorSea
-- hemisphere: options are N, S, both
-# Output
-- 'mask': space and time field of surface forcing, value of zero inside
-designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
-because this field ends up being SUBTRACTED from the total forcing
-"""
-function basin_mask(latpt,lonpt,basin_name,hemisphere)
-file = matopen(datadir("basin_grids/GRID_LLC90_"*basin_name))
-for ii in 1:5
-    mask[ii] = read(file,basin_name*"_mask"*string(ii))
-end 
-close(file)
-
-    return mask
-end
-
 basinlist()=["Pacific","Atlantic","Indian","Arctic","Bering Sea",
                 "South China Sea","Gulf of Mexico","Okhotsk Sea",
                 "Hudson Bay","Mediterranean Sea","Java Sea","North Sea",
                 "Japan Sea", "Timor Sea","East China Sea","Red Sea",
                 "Gulf","Baffin Bay","GIN Seas","Barents Sea"]
 
-function basin_mask(basin_name,γ)
+"""
+    function basin_mask(basin_name,γ,hemisphere)
+# Arguments
+- `basin_name`: options are "Arctic, "Atlantic", "BaffinBay", "BarentsSea", "BeringSea",
+EastChinaSea, GINSeas, Gulf, GulfofMexico, HudsonBay, indian, JapanSea, JavaSea,
+MediterraneanSea, NorthSea, OkhotskSea, Pacific, RedSea, SouthChinaSea, TimorSea
+- γ : grid spec
+- hemisphere: options are 0 = North, 1 = South, 2 = both
+# Output
+- 'mask': space and time field of surface forcing, value of zero inside
+designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
+because this field ends up being SUBTRACTED from the total forcing
+"""
+function basin_mask(basin_name,γ,hemisphere)
     pth = MeshArrays.GRID_LLC90
     #γ = GridSpec("LatLonCap",pth)
     Γ = GridLoad(γ;option="full")
     basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
     basin_list=ECCOonPoseidon.basinlist()
     basinID=findall(basin_list.==basin_name)[1]
-    basinmask=similar(basins)
+    basin_mask=similar(basins)
+
+    if hemisphere == 0 #North
+        hemisphere_mask = Γ.YC .> 0.0;
+    elseif hemisphere == 1 #South
+        hemisphere_mask = Γ.YC < 0.0;
+    elseif hemisphere == 2 #both
+        hemisphere_mask = Γ.YC > 0.0 | Γ.YC <= 0.0; #optional argument?
+    end
 
     for ff in 1:5
-        basinmask[ff] .= (basins[ff].==basinID) 
+        basin_mask[ff] .= hemisphere_mask[ff].*(basins[ff].==basinID)
     end
-    return basinmask
+    return basin_mask
+end
+
+
+"""
+    function combined_mask(basin_names,hemisphere)
+# Arguments
+- `basin_names`: vector of strings. string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
+East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
+Mediterranean Sea, North Sea, Okhotsk Sea, Pacific, Red Sea, South China Sea, Timor Sea.
+- γ : grid spec
+-'hemisphere': optional argument. 0 = North, 1 = South, 2 = both
+# Output
+- 'mask': space and time field of surface forcing, value of zero inside
+designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
+because this field ends up being SUBTRACTED from the total forcing
+""" 
+function combined_mask(basin_names,γ,hemisphere)
+    pth = MeshArrays.GRID_LLC90
+    #γ = GridSpec("LatLonCap",pth)
+    Γ = GridLoad(γ;option="full")
+    basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
+
+    combined_mask = similar(basins)
+
+    for ff = 1:5
+        for bb = 1:length(basin_names)
+            mask = basin_mask(basin_names[bb],γ,hemisphere)
+            combined_mask[ff] .+= mask[ff]
+        end
+    end
+
+    for bb = 1:length(basin_names)
+        mask = basin_mask(basin_names[bb],γ,hemisphere)
+        for ff = 1:5
+            combined_mask[ff] .+= mask[ff]
+        end
+    end
+    return combined_mask
 end
 
 """
