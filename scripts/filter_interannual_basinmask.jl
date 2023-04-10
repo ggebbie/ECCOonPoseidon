@@ -28,7 +28,7 @@ include(srcdir("config_exp.jl"));
 
 include(srcdir("config_regularpoles.jl"))
 
-maskname =  ["Pacific","Atlantic"]
+maskname =  ["Pacific","South China Sea","East China Sea"]
 msk = combined_mask(maskname,γ,0)
 #msk = basin_mask(maskname,γ,0)
 ECCOtour.land2nan!(msk,γ)
@@ -41,11 +41,11 @@ lims = range(0.0,step=0.05,stop=1.0)
 contourf(λC,ϕC,msk_regpoles',lims,cmap=cmap_seismic)
 colorbar(label="weight",orientation="vertical",ticks=lims)
 !ispath(plotsdir()) && mkpath(plotsdir())
-outfname = plotsdir("mask_temp.pdf")
+outfname = plotsdir("mask_temp1.eps")
 xlbl = "longitude "*L"[\degree E]"
 ylbl = "latitude "*L"[\degree N]"
-titlelbl = maskname*" mask"
-title(titlelbl)
+#titlelbl = maskname*" mask"
+#title(titlelbl)
 xlabel(xlbl)
 ylabel(ylbl)
 savefig(outfname)
@@ -66,15 +66,15 @@ colorbar(label="weight",orientation="vertical",ticks=lims)
 outfname = plotsdir("mask_smooth_temp.eps")
 xlbl = "longitude "*L"[\degree E]"
 ylbl = "latitude "*L"[\degree N]"
-titlelbl = maskname*" mask"
-title(titlelbl)
+#titlelbl = maskname*" mask"
+#title(titlelbl)
 xlabel(xlbl)
 ylabel(ylbl)
 savefig(outfname)
 
 ## UNTESTED AFTER HERE, GG 29-MAR-2023
 
-
+#=
 ## START FILTERING
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
@@ -236,3 +236,5 @@ if diags # this section requires updating to paths
     ylabel(ylbl)
     savefig(outfname)
 end
+
+=#

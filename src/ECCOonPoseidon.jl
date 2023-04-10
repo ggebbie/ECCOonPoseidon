@@ -288,9 +288,8 @@ function basin_mask(basin_name,γ,hemisphere)
     return basin_mask
 end
 
-
 """
-    function combined_mask(basin_names,hemisphere)
+    function combined_mask(basin_names,γ,hemisphere)
 # Arguments
 - `basin_names`: vector of strings. string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
 East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
@@ -309,12 +308,8 @@ function combined_mask(basin_names,γ,hemisphere)
     basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
 
     combined_mask = similar(basins)
-
     for ff = 1:5
-        for bb = 1:length(basin_names)
-            mask = basin_mask(basin_names[bb],γ,hemisphere)
-            combined_mask[ff] .+= mask[ff]
-        end
+        combined_mask[ff] = zeros(size(basins[ff]))
     end
 
     for bb = 1:length(basin_names)
