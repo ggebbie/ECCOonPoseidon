@@ -28,7 +28,7 @@ include(srcdir("config_exp.jl"));
 
 include(srcdir("config_regularpoles.jl"))
 
-maskname =  ["Pacific","South China Sea","East China Sea"]
+maskname =  ["Pacific","South China Sea","East China Sea","Okhotsk Sea","Java Sea","Japan Sea"]
 msk = combined_mask(maskname,γ,0)
 #msk = basin_mask(maskname,γ,0)
 ECCOtour.land2nan!(msk,γ)
