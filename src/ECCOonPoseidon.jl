@@ -297,7 +297,7 @@ end
 """
     function combined_mask(basin_names,hemisphere)
 # Arguments
-- `basin_name`: vector of strings. string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
+- `basin_names`: vector of strings. string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
 East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
 Mediterranean Sea, North Sea, Okhotsk Sea, Pacific, Red Sea, South China Sea, Timor Sea.
 -'hemisphere': optional argument. 0 = North, 1 = South, 2 = both
@@ -315,7 +315,9 @@ function combined_mask(basin_names,hemisphere)
     combined_mask = similar(basins)
     for bb = 1:length(basin_names)
         mask = basin_mask(basin_names[bb],hemisphere)
-        combined_mask .+= mask
+        for ff = 1:5
+        combined_mask[ff] .+= mask[ff]
+        end
     end
     return combined_mask
 end
