@@ -295,11 +295,11 @@ function basin_mask(basin_name,hemisphere)
 end
 
 function basin_mask(latpt,lonpt,basin_name,hemisphere)
-file = matopen(datadir("basin_grids/GRID_LLC90_"*basin_name))
-for ii in 1:5
-    mask[ii] = read(file,basin_name*"_mask"*string(ii))
-end 
-close(file)
+    file = matopen(datadir("basin_grids/GRID_LLC90_"*basin_name))
+    for ii in 1:5
+        mask[ii] = read(file,basin_name*"_mask"*string(ii))
+    end 
+    close(file)
 
     return mask
 end
@@ -337,8 +337,6 @@ function smooth(msk::MeshArrays.gcmarray,X,γ)
     DXCsm=X*Γ.DXC; DYCsm=X*Γ.DYC;
     #apply smoother
     return msk_smooth=MeshArrays.smooth(msk,DXCsm,DYCsm,Γ);
-end
-
 end
 
 """
