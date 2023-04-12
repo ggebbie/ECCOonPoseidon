@@ -51,7 +51,7 @@ ylabel(ylbl)
 savefig(outfname)
 
 ## SMOOTH the EDGES
-msk = basin_mask(maskname,γ,hemisphere=:north,Lsmooth=5)
+msk = basin_mask(maskname,γ,Lsmooth=5)
 msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
 figure()

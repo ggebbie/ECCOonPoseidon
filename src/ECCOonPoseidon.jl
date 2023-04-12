@@ -317,10 +317,10 @@ function basin_mask(basin_name::String,γ)
     basin_list=ECCOonPoseidon.basinlist()
     basinID=findall(basin_list.==basin_name)[1]
     basinmask=similar(basins)
-
     for ff in 1:5
         basinmask[ff] .= (basins[ff].==basinID) 
     end
+    land2nan!(basinmask,γ)
     return basinmask
 end
 
@@ -335,6 +335,7 @@ function smooth(msk::MeshArrays.gcmarray,X,γ)
     Γ = GridLoad(γ;option="full")
     DXCsm=X*Γ.DXC; DYCsm=X*Γ.DYC;
     #apply smoother
+    land2nan!(msk,γ)
     return msk_smooth=MeshArrays.smooth(msk,DXCsm,DYCsm,Γ);
 end
 
@@ -354,10 +355,11 @@ function apply_hemisphere_mask!(mask,hemisphere,γ)
     for ff in 1:5
         mask[ff] .*= hemisphere_mask[ff]
     end
+    #land2nan!(mask,γ)
 end
 
 """
-function combined_mask(basin_names,hemisphere)
+function basin_mask(basin_names,hemisphere)
 # Arguments
 - `basin_name`: vector of strings. string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
 East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
