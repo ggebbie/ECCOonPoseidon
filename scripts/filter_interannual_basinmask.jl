@@ -5,7 +5,6 @@
 #  Script argument: region (must be defined in `src/ECCOonPoseidon.jl`)
 #  If no arguments are passed, then interannual variability is removed everywhere.
 
-
 include("../src/intro.jl")
 
 using Revise
@@ -29,8 +28,9 @@ include(srcdir("config_exp.jl"));
 
 include(srcdir("config_regularpoles.jl"))
 
-maskname =  "Pacific"
-msk = basin_mask(maskname,γ)
+maskname =  ["Pacific","South China Sea","East China Sea","Okhotsk Sea","Java Sea","Japan Sea"]
+msk = basin_mask(maskname,γ,hemisphere=:north)
+#msk = basin_mask(maskname,γ,0)
 ECCOtour.land2nan!(msk,γ)
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
@@ -41,19 +41,17 @@ lims = range(0.0,step=0.05,stop=1.0)
 contourf(λC,ϕC,msk_regpoles',lims,cmap=cmap_seismic)
 colorbar(label="weight",orientation="vertical",ticks=lims)
 !ispath(plotsdir()) && mkpath(plotsdir())
-outfname = plotsdir("mask_temp.eps")
+outfname = plotsdir("mask_temp1.eps")
 xlbl = "longitude "*L"[\degree E]"
 ylbl = "latitude "*L"[\degree N]"
-titlelbl = maskname*" mask"
-title(titlelbl)
+#titlelbl = maskname*" mask"
+#title(titlelbl)
 xlabel(xlbl)
 ylabel(ylbl)
 savefig(outfname)
 
-
 ## SMOOTH the EDGES
-X = 30
-msk_smooth = smooth(msk,X,γ)
+msk = basin_mask(maskname,γ,hemisphere=:north,Lsmooth=5)
 msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
 figure()
@@ -66,8 +64,8 @@ colorbar(label="weight",orientation="vertical",ticks=lims)
 outfname = plotsdir("mask_smooth_temp.eps")
 xlbl = "longitude "*L"[\degree E]"
 ylbl = "latitude "*L"[\degree N]"
-titlelbl = maskname*" mask"
-title(titlelbl)
+#titlelbl = maskname*" mask"
+#title(titlelbl)
 xlabel(xlbl)
 ylabel(ylbl)
 savefig(outfname)
@@ -235,4 +233,4 @@ if diags # this section requires updating to paths
     ylabel(ylbl)
     savefig(outfname)
 end
-=#
+
