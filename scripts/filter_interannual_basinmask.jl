@@ -33,6 +33,7 @@ hemisphere = :north
 Lsmooth = 5
 
 msk = basin_mask(maskname,γ,hemisphere=hemisphere)
+land2nan!(msk,γ)
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
 figure()
@@ -51,6 +52,7 @@ savefig(outfname)
 
 ## SMOOTH the EDGES
 msk_smooth = basin_mask(maskname,γ,hemisphere=hemisphere,Lsmooth=Lsmooth)
+land2nan!(msk_smooth,γ)
 msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
 figure()
