@@ -21,17 +21,18 @@ using MITgcmTools
 using MAT
 
 # from intro.jl, default is nointerannual
+# ternary notation
 expt == "nointerannual" ? keepregion = false : keepregion = true
 println("Experiment: ",expt)
 
 include(srcdir("config_exp.jl"));
-
 include(srcdir("config_regularpoles.jl"))
 
 maskname =  ["Pacific","South China Sea","East China Sea","Okhotsk Sea","Java Sea","Japan Sea"]
-msk = basin_mask(maskname,γ,hemisphere=:north)
-#msk = basin_mask(maskname,γ,0)
-#ECCOtour.land2nan!(msk,γ)
+hemisphere = :north
+Lsmooth = 5
+
+msk = basin_mask(maskname,γ,hemisphere=hemisphere)
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
 figure()
@@ -44,14 +45,12 @@ colorbar(label="weight",orientation="vertical",ticks=lims)
 outfname = plotsdir("mask_temp1.eps")
 xlbl = "longitude "*L"[\degree E]"
 ylbl = "latitude "*L"[\degree N]"
-#titlelbl = maskname*" mask"
-#title(titlelbl)
 xlabel(xlbl)
 ylabel(ylbl)
 savefig(outfname)
 
 ## SMOOTH the EDGES
-msk_smooth = basin_mask(maskname,γ,Lsmooth=5)
+msk_smooth = basin_mask(maskname,γ,hemisphere=hemisphere,Lsmooth=Lsmooth)
 msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
 figure()
@@ -64,8 +63,6 @@ colorbar(label="weight",orientation="vertical",ticks=lims)
 outfname = plotsdir("mask_smooth_temp.eps")
 xlbl = "longitude "*L"[\degree E]"
 ylbl = "latitude "*L"[\degree N]"
-#titlelbl = maskname*" mask"
-#title(titlelbl)
 xlabel(xlbl)
 ylabel(ylbl)
 savefig(outfname)
@@ -82,24 +79,15 @@ outputdir = fluxdir(expt)*"test"
 (ϕC,λC) = latlonC(γ)
 # on the vector (Staggered) grid
 (ϕG,λG) = latlonG(γ)
- 
-## Define region of interest where interannual fluxes are kept.
-# region = "test"
-# if keepregion
-#     latrect, lonrect = rectangle(region)
 
-#     # should dlat, dlon go into src?
-#     dlat = 10
-#     dlon = 10
-    
-#     lonmid =  (lonrect[1]+lonrect[2])/2
-#     centerlon!(λC,lonmid)
-#     centerlon!(λG,lonmid)
-# end
+# set 160 West as the center of the regpoles grid
+lonmid =  -160
+centerlon!(λC,lonmid)
+centerlon!(λG,lonmid)
 
-# if !isdir(outputdir)
-#     mkpath(outputdir)
-# end
+if !isdir(outputdir)
+    mkpath(outputdir)
+end
 midname = "_6hourlyavg_"
 varnames = ("atmPload","oceFWflx","oceQsw","oceSflux","oceSPflx","oceTAUE","oceTAUN","oceTAUX",
             "oceTAUY","sIceLoad","sIceLoadPatmPload","sIceLoadPatmPload_nopabar","TFLUX")
@@ -143,23 +131,32 @@ Ecycle,Fcycle = seasonal_matrices(fcycle,t14day)
 # interannual filter is a Hann(ing) filter
 Thann = 100.0 # days
 
+# Get production-ready mask.
+msk = basin_mask(maskname,γ,hemisphere=:north,Lsmooth=5)
+
 #vname = varnames[1] # for interactive use
 for vname ∈ varnames
-    filein = inputdir*vname*midname
-    fileout = outputdir*vname*midname
+    filein = joinpath(inputdir,vname*midname)
+    fileout = joinpath(outputdir,vname*midname)
     println(filein)
 
-    if keepregion
-        # some tracers have a staggered grid.
-        # will have to re-do the mask unfortunately to be sure.
-        if vname == "oceTAUX"
-            msk = regional_mask(ϕC,λG,latrect,lonrect,dlat,dlon)
-        elseif vname == "oceTAUY"
-            msk = regional_mask(ϕG,λC,latrect,lonrect,dlat,dlon)
-        else
-            msk = regional_mask(ϕC,λC,latrect,lonrect,dlat,dlon)
-        end
-    end
+    ## WARNING: THIS BLOCK SHOULD SHIFT THE MASK BASED ON VARIABLE TYPE
+    # AND STAGGERED GRID. IGNORE FOR NOW.
+    # if keepregion
+    #     ## NEED TO UPDATE BASIN_MASK FUNCTION TO INCLUDE
+    #     # INPUT REGARDING WHETHER THE GRID IS STAGGERED
+    #     # some tracers have a staggered grid.
+    #     # will have to re-do the mask unfortunately to be sure.
+    #     if vname == "oceTAUX"
+    #         #msk = regional_mask(ϕC,λG,latrect,lonrect,dlat,dlon)
+    #         msk = basin_mask(maskname,γ,hemisphere=:north,Lsmooth=5)
+
+    #     elseif vname == "oceTAUY"
+    #         msk = regional_mask(ϕG,λC,latrect,lonrect,dlat,dlon)
+    #     else
+    #         msk = regional_mask(ϕC,λC,latrect,lonrect,dlat,dlon)
+    #     end
+    # end
     
     # use this F to decompose controllable/uncontrollable parts
     # i.e., 6 hourly to 14 day

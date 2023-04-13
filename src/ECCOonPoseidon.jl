@@ -246,71 +246,40 @@ function readNino34()
     return SST_nino34
 end
 
-"""
-    function basin_mask(basin_name,hemisphere)
-# Arguments
-- `basin_name`: string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
-East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
-Mediterranean Sea, North Sea, Okhotsk Sea, Pacific, Red Sea, South China Sea, Timor Sea.
--'hemisphere': optional argument. 0 = North, 1 = South, 2 = both
-# Output
-- 'mask': space and time field of surface forcing, value of zero inside
-designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
-because this field ends up being SUBTRACTED from the total forcing
-""" 
-
-# function basin_mask(basin_name,hemisphere)
-
-#     pth = MeshArrays.GRID_LLC90
-#     γ = GridSpec("LatLonCap",pth)
-#     Γ = GridLoad(γ;option="full")
-#     basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
-
-#     basin_list=["Pacific","Atlantic","indian","Arctic","Bering Sea",
-#             "South China Sea","Gulf of Mexico","Okhotsk Sea",
-#             "Hudson Bay","Mediterranean Sea","Java Sea","North Sea",
-#             "Japan Sea", "Timor Sea","East China Sea","Red Sea",
-#             "Gulf","Baffin Bay","GIN Seas","Barents Sea"];
-
-#     # Γ.hFacC[:,1] can be used as an indicator for wet points
-#     # (there might be a better way to do this)
-#     ocean_mask = Γ.hFacC[:,1]
-#     ocean_mask[findall(ocean_mask.>0.0)].=1.0
-#     if hemisphere == 0 #North
-#     hemisphere_mask = Γ.YC .> 0.0;
-#     elseif hemisphere == 1 #South
-#         hemisphere_mask = Γ.YC < 0.0;
-#     elseif hemisphere == 2 #both
-#         hemisphere_mask = Γ.YC > 0.0 | Γ.YC <= 0.0; #optional argument?
-#     end
-
-#     basinID=findall(basin_list.==basin_name)[1]
-#     basin_mask=similar(basins)
-#     for ff in 1:5
-#         basin_mask[ff] .= hemisphere_mask[ff].*ocean_mask[ff].*(basins[ff].==basinID)
-#     end
-
-#     return basin_mask 
-
-# end
-
-function basin_mask(latpt,lonpt,basin_name,hemisphere)
-    file = matopen(datadir("basin_grids/GRID_LLC90_"*basin_name))
-    for ii in 1:5
-        mask[ii] = read(file,basin_name*"_mask"*string(ii))
-    end 
-    close(file)
-
-    return mask
-end
-
 basinlist()=["Pacific","Atlantic","Indian","Arctic","Bering Sea",
                 "South China Sea","Gulf of Mexico","Okhotsk Sea",
                 "Hudson Bay","Mediterranean Sea","Java Sea","North Sea",
                 "Japan Sea", "Timor Sea","East China Sea","Red Sea",
                 "Gulf","Baffin Bay","GIN Seas","Barents Sea"]
 
+"""
+    function basin_mask(basin_name,γ;hemisphere=nothing,Lsmooth=nothing)
+
+    Make a mask based on Gael Forget's definitions of ocean basins and sub-basins.
+    Note: This mask contains float values. It could be more efficient with a BitArray.
+
+# Arguments
+- `basin_name::Union{String,Vector{String}}`: string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
+East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
+Mediterranean Sea, North Sea, Okhotsk Sea, Pacific, Red Sea, South China Sea, Timor Sea.
+-`hemisphere::Symbol`: optional argument with values `:north`, `:south`, and `:both`
+-`Lsmooth::Number`: smoothing lengthscale in grid points
+# Output
+- 'mask': space and time field of surface forcing, value of zero inside
+designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
+because this field ends up being SUBTRACTED from the total forcing
+""" 
+function basin_mask(basin_name)
+    # open MATLAB files created elsewhere
+    file = matopen(datadir("basin_grids/GRID_LLC90_"*basin_name))
+    for ii in 1:5
+        mask[ii] = read(file,basin_name*"_mask"*string(ii))
+    end 
+    close(file)
+    return mask
+end
 function basin_mask(basin_name::String,γ)
+    # this version takes one string and returns one mask.
     pth = MeshArrays.GRID_LLC90
     Γ = GridLoad(γ;option="full")
     basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
@@ -322,6 +291,41 @@ function basin_mask(basin_name::String,γ)
     end
     land2nan!(basinmask,γ)
     return basinmask
+end
+function basin_mask(basin_names::Vector,γ;hemisphere=nothing,Lsmooth=nothing)
+    # this is the full version, take a vector of basin names, include optional arguments
+    pth = MeshArrays.GRID_LLC90
+    Γ = GridLoad(γ;option="full")
+    basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
+
+    mask = 0 * basins # needs NaN on land
+    for (ii,nn) in enumerate(basin_names)
+        mask += basin_mask(nn,γ)
+    end
+
+    if !isnothing(hemisphere)
+        apply_hemisphere_mask!(mask,hemisphere,γ)
+    end
+
+    if !isnothing(Lsmooth)
+        mask = smooth(mask,Lsmooth,γ)
+    end
+
+    # change NaNs to zeros.
+    land2zero!(mask,γ)
+    return mask
+end
+
+"""
+    function land2zero!(msk,γ)
+
+    move to ECCOtour.jl
+"""
+function land2zero!(msk,γ)
+    land = landmask(γ)
+    for ff in eachindex(msk)
+        msk[ff][land[ff]] .= zero(eltype(msk))
+    end
 end
 
 """
@@ -339,6 +343,15 @@ function smooth(msk::MeshArrays.gcmarray,X,γ)
     return msk_smooth=MeshArrays.smooth(msk,DXCsm,DYCsm,Γ);
 end
 
+"""
+    function apply_hemisphere_mask!(mask,hemisphere,γ)
+
+    overlay a hemispheric mask on a previous `mask`
+    in-place function
+    hemisphere options are `:north`,`:south`, and `:both`
+
+    Note: both has not been tested with this version
+"""
 function apply_hemisphere_mask!(mask,hemisphere,γ)
     Γ = GridLoad(γ;option="full")
     if hemisphere == :north
@@ -355,39 +368,6 @@ function apply_hemisphere_mask!(mask,hemisphere,γ)
     for ff in 1:5
         mask[ff] .*= hemisphere_mask[ff]
     end
-    #land2nan!(mask,γ)
-end
-
-"""
-function basin_mask(basin_names,hemisphere)
-# Arguments
-- `basin_name`: vector of strings. string options are Arctic, Atlantic, Baffin Bay, Barents Sea, Bering Sea,
-East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, Java Sea,
-Mediterranean Sea, North Sea, Okhotsk Sea, Pacific, Red Sea, South China Sea, Timor Sea.
--'hemisphere': optional argument. 0 = North, 1 = South, 2 = both
-# Output
-- 'mask': space and time field of surface forcing, value of zero inside
-designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
-because this field ends up being SUBTRACTED from the total forcing
-""" 
-function basin_mask(basin_names::Vector,γ;hemisphere=nothing,Lsmooth=nothing)
-    pth = MeshArrays.GRID_LLC90
-    Γ = GridLoad(γ;option="full")
-    basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
-    mask = 0 * basins # needs NaN on land
-    for (ii,nn) in enumerate(basin_names)
-        mask += basin_mask(nn,γ)
-    end
-
-    if !isnothing(hemisphere)
-        apply_hemisphere_mask!(mask,hemisphere,γ)
-    end
-
-    if !isnothing(Lsmooth)
-        mask = smooth(mask,Lsmooth,γ)
-    end
-    
-    return mask
 end
 
 end
