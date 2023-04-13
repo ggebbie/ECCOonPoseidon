@@ -31,7 +31,7 @@ include(srcdir("config_regularpoles.jl"))
 maskname =  ["Pacific","South China Sea","East China Sea","Okhotsk Sea","Java Sea","Japan Sea"]
 msk = basin_mask(maskname,γ,hemisphere=:north)
 #msk = basin_mask(maskname,γ,0)
-ECCOtour.land2nan!(msk,γ)
+#ECCOtour.land2nan!(msk,γ)
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
 figure()
@@ -51,7 +51,7 @@ ylabel(ylbl)
 savefig(outfname)
 
 ## SMOOTH the EDGES
-msk = basin_mask(maskname,γ,Lsmooth=5)
+msk_smooth = basin_mask(maskname,γ,Lsmooth=5)
 msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
 figure()
@@ -71,7 +71,6 @@ ylabel(ylbl)
 savefig(outfname)
 
 ## UNTESTED AFTER HERE, GG 29-MAR-2023
-
 ## START FILTERING
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
