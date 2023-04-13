@@ -24,6 +24,6 @@ pth = MeshArrays.GRID_LLC90
 nf = length(γ.fSize)
 
 # get standard levels of MITgcm
-z = depthlevels(γ)
-pstdz = pressurelevels(z)
 p₀ = 1000.0; # dbar
+z = depthlevels(γ)
+pstdz = pressurelevels(z);
