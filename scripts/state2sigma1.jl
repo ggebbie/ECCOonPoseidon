@@ -1,7 +1,7 @@
 # map θ, S, p to sigma 1 surfaces.
 # This is a wrapper routine to read files on poseidon.
 # ggebbie, 1-Apr-2021
-
+#julia --project=@. scripts/state2sigma1.jl 
 include("../src/intro.jl")
 
 using Revise # for interactive use
@@ -10,6 +10,9 @@ using ECCOtour, ECCOonPoseidon
 # using JLD2, Dierckx, Interpolations
 
 include(srcdir("config_exp.jl"))
+
+
+runpath,diagpath = listexperiments(exprootdir())
 
 # DEFINE THE LIST OF SIGMA1 VALUES.
 sig1grid = sigma1grid()
@@ -21,25 +24,20 @@ RProot = ("trsp_3d_set1","state_3d_set2") # uvel, vvel, gm psix, gm psiy, rhoano
 
 splorder = 3 # spline order
 
+expt = "noinitadjust"
 # first filter for state_3d_set1
-filelist = searchdir(diagpath,TSroot)
+filelist = searchdir(diagpath[expt],TSroot)
 
 # second filter for "data"
 datafilelist  = filter(x -> occursin("data",x),filelist)
 
-# for root in RProot
-#     filelist2 = searchdir(diagpath,root) 
-#     datafilelist2  = filter(x -> occursin("data",x),filelist)
-# end
-
 # make an output directory for each expteriment
-!isdir(path_out) && mkdir(path_out)
+pathout = sig1dir(expt)
+!isdir(pathout) && mkdir(pathout)
 nt = length(datafilelist)
-    
-global tt = 0
-for datafile in datafilelist
-    tt += 1
 
+for (tt, datafile) in enumerate(datafilelist)
+    
     #print timestamp
     year,month = timestamp_monthly_v4r4(tt)
 
@@ -50,8 +48,11 @@ for datafile in datafilelist
     for root in RProot
         push!(fileroots,root*fileroot[14:end]) # a better way than "14"?
     end
-    
     # Read from filelist, map to sigma-1, write to file
-    mdsio2sigma1(diagpath,path_out,fileroots,γ,pstdz,sig1grid,splorder)
+    mdsio2sigma1(diagpath[expt],pathout,fileroots,γ,pstdz,sig1grid;splorder=splorder)
 
+    fileprefix1 = pathout
+    filesuffix1 = "_on_sigma1"*fileroots[1][14:end]*".data"
+    test = joinpath(fileprefix1,"THETA"*filesuffix1)
+    
 end

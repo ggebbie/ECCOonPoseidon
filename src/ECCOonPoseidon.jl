@@ -154,6 +154,8 @@ function expnames()
     push!(shortnames,"noinitadjust" => "noINIT")
     push!(shortnames,"nosfcadjust" => "noSFC")
     push!(shortnames,"nointerannual" => "noIA")
+    push!(shortnames,"seasonalclimatology" => "sznF")
+
     return shortnames
 end
 
