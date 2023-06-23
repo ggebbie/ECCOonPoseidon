@@ -22,7 +22,9 @@ using MAT
 
 # from intro.jl, default is nointerannual
 # ternary notation
-expt == "nointerannual" ? keepregion = false : keepregion = true
+#expt == "nointerannual" ? keepregion = false : keepregion = true
+keepregion = true
+plotting = true
 println("Experiment: ",expt)
 
 include(srcdir("config_exp.jl"));
@@ -30,44 +32,50 @@ include(srcdir("config_regularpoles.jl"))
 
 maskname =  ["Pacific","South China Sea","East China Sea","Okhotsk Sea","Java Sea","Japan Sea"]
 hemisphere = :north
-Lsmooth = 5
+southlat = 15.0
+northlat = 70.0
+Lsmooth = 3 #1 grid point = about 0.97 degrees latitude at 15 degrees North - smoothing makes fade zone a bit wider than length scale given
 
-msk = basin_mask(maskname,γ,hemisphere=hemisphere)
+msk = basin_mask(maskname,γ,southlat=southlat,northlat=northlat)
 land2nan!(msk,γ)
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
-figure()
-clf()
-cmap_seismic =get_cmap("seismic")
-lims = range(0.0,step=0.05,stop=1.0)
-contourf(λC,ϕC,msk_regpoles',lims,cmap=cmap_seismic)
-colorbar(label="weight",orientation="vertical",ticks=lims)
-!ispath(plotsdir()) && mkpath(plotsdir())
-outfname = plotsdir("mask_temp1.eps")
-xlbl = "longitude "*L"[\degree E]"
-ylbl = "latitude "*L"[\degree N]"
-xlabel(xlbl)
-ylabel(ylbl)
-savefig(outfname)
+if plotting == true
+    figure()
+    clf()
+    cmap_seismic =get_cmap("seismic")
+    lims = range(0.0,step=0.05,stop=1.0)
+    contourf(λC,ϕC,msk_regpoles',lims,cmap=cmap_seismic)
+    colorbar(label="weight",orientation="vertical",ticks=lims)
+    !ispath(plotsdir()) && mkpath(plotsdir())
+    outfname = plotsdir("mask_temp1.eps")
+    xlbl = "longitude "*L"[\degree E]"
+    ylbl = "latitude "*L"[\degree N]"
+    xlabel(xlbl)
+    ylabel(ylbl)
+    savefig(outfname)
+end
 
 ## SMOOTH the EDGES
-msk_smooth = basin_mask(maskname,γ,hemisphere=hemisphere,Lsmooth=Lsmooth)
+msk_smooth = basin_mask(maskname,γ,southlat=southlat,northlat=northlat,Lsmooth=Lsmooth)
 land2nan!(msk_smooth,γ)
 msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
-figure()
-clf()
-cmap_seismic =get_cmap("seismic")
-lims = range(0.0,step=0.05,stop=1.0)
-contourf(λC,ϕC,msk_smooth_regpoles',lims,cmap=cmap_seismic)
-colorbar(label="weight",orientation="vertical",ticks=lims)
-!ispath(plotsdir()) && mkpath(plotsdir())
-outfname = plotsdir("mask_smooth_temp.eps")
-xlbl = "longitude "*L"[\degree E]"
-ylbl = "latitude "*L"[\degree N]"
-xlabel(xlbl)
-ylabel(ylbl)
-savefig(outfname)
+if plotting == true
+    figure()
+    clf()
+    cmap_seismic =get_cmap("seismic")
+    lims = range(0.0,step=0.05,stop=1.0)
+    contourf(λC,ϕC,msk_smooth_regpoles',lims,cmap=cmap_seismic)
+    colorbar(label="weight",orientation="vertical",ticks=lims)
+    !ispath(plotsdir()) && mkpath(plotsdir())
+    outfname = plotsdir("mask_smooth_temp.eps")
+    xlbl = "longitude "*L"[\degree E]"
+    ylbl = "latitude "*L"[\degree N]"
+    xlabel(xlbl)
+    ylabel(ylbl)
+    savefig(outfname)
+end
 
 ## UNTESTED AFTER HERE, GG 29-MAR-2023
 ## START FILTERING
@@ -97,7 +105,7 @@ varnames = ("atmPload","oceFWflx","oceQsw","oceSflux","oceSPflx","oceTAUE","oceT
 # sample calcs at one point. Get the length of timeseries in nseries.
 yv = 40
 xv = 180
-fv = 5
+fv = 5 
 tmplat  = ϕC[fv]; lat_point = tmplat[xv,yv]
 tmplon  = λC[fv]; lon_point = tmplon[xv,yv]
 frootsample = inputdir*varnames[end]*midname
@@ -131,10 +139,10 @@ fcycle = 1/(daysperyear) # units: day^{-1}
 Ecycle,Fcycle = seasonal_matrices(fcycle,t14day)
 
 # interannual filter is a Hann(ing) filter
-Thann = 100.0 # days
+Thann = 100.0 # days half power point ~250 days for Thann = 100
 
 # Get production-ready mask.
-msk = basin_mask(maskname,γ,hemisphere=:north,Lsmooth=5)
+msk = basin_mask(maskname,γ,southlat=southlat,northlat=northlat,Lsmooth=Lsmooth)
 
 #vname = varnames[1] # for interactive use
 for vname ∈ varnames
@@ -205,30 +213,44 @@ for vname ∈ varnames
 
 end
 
-# MV DIAGS TO DIFFERENT SCRIPT/FUNCTION
-# make a figure to see a spatial map of flux, oceTAUN, oceTAUE are most interesting
-diags = false
-if diags # this section requires updating to paths
-    filename1 = "/poseidon/ecco.jpl.nasa.gov/drive/files/Version4/Release4/other/flux-forced/forcing/oceTAUN_6hourlyavg_2000"
-    field1 = read_bin(filename1,Float32,γ)
-    filename2 = "/poseidon/ecco.jpl.nasa.gov/drive/files/Version4/Release4/other/flux-forced-interannual_southpac/oceTAUN_6hourlyavg_2000"
-    field2 = read_bin(filename2,Float32,γ)
+if plotting == true
+    # MV DIAGS TO DIFFERENT SCRIPT/FUNCTION
+    # make a figure to see a spatial map of flux, oceTAUN, oceTAUE are most interesting
+    diags = false
+    if diags # this section requires updating to paths
+        year = "2010"
+        inputdir = fluxdir()
+        outputdir = fluxdir(expt)*"test"
+        midname = "_6hourlyavg_"
+        vname = "oceTAUE"
+        filein = joinpath(inputdir,vname*midname)
+        fileout = joinpath(outputdir,vname*midname)
+        #filename1 = "/poseidon/ecco.jpl.nasa.gov/drive/files/Version4/Release4/other/flux-forced/forcing/oceTAUN_6hourlyavg_2000"
+        #filename1 = "/batou/eccodrive/files/Version4/Release4/other/flux-forced/forcing/oceTAUN_6hourlyavg_2000"
+        field1 = read_bin(filein*year,Float32,γ)
+        #filename2 = "/poseidon/ecco.jpl.nasa.gov/drive/files/Version4/Release4/other/flux-forced-interannual_southpac/oceTAUN_6hourlyavg_2000"
+        #filename2 = "/batou/eccodrive/files/Version4/Release4/other/flux-forced-nointerannual/forcing/test/oceTAUN_6hourlyavg_2000"
+        field2 = read_bin(fileout*year,Float32,γ)
 
-    # translate to regularpoles
-    field_regpoles =  var2regularpoles(field2[:,100]-field1[:,100],γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
+        # translate to regularpoles
+        #field_regpoles =  var2regularpoles(field2[:,100]-field1[:,100],γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
+        #field_regpoles = var2regularpoles(field2[:,100]-field1[:,100],γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+        field_regpoles = var2regularpoles(field2[:,100]-field1[:,100],γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
-    figure()
-    clf()
-    lims = range(-0.1,step=0.005,stop=0.1)
-    contourf(λCregpoles,ϕCregpoles,field_regpoles',lims,cmap=cmap_seismic)
-    colorbar(label="wind stress",orientation="vertical",ticks=lims)
-    outfname = outputdir*"delta_oceTAUN-2000-1.eps"
-    xlbl = "longitude "*L"[\degree E]"
-    ylbl = "latitude "*L"[\degree N]"
-    titlelbl = L"\tau_y, "*"interannual_southpac - iter129, yr 2000, time 100, "*L"[N/m^2]"
-    title(titlelbl)
-    xlabel(xlbl)
-    ylabel(ylbl)
-    savefig(outfname)
+        figure()
+        clf()
+        lims = range(-0.1,step=0.005,stop=0.1)
+        #contourf(λC,ϕC,field_regpoles',lims,cmap=cmap_seismic)
+        contourf(field_regpoles',lims)
+        #colorbar(label="wind stress",orientation="vertical",ticks=lims)
+        outfname = outputdir*"/testdelta_oceTAUE-"*year*"-2.eps"
+        xlbl = "longitude "*L"[\degree E]"
+        ylbl = "latitude "*L"[\degree N]"
+        titlelbl = L"\tau_x, "*"interannual_northpac - iter129, yr "*year*", time 100, "*L"[N/m^2]"
+        title(titlelbl)
+        xlabel(xlbl)
+        ylabel(ylbl)
+        savefig(outfname)
+        #plot continent outlines -- matplotlib 
+    end
 end
-
