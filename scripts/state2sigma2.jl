@@ -13,7 +13,7 @@ sig2dir(expt::String) = rundir(expt)*"sigma2/"
 include(srcdir("config_exp.jl"))
 runpath,diagpath = listexperiments(exprootdir())
 
-# DEFINE THE LIST OF SIGMA1 VALUES.
+# define the sigma grid you wish to interpolate onto
 sig2grid = sigma2grid()
 
 ## specific for state
