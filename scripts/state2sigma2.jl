@@ -34,7 +34,7 @@ datafilelist  = filter(x -> occursin("data",x),filelist)
 pathout = sig2dir(expt)
 !isdir(pathout) && mkdir(pathout)
 nt = length(datafilelist)
-
+siggrid = sigma2grid()
 for (tt, datafile) in enumerate(datafilelist)
     
     #print timestamp
@@ -48,10 +48,8 @@ for (tt, datafile) in enumerate(datafilelist)
         push!(fileroots,root*fileroot[14:end]) # a better way than "14"?
     end
     # Read from filelist, map to sigma-1, write to file
-    mdsio2sigma2(diagpath[expt],pathout,fileroots,γ,pstdz,sig2grid;splorder=splorder)
 
-    # fileprefix1 = pathout
-    # filesuffix1 = "_on_sigma2"*fileroots[1][14:end]*".data"
-    # test = joinpath(fileprefix1,"THETA"*filesuffix1)
+    mdsio2sigma(diagpath[expt],pathout,fileroots,γ, pstdz, siggrid, 2000.0, "sigma2";
+    splorder=splorder) 
 
 end
