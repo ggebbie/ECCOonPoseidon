@@ -25,15 +25,16 @@ marks = expsymbols()
 ocean_mask = OHC_helper.wet_pts(Γ)
 region = "PAC"; 
 PAC_msk = OHC_helper.PAC_mask(Γ, basins, basin_list, ϕ, λ; 
-region, extent = "full")
+region, extent = "full", include_bering = true)
 msk = PAC_msk;
 tecco = 1992+1/24:1/12:2018
 
 X=collect(-89.0:89.0); Y=reverse(z); #coordinate variables
 
-Ψ_exp = Dict();
-@time for expname in ["iter0_bulkformula", "iter129_bulkformula", "seasonalclimatology", "seasonalclimatology_iter0"]
+@time for expname in ["iter0_bulkformula", "iter129_bulkformula", "noinitadjust", 
+    "seasonalclimatology", "nosfcadjust",
+    "seasonalclimatology_iter0", "climatological_tau"]
     println(expname)
-    Ψ_exp[expname] = OHC_helper.extract_meridionalΨ̄wBolus_timeseries(expname,diagpath, Γ, γ, PAC_msk)
+    Ψ_exp = OHC_helper.extract_meridionalΨ̄wBolus_timeseries(expname,diagpath, Γ, γ, PAC_msk)
+    jldsave(datadir("ΨwBolustimeseries_"*region*"_" * expname *".jld2"); Ψ_exp)
 end
-jldsave(datadir("ΨwBolustimeseries_"*region*".jld2"); Ψ_exp)

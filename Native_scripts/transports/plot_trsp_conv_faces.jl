@@ -37,20 +37,21 @@ lvls = findall( botlvl .<= z[:].<= uplvl)
 
 fname = datadir("native/" * region * "_TRSP_" * ".jld2")
 transports_dict = load(fname)["transports_dict"]
-fig, axes = plt.subplots(1, 2, figsize = (10, 8), sharey = true)
+fig, axes = plt.subplots(1, 3, figsize = (10, 8), sharey = true)
 alphas = [0.5, 1]
 nt = 312
-labels = ["Iteration 129", "Initial 129"]
-for (i, var) in enumerate([keys(transports_dict)])
+labels = ["Initial 0", "Initial 129"]
+
+for (i, var) in enumerate(keys(transports_dict))
+    println(var)
     withoutBering = 1
     Vout = withoutBering .* transports_dict[var].Vout
-    axes[1].plot(tecco[1:nt], 1e-6 .* transports_dict[var].Wtop, label = var, c = colors[i], alpha = alphas[i]); 
-    axes[2].plot(tecco[1:nt], 1e-6 .* transports_dict[var].Wbot, label = var, c = colors[i], alpha = alphas[i]); 
+    axes[1].plot(tecco[1:nt], 1e-6 .* transports_dict[var].Vin, label = var, c = colors[i], alpha = alphas[i]); 
+    axes[2].plot(tecco[1:nt], 1e-6 .* transports_dict[var].Wtop, label = var, c = colors[i], alpha = alphas[i]); 
+    axes[3].plot(tecco[1:nt], 1e-6 .* transports_dict[var].Wbot, label = var, c = colors[i], alpha = alphas[i]); 
 
-    axes[1].set_title( L"W_{out}"); axes[2].set_title( L"W_{in}"); 
+    axes[1].set_title( L"V_{in}"); axes[2].set_title( L"W_{out}"); ; axes[2].set_title( L"W_{in}"); 
     fig.suptitle(region * " Volume Fluxes [z = 2 - 3 km]")
 end
-fname = region * "_TRSP_Faces" * suffix * ".png"
-fig.savefig(plotsdir("native/generals/" * fname), dpi = 400)
-
+[a.legend() for a in axes]
 fig

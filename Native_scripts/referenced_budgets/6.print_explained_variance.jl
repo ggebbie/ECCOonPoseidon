@@ -38,7 +38,7 @@ lvls = findall( botlvl .<= z[:].<= uplvl)
 tecco = 1992+1/24:1/12:2018
 
 runpath,diagpath = listexperiments(exprootdir());
-=
+
 alabels = ["Iteration 129", "Iteration 0"]
 for (i, expname) in enumerate(["iter129_bulkformula", "iter0_bulkformula"])
     fname = datadir("native/" * expname * region * "_THETA_budget_ref_Reynolds_" * suffix * ".jld2")

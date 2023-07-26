@@ -79,7 +79,7 @@ function filter_volume_budget(diagpath::Dict{String, String}, expname::String, Î
     return (Wtop = deepcopy(Wtops), Wbot = deepcopy(Wbots), 
             Vin = deepcopy(Vsouths), Vout = deepcopy(Vnorths))
 end
-vars = ["iter129_bulkformula", "seasonalclimatology"]
+vars = ["seasonalclimatology", "seasonalclimatology_iter0"]
 for expname in vars
     transports_dict[expname] = filter_volume_budget(diagpath, expname, Î³, cs, sn)
 end

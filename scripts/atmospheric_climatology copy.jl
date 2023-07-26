@@ -13,35 +13,35 @@ using Statistics, Distributions, FFTW, LinearAlgebra, StatsBase
 using MeshArrays, MITgcmTools
 import PyPlot as plt
 include(srcdir("config_exp.jl"))
-
+MeshArray
 # This could be put into src code for scientific project.
 inputdir = fluxdir()
-outputdir = datadir("forcings/iter0_mean_tau/")
+outputdir = fluxdir("seasonalcycle")
+expt == "nointerannual" ? keepregion = false : keepregion = true
+
 # read lat, lon at center of grid cell
 (ϕC,λC) = latlonC(γ)
 # on the vector (Staggered) grid
 (ϕG,λG) = latlonG(γ)
 
-(!isdir(outputdir))&&(mkpath(outputdir))
+if !isdir(outputdir)
+    mkpath(outputdir)
+end
 
 midname = "_6hourlyavg_"
 # varnames = ("atmPload","oceFWflx","oceQsw","oceSflux","oceSPflx","oceTAUE","oceTAUN","oceTAUX",
 #             "oceTAUY","sIceLoad","sIceLoadPatmPload","sIceLoadPatmPload_nopabar","TFLUX")
-varnames = ("oceTAUX","oceTAUY")
-Δi129i0 = Dict()
-
-Δi129i0["oceTAUX"] = read_bin(datadir("oceTAUX_i129_i0_diff.data"),Float32,γ)
-Δi129i0["oceTAUY"] = read_bin(datadir("oceTAUY_i129_i0_diff.data"),Float32,γ)
-
+varnames = ("oceTAUE","oceTAUN")
 frootsample = inputdir*varnames[end]*midname
 # sample calcs at one point. Get the length of timeseries in nseries.
-yv = 10
-xv = 70
-fv = 4
+yv = 40
+xv = 180
+fv = 5
 tmplat  = ϕC[fv]; lat_point = tmplat[xv,yv]
 tmplon  = λC[fv]; lon_point = tmplon[xv,yv]
 
-years = 1992:2017
+# years = 1992:2017
+years = 1992:1993
 
 fluxsample_point,nseries = extract_timeseries(frootsample,years,γ,xv,yv,fv)
                         # take biweekly mean. Use triangular filter with break points at:
@@ -65,46 +65,50 @@ nt14day = length(t14day)
 # Careful not to store high-resolution data all at same time.
 # Make a function that takes values at the tiepoints and then makes a full-resolution timeseries.
 @time E14to6,F6to14 = get_filtermatrix(t6hr,t14day; ival = 1)
-
+@time E14to6,F6to14 = get_filtermatrix(t6hr,t14day)
+E14to6
 daysperyear = 365.25 # nt6hr / (6 * len(years)
 fcycle = 1/(daysperyear) # units: day^{-1}
 # for removing seasonal cycle from 14-day averaged timeseries
 Ecycle,Fcycle = seasonal_matrices(fcycle,t14day,3)
+vname = "oceTAUX"
+filein = inputdir*vname*midname
+fileout = outputdir*vname*midname
+println(filein)
 
-for vname ∈ varnames
-    filein = inputdir*vname*midname
-    fileout = outputdir*vname*midname
-    println(filein)
+# use this F to decompose controllable/uncontrollable parts
+# i.e., 6 hourly to 14 day
+flux_14day = matrixfilter(F6to14,filein,years,γ)
+temp = MeshArray(γ, Float32); fill!(temp, 1.0)
+sum(temp)
 
-    # use this F to decompose controllable/uncontrollable parts
-    # i.e., 6 hourly to 14 day
-    flux_14day = matrixfilter(F6to14,filein,years,γ)
 
-    # remove seasonal cycle from 14-day averaged timeseries
-    # solve for seasonal cycle parameters
-    # use 14-day because it's computationally efficient
-    βcycle = matmul(Fcycle,flux_14day,γ)
+tmp2 = sum(temp)*size(flux_14day)[2] + sum(flux_14day)
 
-    # reconstruct the full seasonal cycle.
-    flux_14day_seasonal = matmul(Ecycle,βcycle,γ) #also solves for time mean
-    cons_offset!(flux_14day_seasonal, -Δi129i0[vname])
-    # check for NaN's in output
-    (sum(nancount(flux_14day_seasonal)) > 0) && (error("NaNs in the filtered output"));
+cons_offset!(flux_14day, temp)
+sum(flux_14day)
+# remove seasonal cycle from 14-day averaged timeseries
+# solve for seasonal cycle parameters
+# use 14-day because it's computationally efficient
+βcycle = matmul(Fcycle,flux_14day,γ)
 
-    matrixsaveinterpolation(E14to6,flux_14day_seasonal,filein,fileout,years,γ)
-end
+# reconstruct the full seasonal cycle.
+flux_14day_seasonal = matmul(Ecycle,βcycle,γ) #also solves for time mean
+
+# check for NaN's in output
+(sum(nancount(flux_14day_seasonal)) > 0) && (error("NaNs in the filtered output"));
+
+    # matrixsaveinterpolation(E14to6,flux_14day_seasonal,filein,fileout,years,γ)
 
 t = LinRange(years[1], years[end], nt6hr)
+t_14 = LinRange(years[1], years[end], length(t14day))
 
-vname = varnames[1]
 actual,nseries = extract_timeseries(inputdir*vname*midname,years,γ,xv,yv,fv)
 seasonal_saved,nseries = extract_timeseries(outputdir*vname*midname,years,γ,xv,yv,fv)
 
 fig, ax = plt.subplots(1, figsize=(15, 5))
-ax.plot(t, actual, label = "Original TFLUX [Δt=6 hours]"); ax.set_xlabel("years")
-ax.plot(t, seasonal_saved, linewidth = 4, 
-label = "Seasonal Cycle of TFLUX [Δt=6 hours]");
-
-println(mean(actual .- seasonal_saved))
+ax.plot(t[1:10000], actual[1:10000], label = "Original TFLUX [Δt=6 hours]"); ax.set_xlabel("years")
+ax.plot(t[1:10000], seasonal_saved[1:1000], linewidth = 4, 
+label = "Seasonal Cycle of TFLUX [Δt=6 hours]"); 
 ax.legend()
 fig

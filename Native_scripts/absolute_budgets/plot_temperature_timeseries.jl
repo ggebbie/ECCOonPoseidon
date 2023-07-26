@@ -36,6 +36,8 @@ tecco = 1992+1/24:1/12:2018
 
 ocean_mask = OHC_helper.wet_pts(Γ)
 region = "NPAC"; 
+PAC_msk = OHC_helper.PAC_mask(Γ, basins, basin_list, ϕ, λ; 
+region, extent = "not")
 cell_depths = OHC_helper.get_cell_depths(PAC_msk, ΔzF, Γ.hFacC); 
 cell_volumes = Float32.(OHC_helper.get_cell_volumes(area, cell_depths));
 uplvl = -2e3; botlvl = -3e3
@@ -57,10 +59,10 @@ volume_weight_column(x) =  sum(x .* ΔV, dims =1) ./ V
 sum_fluxes(d) = sum(d[varn][:] for varn in ["κxyθ", "uvθ", "wθ", "κzθ",  "GTF"])
 anomaly(x) = x .- mean(x)
 
-fname = datadir("native/" * region * "_THETA_levels" * ".jld2")
+fname = "/home/ameza/" * region * "_THETA_levels" * ".jld2"
 θ = load(fname)["θ"]
 θ_budg_int = Dict()
-
+keys(θ_budg_int)
 for var in keys(θ)
     tmp = volume_weight_column(θ[var])
     θ_budg_int[var] = tmp[:]
@@ -69,8 +71,8 @@ end
 sns.set_theme(context = "talk", style = "ticks", font_scale = 1.0,
               palette = sns.color_palette("colorblind"));
 
-fig,axs=plt.subplots(1,1, sharey = true, figsize = (7.5, 7.5))
-labels = ["Iteration 129", "Initial 129", "Initial 0", "Iteration 0"]
+fig,axs=plt.subplots(1,1, sharey = true, figsize = (10, 7.5))
+# labels = ["Iteration 129", "Initial 129", "Initial 0", "Iteration 0"]
 alpha = [0.5, 1, 1, 0.5]
 colors =  sns.color_palette("colorblind")[1:5]
 colors = colors[[1, 3, 5, 4]]
@@ -78,7 +80,7 @@ colors = colors[[1, 3, 5, 4]]
     println(expname)
     θz = vec(θ_budg_int[expname])
 
-    axs.plot(tecco, 100 .* (θz .- θz[1]), label = labels[i], alpha  = alpha[i], color = colors[i]); 
+    axs.plot(tecco, θz, label = expname, alpha  = alpha[i], color = colors[i]); 
 end
 axs.legend(frameon=false)
 axs.set_xlabel("time")

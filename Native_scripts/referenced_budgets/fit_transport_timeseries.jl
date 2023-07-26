@@ -53,7 +53,7 @@ exps = ["seasonalclimatology", "seasonalclimatology_iter0"]
     fit = curve_fit(model, t, θ, p0; lower = [0.01, 0.005, 0.00], upper = [1.0, 1, Inf], autodiff=:forwarddiff)
     fit_estimate = model(0:26, fit.param)
     axs.plot(t, θ, alpha  = alpha[i], color = colors[i], label = expname)
-    # axs.plot(0:26, fit_estimate, alpha  = alpha[i], color = "k"); 
+    axs.plot(0:26, fit_estimate, alpha  = alpha[i], color = "k"); 
     println(fit.converged); println(round.(fit.param, digits = 5));
     println(stderror(fit))
 end

@@ -20,7 +20,8 @@ export patchvolume, calc_OHC, get_cell_volumes, standardize,
        extract_heatbudgetH, extract_heatbudgetR, LLCcropC360,
        calc_Wconv3D!, get_min_lat, velocity2centerfast, get_max_lat, 
        extract_velocities_and_bolus, within_lon, get_cs_and_sn, rotate_UV_native,
-       get_msk, get_ϕ_max_min_mask, interpolate_to_vertical_faces!
+       get_msk, get_ϕ_max_min_mask, interpolate_to_vertical_faces!, region_mask, 
+       sum_heat_flux_profile
        
 export densityJMD95
 
@@ -28,11 +29,11 @@ export densityJMD95
 export RMSE, RelDiff
 using Revise
 using ECCOonPoseidon, ECCOtour,
-    MeshArrays, MITgcmTools,
-    PyPlot, JLD2, CodecZlib, DrWatson, FFTW, NetCDF,
+    MeshArrays, MITgcmTools, JLD2, CodecZlib, DrWatson, FFTW, NetCDF,
     Printf, PyCall, RollingFunctions
+import PythonPlot as plt
+
 import NaNMath as nm 
-import CairoMakie as Mkie
 import Base: vec
 import Statistics: mean, std
 
@@ -338,7 +339,7 @@ end
 
 function get_cell_volumes(cell_area, cell_depths)
 
-    basin_volume = similar(cell_depths)
+    basin_volume = Float32.(similar(cell_depths))
 
     # ff is the cartesian index (LLC90_face, depth level)
     for ff in eachindex(basin_volume)
@@ -473,45 +474,6 @@ function get_GH19()
 
     return OHC_G19, GH19_time
 
-end
-
-"""
-    function plot_patch(Γ, ocean_mask, ocean_name)
-    plot a single patch of ocean 
-# Arguments
-- `Γ`: grid
-- `ocean_mask`: boolean mask of patch 
-- 'ocean_name': name of patch 
-# Output
-- `H`: volume-integrated ocean heat content 
-"""
-
-function plot_patch(Γ, patch_mask, patch_name)
-    pth = MeshArrays.GRID_LLC90
-    γ = GridSpec("LatLonCap",pth)
-    basins=read(joinpath(pth,"v4_basin.bin"),MeshArray(γ,Float32))
-
-    μ =Γ.hFacC[:,1]
-    μ[findall(μ.>0.0)].=1.0
-    μ[findall(μ.==0.0)].=NaN
-
-    fig = Mkie.Figure(resolution = (900,600), backgroundcolor = :grey95)
-	ax = Mkie.Axis(fig[1,1],xlabel="longitude",ylabel="latitude",title=patch_name* " (shown in red)")
-
-	# basinID=findall(basin_list.==basin_name)[1]
-	
-	mx=maximum(basins)
-	for ff in 1:length(Γ.RAC)
-		col=μ[ff][:].*(patch_mask[ff][:])
-		kk=findall(col.>0.0)
-		!isempty(kk) ? Mkie.scatter!(ax,Γ.XC[ff][kk],Γ.YC[ff][kk],color=:red,markersize=2.0) : nothing
-		kk=findall((col.==0.0).*(!isnan).(μ[ff][:]))
-        colors = (basins[ff][kk].*0.0) .+ 1.0 
-		!isempty(kk) ? Mkie.scatter!(ax,Γ.XC[ff][kk],Γ.YC[ff][kk],color=colors,
-			colorrange=(0.0,mx),markersize=2.0,colormap=:lisbon) : nothing
-	end
-	Mkie.Colorbar(fig[1,2], colormap=:lisbon, colorrange=(0.0, mx), height = Mkie.Relative(0.65))
-    save(patch_name*"_patch.png",fig)
 end
 
 
@@ -719,7 +681,7 @@ function PAC_mask(Γ, basins, basin_list, ϕ, λ; region = "",
         bounds[1] = 65.0
         bounds[2] = -56.0
     elseif region == "PAC"
-        bounds[1] = 60.0
+        bounds[1] = 70.0
         bounds[2] = -40.0
     else 
         bounds[1] = 70.0
@@ -1250,6 +1212,15 @@ function extract_sθ(expname::String,diagpath::Dict{String, String},
     return sθ
 end
 
+function region_mask(wet_pts, λ, ϕ, latlim, lonlim)
+    reg_msk = similar(wet_pts)
+    for ff in 1:5
+        in_lon = lonlim[1] .< λ[ff] .< lonlim[2]
+        in_lat = latlim[1] .< ϕ[ff] .< latlim[2]
+        reg_msk.f[ff] .= wet_pts.f[ff] .* in_lon .* in_lat
+    end
+    return reg_msk
+end
 
 """
     ThroughFlow(VectorField,IntegralPath,Γ::NamedTuple)
@@ -1880,7 +1851,8 @@ function velocity2center3D(u::MeshArrays.gcmarray{T, 2, Matrix{T}},
 end
 
 function extract_ocnTAU(diagpath, expname , τdatafilelist, tt, γ)
-    if expname == "seasonalclimatology"
+    flux_forcing = ["seasonalclimatology", "climatological_tau", "clim_tau_iter0"]
+    if expname ∈ flux_forcing
         @time EXF = γ.read(diagpath[expname]*τdatafilelist[tt],MeshArray(γ,Float32,10))
         τx = EXF[:, 9]; τy = EXF[:, 10]; 
         return τx, τy
@@ -2067,5 +2039,16 @@ function get_ϕ_max_min_mask(region, Γ, λ, ϕ, basins, basin_list)
     end
     
 end
+
+function sum_heat_flux_profile(ds::MeshArray, ΔV)
+    nz = size(ds, 2)
+    vol_avg = zeros(Float32, nz)
+
+    for ff=1:5, k=1:nz
+        vol_avg[k] += Float32(sum(ds[ff, k])) ./ ΔV[k]
+    end
+    return vol_avg
+end
+
 end
 # @load datadir("ECCO_vars/ADVx_TH_iter129_bulkformula.jld2")
