@@ -1351,7 +1351,6 @@ function extract_meridionalΨ̄wBolus(expname,diagpath, Γ, γ, mask)
     return ψ̄
 end
 
-ThroughFlow_from_Transport(U, V)
 """
     function extract_meridionalΨ
     extract the total stream function by reading multiple files
@@ -1867,7 +1866,7 @@ function velocity2center3D(u::MeshArrays.gcmarray{T, 2, Matrix{T}},
 end
 
 function extract_ocnTAU(diagpath, expname, fname, γ)
-    flux_forcing = ["seasonalclimatology", "climatological_tau", "clim_tau_iter0"]
+    flux_forcing_exps = ["seasonalclimatology", "climatological_tau", "clim_tau_iter0"]
     if expname ∈ flux_forcing
         @time EXF = γ.read(diagpath[expname]*fname,MeshArray(γ,Float32,10))
         τx = EXF[:, 9]; τy = EXF[:, 10]; 

@@ -46,12 +46,17 @@ ax.plot(Xϕ)
 fig
 
 LC=LatitudeCircles(round.(Xϕ, digits = 3),Γ)
-LC=LatitudeCircles(-89:80,Γ)
+# LC=LatitudeCircles(-89:80,Γ)
 
-LC[80].tabW[1, :, :, :]
+LC[120].lat
+LC[120].tabW[1, :, :, :]
 
 Γ.AngleSN[4][121, 1]
 
+LC[120].tabW
+LC[140].tabS
+
+ϕ[4][35, :]
 unique(LC[80].tabW[:, 1])
 unique(LC[80].tabW[:, end])
 

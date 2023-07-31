@@ -1,27 +1,7 @@
-include("../../src/intro.jl")
-include("../../src/OHC_helper.jl")
 
-using Revise
-using ECCOonPoseidon, ECCOtour,
-    MeshArrays, MITgcmTools, JLD2, 
-    DrWatson, BenchmarkTools, LaTeXStrings
-using .OHC_helper
-import NaNMath as nm
-import PyPlot as plt
-using PyCall
-
-include(srcdir("config_exp.jl"))
 @pyimport cmocean.cm as cmo
 @pyimport seaborn as sns;
 @pyimport matplotlib.patches as patches
-
-sns.set_theme(context = "notebook", style = "ticks",
-              palette = sns.color_palette("colorblind"));
-
-
-(ϕ,λ) = latlonC(γ)
-
-ocean_mask = OHC_helper.wet_pts(Γ)
 region = "PAC"; 
 
 XΨ=collect(-89.0:89.0); Y=reverse(z); #coordinate variables
