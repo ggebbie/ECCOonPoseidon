@@ -5,6 +5,10 @@ println("Configure the experiment variables and directories")
 
 diagpath = diagdir(expt)
 
+vastexprootdir() = "/vast/ECCOv4r4/exps"
+
+update_paths_dict!(main_dict, add_dict) = [main_dict[key] = add_dict[key] for key ∈ keys(add_dict) if key ∉ keys(main_dict)]
+
 # print output here
 path_out = sig1dir(expt)
 !isdir(path_out) ? mkdir(path_out) : nothing;
@@ -61,3 +65,5 @@ basin_list=["Pacific","Atlantic","indian","Arctic","Bering Sea",
             "Japan Sea", "Timor Sea","East China Sea","Red Sea",
             "Gulf","Baffin Bay","GIN Seas","Barents Sea"];
 
+
+            
