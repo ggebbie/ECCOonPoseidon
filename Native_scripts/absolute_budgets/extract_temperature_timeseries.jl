@@ -4,7 +4,7 @@ include("../../src/OHC_helper.jl")
 using Revise, ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, DrWatson
 using .OHC_helper
-import PythonPlot as plt 
+import PyPlot as plt 
 
 include(srcdir("config_exp.jl"))
 
@@ -13,11 +13,6 @@ area = readarea(γ)
 
 runpath,diagpath = listexperiments(exprootdir());
 diagpath["clim_tau_iter0"] = "/vast/ECCOv4r4/exps/clim_tau_iter0/run/diags/"
-
-# abbreviations for each experiment for labels, etc.
-ignore_list= ["noIA", "129ff"]
-shortnames = OHC_helper.reduce_dict(expnames(), ignore_list)
-nexp = length(shortnames) # number of experiments
  
 ocean_mask = OHC_helper.wet_pts(Γ)
 region = "NPAC"; 
@@ -32,6 +27,7 @@ nz = 50
 
 ΔV = zeros(Float32, nz)
 [ΔV[k] = Float32(sum(cell_volumes[:, k])) for k=1:nz]
+H = OHC_helper.smush(cell_depths, γ)
 
 function filter_heat_budget(diagpath::Dict{String, String}, 
     expname::String, γ::gcmgrid)
@@ -56,17 +52,14 @@ function filter_heat_budget(diagpath::Dict{String, String},
     return vars
 end
 
-vars =  ["clim_tau_iter0", "climatological_tau"]
+vars =  ["climatological_tau", "nosfcadjust"]
 
 for expname in vars
     θ = filter_heat_budget(diagpath, expname, γ)
-    svename = "/home/ameza/" * region * "_" * expname * "_THETA_levels" * ".jld2"
+    svename = datadir(region * "_" * expname * "_THETA_levels" * ".jld2")
     jldsave(svename, θ = θ)
 end
 
-
-
-k = 38; z[k]
 
 labels = ["Full Fluxes", "Climatological Fluxes", "Climatological Wind Stress"]
 sumV = sum(ΔV[lvls])

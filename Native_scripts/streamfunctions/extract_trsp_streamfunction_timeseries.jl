@@ -30,7 +30,9 @@ msk = PAC_msk;
 tecco = 1992+1/24:1/12:2018
 
 X=collect(-89.0:89.0); Y=reverse(z); #coordinate variables
-
+area_mask = area .* PAC_msk
+Xϕ = OHC_helper.ma_zonal_sum(ϕ .* area_mask) ./ OHC_helper.ma_zonal_sum(area_mask)
+Xϕ = Xϕ[isfinite.(Xϕ)]
 @time for expname in ["iter0_bulkformula", "iter129_bulkformula", "noinitadjust", 
     "seasonalclimatology", "nosfcadjust",
     "seasonalclimatology_iter0", "climatological_tau"]
@@ -38,3 +40,20 @@ X=collect(-89.0:89.0); Y=reverse(z); #coordinate variables
     Ψ_exp = OHC_helper.extract_meridionalΨ̄wBolus_timeseries(expname,diagpath, Γ, γ, PAC_msk)
     jldsave(datadir("ΨwBolustimeseries_"*region*"_" * expname *".jld2"); Ψ_exp)
 end
+
+fig, ax = plt.subplots()
+ax.plot(Xϕ)
+fig
+
+LC=LatitudeCircles(round.(Xϕ, digits = 3),Γ)
+LC=LatitudeCircles(-89:80,Γ)
+
+LC[80].tabW[1, :, :, :]
+
+Γ.AngleSN[4][121, 1]
+
+unique(LC[80].tabW[:, 1])
+unique(LC[80].tabW[:, end])
+
+unique(LC[80].tabS[:, 1])
+unique(LC[80].tabS[:, end])

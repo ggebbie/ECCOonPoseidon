@@ -2,15 +2,13 @@
 #using 1 threads 
 # julia --threads=4 --project=@. ./extract_theta_native.jl
 
-include("../src/intro.jl")
-include("../src/OHC_helper.jl")
+include("../../src/intro.jl")
+include("../../src/OHC_helper.jl")
 
 using Revise,ECCOonPoseidon, ECCOtour,
-MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, JLD2,
+MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics,
 NCDatasets, Printf, 
-DataFrames, LaTeXStrings,
-Plots
-gr()
+DataFrames, LaTeXStrings
 import NaNMath as nm
 using .OHC_helper
 import PyPlot as plt
@@ -20,7 +18,7 @@ const pyslice=pybuiltin(:slice)
 @pyimport pandas as pd;
 colors =  sns.color_palette("colorblind")[1:4]
 labels = ["ECCO", "ECCO Forcing", "ECCO Init. and κ", "CTRL"]
-sns.set_theme(context = "poster", style = "ticks", font_scale = 1.2,
+sns.set_theme(context = "talk", style = "ticks", font_scale = 1.2,
               palette = sns.color_palette("colorblind"));
 pygui(false)
 cm = pyimport("cmocean.cm");colorway = cm.balance;
@@ -37,60 +35,31 @@ region, extent = "not")
 suffix = "2to3"
 ocn_reg = LLCcropC(ocean_mask,γ) 
 
-#load in temperatures
-expname = "nosfcadjust"
-fname = expname * "_θ_trends_2to3km.jld2"
 fname = "iter129_bulkformula_θ_trends_0to700.jld2"
 βθ_ECCO = load(datadir(fname))
 # fname = "OPT-0015_θ_trends_2to3km.jld2"
 # βθ_OPT0015 = load(datadir(fname))
 
-bounds = 1
-# levels = -bounds:0.2:bounds
 
 proj0 = ECCOonPoseidon.cartopy.crs.PlateCarree(central_longitude=-150)
 projPC = ECCOonPoseidon.cartopy.crs.PlateCarree()
 
 fig, ax = plt.subplots(1, 1, figsize=(15,10), subplot_kw=Dict("projection"=> proj0))
+data = deepcopy(βθ_ECCO); data["β"][ocn_reg .== 0] .= NaN
 
-reg_mask = LLCcropC(PAC_msk,γ) 
-reg_mask[reg_mask .== 0] .=NaN
-
-data = deepcopy(βθ_ECCO)
-data["β"][ocn_reg .== 0] .= NaN
-data["β"] = data["β"]
 
 cf = ax.pcolormesh(data["λ"], data["ϕ"],  data["β"], transform=projPC,
 cmap = cm.balance, vmin = -0.1, vmax = 0.1)   
-fig
 ax.coastlines(resolution="110m")
-ax.set_extent((-180, 180, -70, 56),crs=projPC)
 
 gl = ax.gridlines(crs=projPC, draw_labels=true,
                     linewidth=2, color="gray", alpha=0, linestyle="--")
 gl.xlabels_top = false
 gl.ylabels_right = false
-ax.set_title("ECCO without Forcing Adjustments")
-fig.savefig(plotsdir(expname *"_θ_trends_2to3km.png"), dpi = 1000)
 
-cbar = fig.colorbar(cf, orientation="horizontal",  ticks=-bounds:0.05:bounds,
-extend = "both", label = L"^\circ" *"C per century")
+cbar = fig.colorbar(cf, orientation="horizontal",
+extend = "both", label = L"^\circ" *"C per year", fraction = 0.04)
+ax.set_title("Upper Ocean Temperature Trends in ECCO \n (2003 - 2012)")
+
 fig
-fig.savefig(plotsdir(expname *"_θ_trends_2to3km_wcbar.png"), dpi = 1000)
-
-fig, ax = plt.subplots(1, 1, figsize=(15,10), subplot_kw=Dict("projection"=> proj0))
-data = deepcopy(βθ_OPT0015)
-data["β"] = data["β"] .* 100 
-
-ax.contourf(data["λ"], data["ϕ"],  data["β"], transform=projPC, 
-levels = levels, cmap = cm.balance, vmin = -bounds, vmax = bounds, extend = "both")        
-ax.coastlines(resolution="110m")
-ax.set_title("OPT-15")
-ax.set_extent((-180, 180, -70, 56),crs=projPC)
-gl = ax.gridlines(crs=projPC, draw_labels=true,
-                    linewidth=2, color="gray", alpha=0, linestyle="--")
-                    
-gl.xlabels_top = false
-gl.ylabels_right = false
-fig.savefig(plotsdir(expname * "OPT0015_θ_trends_2to3km.png"), dpi = 1000)
-
+fig.savefig(plotsdir("UpperOceanTrendsECCO.png"), dpi = 400)
