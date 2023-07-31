@@ -31,14 +31,30 @@ using Revise
 using ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, CodecZlib, DrWatson, FFTW, NetCDF,
     Printf, PyCall, RollingFunctions
-import PythonPlot as plt
+import PyPlot as plt
 
 import NaNMath as nm 
 import Base: vec
 import Statistics: mean, std
-
+import Base: sum
 @pyimport seaborn as sns
 @pyimport pandas as pd
+
+function mesharray_sum(X::MeshArrays.gcmarray{T, 2, Matrix{T}}, dims) where T<:Real
+    if dims == 1
+        nz = size(X, 2)
+        tmp = zeros(T, nz)
+        [tmp[k] = Float32(sum(cell_volumes[:, k])) for k=1:nz]
+        return tmp
+
+    elseif dims == 2
+        tmp = T.(similar(X)); fill!(tmp, 0.0f0)
+        for ijk in eachindex(X)
+            tmp.f[ijk[1]] .+= X.f[ijk] #ijk[1] is the face
+        end
+        return tmp 
+    end
+end
 # colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
 colors =  sns.color_palette("deep")[1:4]
 sns.set_theme(context = "notebook", style = "ticks", font_scale = 1.0,
@@ -1335,7 +1351,7 @@ function extract_meridionalΨ̄wBolus(expname,diagpath, Γ, γ, mask)
     return ψ̄
 end
 
-
+ThroughFlow_from_Transport(U, V)
 """
     function extract_meridionalΨ
     extract the total stream function by reading multiple files
@@ -1850,14 +1866,14 @@ function velocity2center3D(u::MeshArrays.gcmarray{T, 2, Matrix{T}},
     return uC, vC
 end
 
-function extract_ocnTAU(diagpath, expname , τdatafilelist, tt, γ)
+function extract_ocnTAU(diagpath, expname, fname, γ)
     flux_forcing = ["seasonalclimatology", "climatological_tau", "clim_tau_iter0"]
     if expname ∈ flux_forcing
-        @time EXF = γ.read(diagpath[expname]*τdatafilelist[tt],MeshArray(γ,Float32,10))
+        @time EXF = γ.read(diagpath[expname]*fname,MeshArray(γ,Float32,10))
         τx = EXF[:, 9]; τy = EXF[:, 10]; 
         return τx, τy
     else
-        @time EXF = γ.read(diagpath[expname]*τdatafilelist[tt],MeshArray(γ,Float32,15))
+        @time EXF = γ.read(diagpath[expname]*fname,MeshArray(γ,Float32,15))
         τx = EXF[:, 14]; τy = EXF[:, 15]; 
         return τx, τy
     end
@@ -1984,7 +2000,7 @@ end
 function rotate_UV_native(uvel::MeshArrays.gcmarray{T,N,Matrix{T}},
     vvel::MeshArrays.gcmarray{T,N,Matrix{T}},
     cs::MeshArrays.gcmarray{T,1,Matrix{T}}, sn::MeshArrays.gcmarray{T,1,Matrix{T}}) where T<:AbstractFloat where N
-
+    zeros(T, )
     evel = T.(similar(uvel))
     nvel = T.(similar(vvel))
     for ff in eachindex(evel)
