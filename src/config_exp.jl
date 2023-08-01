@@ -47,8 +47,6 @@ nf = length(γ.fSize)
 
 # get standard levels of MITgcm
 z = depthlevels(γ)
-z = -vec(z)
-
 pstdz = pressurelevels(z)
 p₀ = 1000.0; # dbar
 
