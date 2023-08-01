@@ -33,11 +33,11 @@ for ff = 1:5
     isoneSN = check_zero.(1 .- Γ.AngleSN.f[ff])
     isoneCS = check_zero.(1 .- Γ.AngleCS.f[ff])
     
-    Γ.AngleCS.f[ff][isoneSN] = sign.(Γ.AngleCS.f[ff][isoneSN])
-    Γ.AngleSN.f[ff][isoneCS] = sign.(Γ.AngleSN.f[ff][isoneCS])
+    Γ.AngleCS.f[ff][isoneSN] .= sign.(Γ.AngleCS.f[ff][isoneSN])
+    Γ.AngleSN.f[ff][isoneCS] .= sign.(Γ.AngleSN.f[ff][isoneCS])
 
-    Γ.AngleCS.f[ff] = round.(Γ.AngleCS.f[ff], digits = 4)
-    Γ.AngleSN.f[ff] = round.(Γ.AngleSN.f[ff], digits = 4)
+    Γ.AngleCS.f[ff] .= round.(Γ.AngleCS.f[ff], digits = 4)
+    Γ.AngleSN.f[ff] .= round.(Γ.AngleSN.f[ff], digits = 4)
 end
 
 # no longer needed?

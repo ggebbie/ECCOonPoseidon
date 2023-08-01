@@ -33,7 +33,7 @@ runpath,diagpath = listexperiments(exprootdir());
 
 ϕ_min_mask, ϕ_max_mask = OHC_helper.get_ϕ_max_min_mask(region, Γ, λ, ϕ, basins, basin_list)
 mskC, mskW, mskS = OHC_helper.get_msk(Γ)
-GTF3d= OHC_helper.get_geothermalheating(Γ, γ)
+GTF3d= get_geothermalheating(Γ, γ)
 
 #define control volume 
 uplvl = -2e3; botlvl = -3e3; suffix = "2to3"

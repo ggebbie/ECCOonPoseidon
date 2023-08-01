@@ -2,13 +2,40 @@ module ECCOonPoseidon
 #
 # Define functions that are specific to the ECCO runs stored on Poseidon @ WHOI.
 
-using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, PyCall, PyPlot
+using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, 
+PyCall, PyPlot, MeshArrays, MITgcmTools
 
 export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
     expnames, expsymbols, regpolesdir, rundir,
     Nino34file, historicalNino34, readNino34,
     sigma1grid
+
+#statements for budgets.jl
+export extract_ocnTAU, extract_eulerian_velocities, 
+extract_eulerian_and_bolus_velocities,
+extract_lateral_heatbudget, extract_vertical_heatbudget, 
+calc_bolus
+
+#statements for grid_tools.jl
+export get_msk, findlatlon, findmin, 
+densityJMD95, get_cell_volumes, get_cell_thickness, 
+get_geothermalheating,
+calc_W_conv3D!, calc_UV_conv3D!, exch_UV_llc90, 
+interpolate_to_lateral_faces, interpolate_to_vertical_faces!
+
+#statements for transports.jl
+export ThroughFlow, extract_meridional_Ψ_Mean_EulBolus, 
+extract_meridional_Ψ_EulBolus, 
+extract_meridionalΨ̄timeseries
+
+#statements for mask_tools.jl
+export wet_pts, region_mask
+
+include("budgets.jl")
+include("grid_tools.jl")
+include("transports.jl")
+include("mask_tools.jl")
 
 # add a method to this function
 import ECCOtour.sigma1grid
