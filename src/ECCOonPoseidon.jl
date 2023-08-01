@@ -15,7 +15,7 @@ export fluxdir, rectangle, exprootdir, sig1dir,
 export extract_ocnTAU, extract_eulerian_velocities, 
 extract_eulerian_and_bolus_velocities,
 extract_lateral_heatbudget, extract_vertical_heatbudget, 
-calc_bolus
+calc_bolus, extract_sθ
 
 #statements for grid_tools.jl
 export get_msk, findlatlon, findmin, 
@@ -25,20 +25,32 @@ calc_W_conv3D!, calc_UV_conv3D!, exch_UV_llc90,
 interpolate_to_lateral_faces, interpolate_to_vertical_faces!
 
 #statements for transports.jl
-export ThroughFlow, extract_meridional_Ψ_Mean_EulBolus, 
-extract_meridional_Ψ_EulBolus, 
-extract_meridionalΨ̄timeseries
+export ThroughFlow, extract_meridional_Ψ_Mean, 
+extract_meridional_Ψ, 
+extract_meridionalΨ̄timeseries, LatitudeCirclesMask
 
 #statements for mask_tools.jl
 export wet_pts, region_mask
 
-include("budgets.jl")
-include("grid_tools.jl")
-include("transports.jl")
-include("mask_tools.jl")
+#statements for Operations.jl 
+export lateral_sum, vertical_sum, zonal_sum, zonal_average
+
+#statements for PacificOcean.jl
+export PAC_mask
+export get_min_lat, get_max_lat, within_lon, 
+get_cs_and_sn, rotate_UV_native, get_ϕ_max_min_mask
+
+import Base: sum
+import ECCOtour.sigma1grid
+
+include("Budgets.jl")
+include("Grid_Tools.jl")
+include("Transports.jl")
+include("Mask_Tools.jl")
+include("Operations.jl")
+include("PacificOcean.jl")
 
 # add a method to this function
-import ECCOtour.sigma1grid
 
 const mpl = PyNULL()
 const plt = PyNULL()

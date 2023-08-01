@@ -1,30 +1,13 @@
 
-module OHC_helper
-export patchvolume, calc_OHC, get_cell_volumes, standardize, 
-       OHC_outputpath, do_FFT, calc_θ_bar, standard_error, conf_int,
-       lin_reg, get_cell_depths, get_GH19, plot_patch, extract_3d_var, 
-       compute_β, get_sfcfrc_fnames, vec, get_diff_arrs, wet_pts,
-       rm_vals, PAC_mask, plot_div_0bf!, plot_ts!, div_ma,
-       smush, levels_2_string, level_mean, plot_field!,
-       reduce_dict, vert_int_ma,  get_geothermalheating, calc_UV_conv,
-       plot_resids!, prune, central_diff, fwd_diff, fwd_mean, 
-       perc_diff, resid, slice, element_gs, volume_mean, slice_mavec, 
-       get_trend, ma_horiz_avg, remove_anomaly, ma_zonal_avg, ma_zonal_sum,
-       nanmaximum, nanminimum, load_object_compress, load_and_calc_UV_conv,
-       diff_ma_vec, level_timeseries!, total_level_change, 
-       extract_θRbudget, extract_θHbudget, calc_UV_conv3D!, exch_UV_cs3D,
-       filter_heat_budget, extract_sθ, depth_average, ThroughFlowDim, extract_meridionalΨ̄,
-       getUVek!, extract_meridionalΨ2, extract_meridionalΨ̄_diff, extract_meridionalΨEK,
-       UVtoUEVN3D, UVtoENTransport,extract_sX, sum_vertical, inv_ma,findlatlon, findmin, 
-       tofaces, UVtoTrsp, velocity2center3D, extract_ocnTAU, wrap_λ, 
-       extract_heatbudgetH, extract_heatbudgetR, LLCcropC360,
-       calc_Wconv3D!, get_min_lat, velocity2centerfast, get_max_lat, 
-       extract_velocities_and_bolus, within_lon, get_cs_and_sn, rotate_UV_native,
-       get_msk, get_ϕ_max_min_mask, interpolate_to_vertical_faces!, region_mask, 
-       sum_heat_flux_profile
-       
-export densityJMD95
-
+module experimental
+export mesharray_sum, mean, std, RMSE, RelDiff, notfinite, 
+central_diff, fwd_diff, fwd_mean, perc_diff, resid, slice, element_gs, 
+remove_anomaly, nanmaximum, nanminimum, inv_ma, extrema, div_ma, volume_mean, 
+do_FFT, lin_reg, standard_error, conf_int, get_GH19, depth_weighted_mean, 
+get_sfcfrc_fnames, get_diff_arrs, rm_vals, PAC_mask, sum_vertical, plot_field!, 
+vert_int_ma, get_theta_init, get_trend, integratedθ, extract_sθ, extract_meridionalΨEK, 
+getUVek!, UVtoUEVN3D, UVtoENTransport, depth_average, velocity2center3D, pcolormesh_ma, get_min_lat, 
+get_max_lat, within_lon, get_cs_and_sn, rotate_UV_native, get_ϕ_max_min_mask
 
 export RMSE, RelDiff
 using Revise
@@ -37,8 +20,6 @@ import NaNMath as nm
 import Base: vec
 import Statistics: mean, std
 import Base: sum
-@pyimport seaborn as sns
-@pyimport pandas as pd
 
 function mesharray_sum(X::MeshArrays.gcmarray{T, 2, Matrix{T}}, dims) where T<:Real
     if dims == 1
@@ -210,36 +191,6 @@ function get_GH19()
 
 end
 
-
-function depth_weighted_mean(ma, γ::gcmgrid, 
-    cell_depths::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
-    #This should be rewritten to match volume_weighted_avg
-    num_dims = ndims(ma)
-    if num_dims > 1
-        var = MeshArray(γ,Float32)
-        ztot = MeshArray(γ,Float32)
-        fill!(var,0.0f0) 
-        fill!(ztot,0.0f0) 
-        max_lvl = size(ma, 2)
-        for k in 1:max_lvl
-            for ff in eachindex(var)
-                var[ff] .+= ma[ff, k] .* cell_depths[ff, k]
-                ztot[ff] .+= cell_depths[ff, k]
-            end
-        end
-        weighted_mean = MeshArray(γ,Float32)
-        fill!(weighted_mean,0.0f0) 
-        for ff in eachindex(var)
-            weighted_mean[ff] = var[ff] ./ ztot[ff]
-        end
-        
-        return weighted_mean
-    else 
-        println("Only one level provided, no mean can be computed")
-        return ma
-    end
-end
-
 function get_sfcfrc_fnames(variation)
     eccodrive = "/batou/eccodrive/files/Version4/Release4/"
     if lowercase(variation) == "adjust"
@@ -283,74 +234,6 @@ function get_diff_arrs(γ)
     return file_list, keys
 end
 
-function rm_vals(dict, new_vals)
-    new_dict = Dict()
-    for (keys, values) in dict
-        values ∈ new_vals && (new_dict[keys] = values)
-    end
-    return new_dict
-end
-
-function PAC_mask(Γ, basins, basin_list, ϕ, λ; region = "", 
-    extent = "model-defined", include_bering = true)
-    ocean_mask = wet_pts(Γ)
-    basin_name="Pacific"
-    # IndID = findall(basin_list.=="Indian")[1]
-    basinID=findall(basin_list.==basin_name)[1]
-    Okhotsk = findall(basin_list.=="Okhotsk Sea")[1]      
-    basinID2 = findall(basin_list.== "Japan Sea")[1]   
-    basinID3 = findall(basin_list.== "East China Sea")[1]   
-    basinID4 = findall(basin_list.== "South China Sea")[1]   
-    basinID5 =  findall(basin_list.== "Bering Sea")[1]   
-    PAC_msk=similar(basins)
-    bounds = [0.0, 0.0]
-    if region == "NPAC"
-        # bounds[1] = 51.0
-        bounds[1] = 70.0
-        bounds[2] = 23.0
-    elseif region == "ESPAC"
-        bounds[1] = 17.0
-        bounds[2] = -35.0
-    elseif region == "NPAC30"
-        bounds[1] = 70.0
-        bounds[2] = 30.0  
-    elseif region == "SPAC"
-        bounds[1] = 25.0
-        bounds[2] = -40.0
-    elseif region == "EPAC"
-        bounds[1] = 25.0
-        bounds[2] = -25.0
-    elseif region == "PAC56"
-        bounds[1] = 65.0
-        bounds[2] = -56.0
-    elseif region == "PAC"
-        bounds[1] = 70.0
-        bounds[2] = -40.0
-    else 
-        bounds[1] = 70.0
-        bounds[2] = -40.0
-    end
-    full_extent = (extent == "full")
-
-    for ff in 1:5
-        above_SO = (bounds[2] .< ϕ[ff] .< bounds[1]) #make this go to bering strait
-        marginal_seas = (basins[ff] .== Okhotsk) .+ (basins[ff] .== basinID2) .+ 
-                        (basins[ff] .== basinID3) .+  (basins[ff] .== basinID4)
-        Okhotsk_sea = (basins[ff] .== Okhotsk)
-        SouthChinaSea = 0 
-        BeringSea     = (basins[ff] .== basinID5) .* include_bering
-        model_PAC     = (basins[ff] .== basinID) 
-        temp = model_PAC .+ BeringSea .+ Okhotsk_sea .+ (full_extent .* marginal_seas)
-        temp = ocean_mask[ff] .* temp .* above_SO 
-        PAC_msk[ff] .= temp 
-    end
-
-    PAC_msk[findall(PAC_msk .== 0)] = 0f0
-    PAC_msk[findall(PAC_msk .> 0)] = 1f0 
-
-    return PAC_msk
-end
-
 function sum_vertical(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}, γ) where T<:Real
     sum_temp = MeshArray(γ,Float32)
     fill!(sum_temp, 0.0f0)
@@ -360,22 +243,6 @@ function sum_vertical(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}, γ) where T<:Rea
     return sum_temp 
 end
 
-function plot_field!(var, λ, ϕ, ax, color)
-    projPC = ECCOonPoseidon.cartopy.crs.PlateCarree()
-    ax.coastlines()
-    ax.gridlines(crs=projPC, draw_labels=true,
-                        linewidth=2, color="gray", alpha=0, linestyle="--")
-    cf = Vector{Any}(undef ,1)
-    # min_val = minimum(MeshArrays.mask(var ,Inf))
-    max_val = maximum(MeshArrays.mask(var,-Inf))
-    min_val = -max_val
-    for ff in 1:length(var)
-            cf[1] = ax.pcolormesh(λ[ff], ϕ[ff], var[ff],shading="nearest", 
-            transform=projPC, rasterized = true, vmin = min_val, vmax = max_val,
-            cmap = color)
-    end
-    return cf[1]
-end
 
 function vert_int_ma(ma, Δz, lvls, ts)
     intVar =Vector{MeshArrays.gcmarray{Float64, 1, Matrix{Float64}}}(undef, length(ts))
@@ -407,63 +274,12 @@ function get_trend(var,tecco,F)
 end
 
 
-
-function ma_zonal_sum(ma::MeshArrays.gcmarray{T, 1, Matrix{T}}) where T<:Real
-    temp = zeros(270)
-    for ff in eachindex(ma) 
-	    if (ff==1) || (ff == 2)
-            temp[1:270] .+= @views sum( ma[ff], dims = 1)[:] 
-        elseif ff == 4 || ff == 5 
-            temp[1:270] .+= @views sum( reverse(ma[ff], dims = 1), dims = 2)[:] 
-        # elseif ff == 3
-        #     temp[271:end] .+= @views sum( reverse(ma[ff], dims = 1), dims = 2)[:]
-        end
-    end
-    return temp 
-end
-
-function ma_zonal_sum(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
-    nz = size(ma, 2)
-    temp = zeros(nz, 270)
-    for lvl in 1:nz
-        temp[lvl, :] .= ma_zonal_sum(ma[:, lvl])
-    end
-
-    return temp 
-end
-
-function ma_zonal_avg(ma::MeshArrays.gcmarray{T, 2, Matrix{T}},
-    weights ::MeshArrays.gcmarray{S, 2, Matrix{S}}) where {T<:Real, S<:Real}
-    nlev = size(ma, 2)
-    temp_num = zeros(nlev, 270)
-    temp_denom = zeros(nlev, 270)
-
-    for lvl in 1:nlev
-        temp_num[lvl, :] .= ma_zonal_sum(ma[:, lvl] .* weights[:, lvl])
-        temp_denom[lvl, :] .= ma_zonal_sum(weights[:, lvl])
-    end
-    return temp_num ./ temp_denom
-end
-
 function integratedθ(dθ::Vector{T}, θ₀) where T<:Real
     avgdθ = fwd_mean(dθ) #put dθ onto beginning of the month 
     dt = 2.628f6 # one month time step 
     return cumsum(vcat(θ₀, avgdθ .* dt))
 end
 
-
-function extract_sθ(expname::String,diagpath::Dict{String, String}, 
-    γ::gcmgrid, fnameS::String, fnameθ::String, 
-    inv_depths::MeshArrays.gcmarray{T, 1, Matrix{T}}) where T 
-    θ = γ.read(diagpath[expname]*fnameθ,MeshArray(γ,Float32,50))
-    ETAN = γ.read(diagpath[expname]*fnameS,MeshArray(γ,Float32,1))
-    sθ = similar(θ)
-
-    s1 = ETAN .* inv_depths
-    s1 .+= 1
-    sθ = θ .* s1
-    return sθ
-end
 
 """
     function extract_meridionalΨek
@@ -608,135 +424,6 @@ function velocity2center3D(u::MeshArrays.gcmarray{T, 2, Matrix{T}},
     return uC, vC
 end
 
-function wrap_λ(λ)
-    λ_wrap = deepcopy(λ)
-    [λ_wrap.f[ff][λ.f[ff] .< 0.0] .+= 360 for ff = 1:5]
-    return λ_wrap
-end
-
-function pcolormesh_ma(ax, λ, ϕ, var, bounds, cmap, transformation, add_gridlines)
-    CF = Any[]
-    for ff = 1:5
-        cf = ax.pcolormesh(λ[ff], ϕ[ff],  var[ff], 
-                            vmin = -bounds, vmax = bounds,
-                            transform=transformation, cmap = cmap, 
-                            shading = "nearest", rasterized = false)
-        push!(CF, cf)
-    end
-    if add_gridlines
-        gl = ax.gridlines(crs=transformation, draw_labels=true, linewidth=2, 
-        color="gray", alpha=0, linestyle="--")
-        gl.top_labels = false; gl.right_labels = false
-    end
-    return CF[1]
-end
-
-function pcolormesh_ma_filt(ax, λ, ϕ, var, bounds, cmap, transformation, add_gridlines, filterfunc)
-    CF = Any[]
-    for ff = 1:5
-        cf = ax.pcolormesh(λ[ff], ϕ[ff],  filterfunc(var[ff]), 
-                            vmin = -bounds, vmax = bounds,
-                            transform=transformation, cmap = cmap, 
-                            shading = "nearest", rasterized = false)
-        push!(CF, cf)
-    end
-    if add_gridlines
-        gl = ax.gridlines(crs=transformation, draw_labels=true, linewidth=2, 
-        color="gray", alpha=0, linestyle="--")
-        gl.top_labels = false; gl.right_labels = false
-    end
-    return CF[1]
-end
-
-function get_min_lat(ϕ, mask)
-    ϕ_mask_Inf = ϕ .* mask; 
-    for ff = 1:5
-        ϕ_mask_Inf.f[ff][ϕ_mask_Inf[ff] .== 0] .= Inf
-    end
-    return minimum(ϕ_mask_Inf)
-end
-
-function get_max_lat(ϕ, mask)
-    ϕ_mask_Inf = ϕ .* mask; 
-    [ϕ_mask_Inf.f[ff][ϕ_mask_Inf[ff] .== 0] .= -Inf for ff = 1:5]
-    ϕ_mask_max = maximum(ϕ_mask_Inf)
-    return ϕ_mask_max
-end
-
-function LLCcropC360(x, γ; modify_λ = false)
-    xcrop = LLCcropC(x, γ)
-    xwrap = vcat(xcrop[181:end, :], xcrop[1:180, :])
-    if modify_λ
-        xwrap[xwrap .< 0.0] .+= 360
-    end
-    return xwrap
-end
-
-function within_lon(λ, λ1, λ2)
-    λ_mask = λ .> Inf
-    for ff in eachindex(λ)
-        λ_mask.f[ff] .= λ1 .< λ.f[ff] .< λ2
-    end
-    return λ_mask
-end
-
-function get_cs_and_sn(γ)
-    cs = MeshArray(γ,Float32); sn = MeshArray(γ,Float32)
-    fill!(cs, 0.0); fill!(sn, 0.0)
-    cs.f[1] .= 1; cs.f[2] .= 1
-    sn.f[4] .= -1; sn.f[5] .= -1
-    return cs, sn
-end
-
-function rotate_UV_native(uvel::MeshArrays.gcmarray{T,N,Matrix{T}},
-    vvel::MeshArrays.gcmarray{T,N,Matrix{T}},
-    cs::MeshArrays.gcmarray{T,1,Matrix{T}}, sn::MeshArrays.gcmarray{T,1,Matrix{T}}) where T<:AbstractFloat where N
-    zeros(T, )
-    evel = T.(similar(uvel))
-    nvel = T.(similar(vvel))
-    for ff in eachindex(evel)
-        evel.f[ff] .= uvel.f[ff] .* cs.f[ff[1]] .- vvel.f[ff] .*sn.f[ff[1]]
-        nvel.f[ff] .= uvel.f[ff] .* sn.f[ff[1]] .+ vvel.f[ff] .*cs.f[ff[1]]
-    end
-    return evel,nvel
-end
-
-
-
-function get_ϕ_max_min_mask(region, Γ, λ, ϕ, basins, basin_list)
-    abs_dist(x, r) = abs(x) < r
-
-    if region == "NPAC"
-        PAC_msk = PAC_mask(Γ, basins, basin_list, ϕ, λ; region)
-        region2 = "PAC56"
-        PAC56_mask = PAC_mask(Γ, basins, basin_list, ϕ, λ; region = region2)
-    
-        ϕ_mask_min = Float32(get_min_lat(ϕ, PAC_msk)); ϕ_min_mask = ϕ .> -Inf
-        ϕ_min_mask.f[3] .= 0.0
-        [ϕ_min_mask.f[ff] .= abs_dist.(ϕ.f[ff] .- 23.8, 0.1) .* PAC56_mask.f[ff] for ff in 1:2]
-        [ϕ_min_mask.f[ff] .= abs_dist.(ϕ.f[ff] .- 22.9, 0.1) .* PAC56_mask.f[ff] for ff in 4:5]
-
-        ϕ_mask_max = Float32(get_max_lat(ϕ, PAC_msk)); ϕ_max_mask = ϕ .> -Inf; 
-        # [ϕ_max_mask.f[ff] .= abs_dist.(ϕ.f[ff] .- 51.0, 0.1) .* PAC56_mask.f[ff] for ff in 1:2]
-        # [ϕ_max_mask.f[ff] .= abs_dist.(ϕ.f[ff] .- 50.3, 0.1) .* PAC56_mask.f[ff] for ff in 4:5]
-        return ϕ_min_mask, 0.0 .* ϕ_max_mask
-    elseif region == "ESPAC"
-        PAC_msk = PAC_mask(Γ, basins, basin_list, ϕ, λ; region)
-        region2 = "PAC56"
-        ϕ_min_mask.f[3] .= 0.0
-        PAC56_mask = PAC_mask(Γ, basins, basin_list, ϕ, λ; region = region2)
-        ϕ_mask_min = Float32(get_min_lat(ϕ, PAC_msk)); ϕ_min_mask = ϕ .> -Inf
-
-        [ϕ_min_mask.f[ff] .= abs_dist.(ϕ.f[ff] .- (-34.3), 0.1) .* PAC56_mask.f[ff] for ff in 1:2]
-        [ϕ_min_mask.f[ff] .= abs_dist.(ϕ.f[ff] .- (-35.1), 0.1) .* PAC56_mask.f[ff] for ff in 4:5]
-        ϕ_mask_max = Float32(get_max_lat(ϕ, PAC_msk)); ϕ_max_mask = ϕ .> -Inf; 
-
-        [ϕ_max_mask.f[ff] .= abs_dist.(ϕ.f[ff] .- 17.2, 0.1) .* PAC56_mask.f[ff] for ff in 1:2]
-        [ϕ_max_mask.f[ff] .= abs_dist.(ϕ.f[ff] .- 16.3, 0.1) .* PAC56_mask.f[ff] for ff in 4:5]
-        return ϕ_min_mask, ϕ_max_mask
-    end
-    
-end
 
 function sum_heat_flux_profile(ds::MeshArray, ΔV)
     nz = size(ds, 2)
@@ -746,6 +433,114 @@ function sum_heat_flux_profile(ds::MeshArray, ΔV)
         vol_avg[k] += Float32(sum(ds[ff, k])) ./ ΔV[k]
     end
     return vol_avg
+end
+
+
+"""
+extract_meridionalΨ̄timeseries(expname, diagpath, Γ, γ, mask)
+
+
+This function reads multiple data files and calculates the 
+time-series of the stream function by integrating the meridional transport 
+(eulerian only) through latitude circles.
+
+# Arguments
+- `expname`: The name of the experiment.
+- `diagpath`: The path to the diagnostic files.
+- `Γ`: The grid data structure containing necessary fields.
+- `γ`: An object representing the data format for reading files.
+- `mask`: A mask representing the region of interest.
+
+# Returns
+- `ψ̄`: The total stream function as a 3D (z, x, t) array with NaNs 
+representing non-ocean points.
+
+"""
+function extract_meridionalΨ̄timeseries(expname,diagpath, Γ, γ, mask)
+    fileroot = "trsp_3d_set1"
+    filelist = searchdir(diagpath[expname],fileroot) # first filter for state_3d_set1
+    datafilelist  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+    #[1:36, 312-36+1:312] comparing first and last years
+    LC=LatitudeCircles(-89.0:89.0,Γ)
+    nz=size(Γ.hFacC,2); nl=length(LC); nt = length(datafilelist)
+    U=0.0*Γ.hFacW #varmeta not quite correct
+    V=0.0*Γ.hFacS #varmeta not quite correct
+    fill!(U, 0); fill!(V, 0)
+    ψ = zeros(nl,nz, nt)
+    for tt=1:nt
+        println(tt)
+        fname = datafilelist[tt]
+        UV = γ.read(diagpath[expname]*fname,MeshArray(γ,Float32,100))
+        u = UV[:, 1:50]
+        v = UV[:, 51:100]
+        (Utr,Vtr)=UVtoTransport(u,v,Γ)
+        Utr = Utr .* mask; Vtr = Vtr .* mask;
+        ov=Array{Float64,2}(undef,nl,nz)
+        for z=1:nz
+            UV=Dict("U"=>Utr[:,z],"V"=>Vtr[:,z],"dimensions"=>["x","y"])
+            [ov[l,z]=ThroughFlow(UV,LC[l],Γ) for l=1:nl]
+        end
+        ov= reverse(cumsum(reverse(ov,dims=2),dims=2),dims=2)
+        ψ̄ = -reverse(ov,dims=2); ψ̄[ψ̄.==0.0].=NaN
+        ψ[:, :, tt] .= ψ̄
+    end
+
+    return ψ
+end
+
+
+"""
+    extract_meridionalΨ̄(expname, diagpath, Γ, γ, mask)
+
+
+This function reads multiple data files and calculates the 
+time-mean stream function by integrating the meridional transport 
+(eulerian only) through latitude circles.
+
+# Arguments
+- `expname`: The name of the experiment.
+- `diagpath`: The path to the diagnostic files.
+- `Γ`: The grid data structure containing necessary fields.
+- `γ`: An object representing the data format for reading files.
+- `mask`: A mask representing the region of interest.
+
+# Returns
+- `ψ̄`: The total stream function as a 2D array with NaNs 
+representing non-ocean points.
+
+"""
+
+function extract_meridionalΨ̄(expname,diagpath, Γ, γ, mask)
+    fileroot = "trsp_3d_set1"
+    filelist = searchdir(diagpath[expname],fileroot) # first filter for state_3d_set1
+    datafilelist  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+    #[1:36, 312-36+1:312] comparing first and last years
+    LC=LatitudeCircles(-89.0:89.0,Γ)
+    nz=size(Γ.hFacC,2); nl=length(LC); nt = length(datafilelist)
+    U=0.0*Γ.hFacW #varmeta not quite correct
+    V=0.0*Γ.hFacS #varmeta not quite correct
+    fill!(U, 0); fill!(V, 0)
+    for tt=1:nt
+        fname = datafilelist[tt]
+        UV = γ.read(diagpath[expname]*fname,MeshArray(γ,Float32,100))
+        u = UV[:, 1:50]
+        v = UV[:, 51:100]
+        for i in eachindex(U)
+            U[i]=U[i]+(u[i]/nt)
+            V[i]=V[i]+(v[i]/nt)
+        end
+    end
+
+    (Utr,Vtr)=UVtoTransport(U,V,Γ)
+    Utr = Utr .* mask; Vtr = Vtr .* mask;
+    ov=Array{Float64,2}(undef,nl,nz)
+    for z=1:nz
+        UV=Dict("U"=>Utr[:,z],"V"=>Vtr[:,z],"dimensions"=>["x","y"])
+        [ov[l,z]=ThroughFlow(UV,LC[l],Γ) for l=1:nl]
+    end
+    ov= reverse(cumsum(reverse(ov,dims=2),dims=2),dims=2)
+    ψ̄ = -reverse(ov,dims=2); ψ̄[ψ̄.==0.0].=NaN
+    return ψ̄
 end
 
 end

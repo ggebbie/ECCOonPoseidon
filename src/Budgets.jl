@@ -137,6 +137,39 @@ function extract_vertical_heatbudget(diagpath, expname, fnameRθ, γ)
 end
 
 """
+    extract_sθ(expname::String, diagpath::Dict{String, String}, γ::gcmgrid, 
+               fnameS::String, fnameθ::String, 
+               inv_depths::MeshArrays.gcmarray{T, 1, Matrix{T}}) where T 
+
+Extract the potential temperature (sθ) from the given experiment.
+
+# Arguments
+- `expname::String`: The name of the experiment.
+- `diagpath::Dict{String, String}`: A dictionary mapping experiment names to their respective diagnostic paths.
+- `γ::gcmgrid`: The grid for the LLC90 Grid
+- `fnameS::String`: The filename for the surface height (ETAN) data.
+- `fnameθ::String`: The filename for the potential temperature (θ) data.
+- `inv_depths::MeshArrays.gcmarray{T, 1, Matrix{T}}`: The inverse depths of the grid cells.
+
+# Returns
+- `sθ::MeshArrays.gcmarray{T, 1, Matrix{T}}`: The potential temperature at each grid cell, 
+adjusted for surface height.
+
+"""
+function extract_sθ(expname::String,diagpath::Dict{String, String}, 
+    γ::gcmgrid, fnameS::String, fnameθ::String, 
+    inv_depths::MeshArrays.gcmarray{T, 1, Matrix{T}}) where T 
+    θ = γ.read(diagpath[expname]*fnameθ,MeshArray(γ,Float32,50))
+    ETAN = γ.read(diagpath[expname]*fnameS,MeshArray(γ,Float32,1))
+    sθ = similar(θ)
+
+    s1 = ETAN .* inv_depths
+    s1 .+= 1
+    sθ = θ .* s1
+    return sθ
+end
+
+"""
 Calculates the bolus velocities Ub, Vb, and Wb from GM_PsiX, GM_PsiY, and grid information.
 
 Parameters:
@@ -161,8 +194,9 @@ function calc_bolus(
     mskS::MeshArrays.gcmarray{T, 2, Matrix{T}}
 ) where {T<:Real}
     nr = length(Γ.RC)
-    bolusU = T.(similar(Γ.hFacW))
-    bolusV = T.(similar(Γ.hFacS))
+    γ = mskC.grid
+    bolusU = MeshArray(γ, T, nr)
+    bolusV = MeshArray(γ, T, nr)
 
     @inbounds for k = 1:nr-1
         bolusU[:, k] = (GM_PsiX[:, k+1] .- GM_PsiX[:, k]) ./ Γ.DRF[k]
@@ -174,9 +208,10 @@ function calc_bolus(
     # And its vertical part
     # (seems correct, leading to 0 divergence)
     # tmpx and tmpy are the BOLUS transports
-    tmp_x = T.(similar(GM_PsiX))
-    tmp_y = T.(similar(GM_PsiX))
-    bolusW = T.(similar(GM_PsiX))
+    nz_GM = size(GM_PsiX, 2)
+    tmp_x = MeshArray(γ, T, nz_GM)
+    tmp_y = MeshArray(γ, T, nz_GM)
+    bolusW = MeshArray(γ, T, nz_GM)
 
     @inbounds for a in eachindex(tmp_x)
         tmp_x.f[a] .= GM_PsiX.f[a] .* Γ.DYG.f[a[1]]

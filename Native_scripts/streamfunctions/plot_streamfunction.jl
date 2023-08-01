@@ -30,7 +30,7 @@ runpath,diagpath = listexperiments(exprootdir());
 ignore_list= ["noIA", "129ff"]
 shortnames = OHC_helper.reduce_dict(expnames(), ignore_list)
 marks = expsymbols()
- 
+ϕ_avg = zonal_average(ϕ, area)
 ocean_mask = wet_pts(Γ)
 region = "PAC"; 
 tecco = collect(1992+1/24:1/12:2018)

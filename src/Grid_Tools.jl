@@ -196,12 +196,14 @@ Returns:
 """
 
 function get_cell_thickness(basin_mask, Δz, hFacC)
-
-    cell_depths = similar(hFacC) .* 0.0f0
-    cell_depths .= 0.0f0
+    γ= basin_mask.grid
+    nz = size(hFacC, 2)
+    cell_depths = MeshArray(γ, Float32, nz)
+    fill!(cell_depths, 0)
     for ff in eachindex(cell_depths)
         #generate the depths of each tracer cell, done in main function to avoid copying 
-        cell_depths.f[ff] .= basin_mask.f[ff[1]] .* (Δz[ff[2]] .* hFacC.f[ff])  #
+        tmp = basin_mask.f[ff[1]] .* (Δz[ff[2]] .* hFacC.f[ff])
+        cell_depths.f[ff] .=  Float32.(tmp)
     end
 
     return cell_depths
