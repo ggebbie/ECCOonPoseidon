@@ -46,8 +46,6 @@ end
 nf = length(γ.fSize)
 
 # get standard levels of MITgcm
-z = depthlevels(γ)
-pstdz = pressurelevels(z)
 p₀ = 1000.0; # dbar
 
 Δz = read_mdsio(γ.path,"DRC")
@@ -65,3 +63,5 @@ basin_list=["Pacific","Atlantic","indian","Arctic","Bering Sea",
 
 
             
+z = depthlevels(γ)
+pstdz = pressurelevels(z);
