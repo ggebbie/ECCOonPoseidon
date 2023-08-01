@@ -12,11 +12,10 @@ get_max_lat, within_lon, get_cs_and_sn, rotate_UV_native, get_ϕ_max_min_mask
 export RMSE, RelDiff
 using Revise
 using ECCOonPoseidon, ECCOtour,
-    MeshArrays, MITgcmTools, JLD2, CodecZlib, DrWatson, FFTW, NetCDF,
-    Printf, PyCall, RollingFunctions
+    MeshArrays, MITgcmTools, JLD2, DrWatson, FFTW, NetCDF,
+    Printf, PyCall
 import PyPlot as plt
 
-import NaNMath as nm 
 import Base: vec
 import Statistics: mean, std
 import Base: sum

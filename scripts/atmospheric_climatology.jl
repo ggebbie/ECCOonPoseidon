@@ -87,7 +87,7 @@ for vname ∈ varnames
 
     # reconstruct the full seasonal cycle.
     flux_14day_seasonal = matmul(Ecycle,βcycle,γ) #also solves for time mean
-    cons_offset!(flux_14day_seasonal, -Δi129i0[vname])
+    cons_offset!(flux_14day_seasonal, -Δi129i0[vname]) #remove the iteration 129 mean 
     # check for NaN's in output
     (sum(nancount(flux_14day_seasonal)) > 0) && (error("NaNs in the filtered output"));
 

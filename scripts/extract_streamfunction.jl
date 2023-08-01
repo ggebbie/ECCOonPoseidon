@@ -1,11 +1,9 @@
-
 include("../src/intro.jl")
 include("../src/experimental.jl")
 
 using Revise
 using ECCOonPoseidon, ECCOtour,
-    MeshArrays, MITgcmTools, JLD2, DrWatson, 
-    BenchmarkTools, LaTeXStrings, PyPlot, PyCall
+    MeshArrays, MITgcmTools, JLD2, DrWatson, LaTeXStrings, PyPlot, PyCall
 using .experimental
 import NaNMath as nm
 include(srcdir("config_exp.jl"))
@@ -19,7 +17,6 @@ ocean_mask = wet_pts(Γ)
 region = "PAC"; 
 PAC_msk = PAC_mask(Γ, basins, basin_list, ϕ, λ; 
 region, extent = "full")
-msk = PAC_msk;
 
 #define experimennt
 expname = "iter129_bulkformula"
