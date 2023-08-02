@@ -35,8 +35,10 @@ expcompare = "noinitadjust"
 
 # name of file inside diagspath
 fileroot = "state_3d_set1"
-filelist = searchdir(diagpath[expbase],fileroot) # first filter for state_3d_set1
-datafilelist  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+# first filter for files corresponding to state_3d_set1
+filelist = searchdir(diagpath[expbase],fileroot) 
+ # second filter for files corresponding to the "data" of state_3d_set1
+datafilelist  = filter(x -> occursin("data",x),filelist)
 nt = length(datafilelist)
 
 # Improve code here to read meta file, make variable selection transparent.
@@ -54,11 +56,11 @@ for fname in datafilelist
 
     #print timestamp
     year,month = timestamp_monthly_v4r4(tt)
-
     # need to get all three tracers read.
     @time xbase = γ.read(diagpath[expbase]*fname,MeshArray(γ,Float32,nz*nc))
     @time x = γ.read(diagpath[expcompare]*fname,MeshArray(γ,Float32,nz*nc))
-
+    print(size(xbase))
+    print(size(xbase[1]))
     x = x - xbase # turn into a difference 
     for zc = 1:nz*nc
         xbar[tt,zc],xmax[tt,zc],xmin[tt,zc],σx[tt,zc],absxbar[tt,zc] = faststats(x[:,zc])

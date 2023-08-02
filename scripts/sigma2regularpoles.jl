@@ -4,14 +4,14 @@
 # 3. save to self-describing file.
 # 4. repeat with all fields.
 
-include("intro.jl")
+include("../src/intro.jl")
 
 using Revise
 using ECCOtour, ECCOonPoseidon
 using MeshArrays, MITgcmTools
 
-include("config_exp.jl")
-include("config_regularpoles.jl")
+include("../src/config_exp.jl")
+include("../src/config_regularpoles.jl")
 
 # DEFINE THE LIST OF SIGMA1 VALUES.
 sig1grid = sigma1grid()
@@ -22,7 +22,7 @@ Frootlist = ("state_3d_set1","state_3d_set2","state_2d_set1","state_2d_set2")
 #Froot = "state_2d_set1"
 #Froot = "state_2d_set2"
 ###################################
-
+expt = "nosfcadjust"
 # Froot= Frootlist[1] # for interactive use
 for Froot in Frootlist
     pathin = sig1dir(expt)
@@ -45,10 +45,7 @@ for Froot in Frootlist
         end
 
         filein = Fname[1:end-5]
-
-        @time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
-
+        @time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
         @time writeregularpoles(varsregpoles,γ,pathout,filesuffix,filelog,λC,lonatts,ϕC,latatts,z,depthatts)
-
     end
 end
