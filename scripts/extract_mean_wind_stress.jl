@@ -29,7 +29,7 @@ for tt = 1:nt
     println("year ",Int(floor(tecco[tt]))," month ",((tt-1)%12)+1)
     Tname = τdatafilelist[tt]
     
-    τx, τy = extract_ocnTAU(diagpath, expname , τdatafilelist, tt, γ)
+    τx, τy = extract_ocnTAU(diagpath, expname, Tname, γ)
 
     for ff = 1:5
         τx_mean.f[ff] .+= τx.f[ff] ./ nt
