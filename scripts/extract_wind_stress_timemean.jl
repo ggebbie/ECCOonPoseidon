@@ -3,7 +3,6 @@
 # julia --threads=4 --project=@. ./extract_theta_native.jl
 
 include("../src/intro.jl")
-include("../src/OHC_helper.jl")
 
 using Revise,ECCOonPoseidon, ECCOtour,
 MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, LaTeXStrings, 
@@ -30,7 +29,7 @@ for expname in vars
         println("year ",Int(floor(tecco[tt]))," month ",((tt-1)%12)+1)
         Tname = τdatafilelist[tt]
         
-        τx, τy = OHC_helper.extract_ocnTAU(diagpath, expname , τdatafilelist, tt, γ)
+        τx, τy = extract_ocnTAU(diagpath, expname , τdatafilelist, tt, γ)
 
         for ff = 1:5
             τx_dict[expname].f[ff] .+= τx.f[ff] ./ nt
