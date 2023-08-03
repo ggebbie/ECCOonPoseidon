@@ -1,0 +1,3 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+ECCOonPoseidon = "fa1fed7c-912a-4c16-9bc9-679cbe155a8d"
