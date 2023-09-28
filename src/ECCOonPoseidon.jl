@@ -58,18 +58,18 @@ function sigma1grid(focus::String)
     end
 end
 
-fluxdir() = "/batou/eccodrive/files/Version4/Release4/other/flux-forced/forcing/"
+fluxdir() = "/vast/eccodrive/files/Version4/Release4/other/flux-forced/forcing/"
 
-fluxdir(expt::String) = "/batou/eccodrive/files/Version4/Release4/other/flux-forced-"*expt*"/forcing/"
+fluxdir(expt::String) = "/vast/eccodrive/files/Version4/Release4/other/flux-forced-"*expt*"/forcing/"
 
 """
     function exprootdir(expt::String) 
     Root directory of the ECCOv4r4 output
 """
 function exprootdir(expt::String)
-    rootdir = "/batou/ECCOv4r4/exps/"*expt*"/"
+    rootdir = "/vast/ECCOv4r4/exps/"*expt*"/"
 
-    # If the experiment hasn't been copied to batou, look on poseidon.
+    # If the experiment hasn't been copied to vast, look on poseidon.
     !isdir(rootdir) ? rootdir = "/poseidon/ECCOv4r4/exps/"*expt*"/" : nothing
     return rootdir
 end
@@ -78,7 +78,7 @@ end
     function exprootdir() 
     Root directory of the ECCOv4r4 output
 """
-exprootdir() = "/batou/ECCOv4r4/exps"
+exprootdir() = "/vast/ECCOv4r4/exps"
 
 rundir(expt::String) = exprootdir(expt)*"run/"
 sig1dir(expt::String) = rundir(expt)*"sigma1/"
