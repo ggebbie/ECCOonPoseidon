@@ -2,7 +2,8 @@ module ECCOonPoseidon
 #
 # Define functions that are specific to the ECCO runs stored on Poseidon @ WHOI.
 
-using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, PyCall, PyPlot, MAT, MeshArrays
+using ECCOtour, DrWatson, GoogleDrive, DelimitedFiles, PythonCall, PythonPlot
+using MAT, MeshArrays
 
 export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
@@ -13,22 +14,40 @@ export fluxdir, rectangle, exprootdir, sig1dir,
 # add a method to this function
 import ECCOtour.sigma1grid
 
-const mpl = PyNULL()
-const plt = PyNULL()
-const cmocean = PyNULL()
-const cartopy = PyNULL()
+#Python packages - initialize them to null globally
+const patch = pyimport("matplotlib.patches") #PyNULL()
+
+# following example at ClimatePlots.jl
+const pyplot = pyimport("matplotlib.pyplot") #PyNULL()
+const cmocean = pyimport("cmocean") #PyNULL()
+const cartopy = pyimport("cartopy") #PyNULL()
+const ccrs = pyimport("cartopy.crs") #PyNULL()
+const mpl = pyimport("matplotlib") #PyNULL()
 
 #Initialize all Python packages - install with conda through Julia
-function __init__()
+ function __init__()
+
+     #copy!(mpl, pyimport_conda("matplotlib", "matplotlib", "conda-forge"))
+     PythonCall.pycopy!(mpl,pyimport("matplotlib"))
+
+     #copy!(cartopy, pyimport_conda("cartopy", "cartopy", "conda-forge"))
+     PythonCall.pycopy!(cartopy,pyimport("cartopy"))
+
+
+     #copy!(patch, pyimport_conda("matplotlib.patches", "patches"))
+     PythonCall.pycopy!(patch,pyimport("matplotlib.patches"))
+
+     #copy!(ccrs, pyimport_conda("cartopy.crs", "ccrs"))
+     PythonCall.pycopy!(ccrs,pyimport("cartopy.crs"))
 
     # following ClimatePlots.jl
-    copy!(mpl, pyimport_conda("matplotlib", "matplotlib", "conda-forge"))
-    copy!(cartopy, pyimport_conda("cartopy", "cartopy", "conda-forge"))
-
-    #copy!(plt, pyimport_conda("matplotlib.pyplot", "matplotlib", "conda-forge"))
-    #copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
-
-    println("Python libraries installed")
+     #copy!(plt, pyimport_conda("matplotlib.pyplot", "matplotlib", "conda-forge"))
+     PythonCall.pycopy!(pyplot,pyimport("matplotlib.pyplot"))
+     
+     #copy!(cmocean, pyimport_conda("cmocean", "cmocean", "conda-forge"))
+     PythonCall.pycopy!(cmocean,pyimport("cmocean"))
+     
+     println("Python libraries installed")
  end
 
 """ function sigma1grid()
