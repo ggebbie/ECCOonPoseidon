@@ -19,6 +19,8 @@ include(srcdir("config_exp.jl"))
 include(srcdir("config_regularpoles.jl"))
 tt = 0
 
+vastdiagdir(expt) = "/vast/ECCOv4r4/exps/" * expt * "/run/diags/"
+
 # Froot= Frootlist[1] # for interactive use
 for Froot in Frootlist
 
@@ -34,7 +36,7 @@ for Froot in Frootlist
 
         year,month = timestamp_monthly_v4r4(tt)
 
-        fileoutput = diagpath*Fname
+        fileoutput = fileoutput = vastdiagdir(expt)*Fname
 
         if month < 10
             filesuffix = "_"*string(year)*"_0"*string(month)*".nc"
@@ -47,7 +49,7 @@ for Froot in Frootlist
 
         @time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
-        @time writeregularpoles(varsregpoles,γ,pathout,filesuffix,filelog,λC,lonatts,ϕC,latatts,z,depthatts)
+        @time writeregularpoles(varsregpoles,γ,fileoutput,filesuffix,filelog,λC,lonatts,ϕC,latatts,z,depthatts)
 
     end
 end

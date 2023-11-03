@@ -1,14 +1,30 @@
-
 include("../../src/intro.jl")
 include("GH19_helperfuncs.jl")
 
-using Revise, DrWatson, Statistics,
-NCDatasets, Printf, 
-DataFrames, LaTeXStrings, Distances, JLD2
+using Revise, DrWatson, Statistics,ECCOonPoseidon, 
+NCDatasets, Printf, MeshArrays, MITgcmTools, 
+DataFrames, LaTeXStrings, Distances, JLD2, PyCall, Interpolations
 import PyPlot as plt
 
 ds_EQ  = NCDataset("/home/ameza/GH19.jl/data/Theta_EQ-0015.nc")
 ds_OPT = NCDataset("/home/ameza/GH19.jl/data/Theta_OPT-0015.nc")
+
+include(srcdir("config_exp.jl"))
+(ϕ,λ) = ECCOonPoseidon.latlonC(γ)
+
+
+region = "PAC"
+PAC_msk = PAC_mask(Γ, basins, basin_list, ϕ, λ; 
+region)
+PAC_msk_arr = convert2array(PAC_msk);
+λ_arr = convert2array(λ);
+λ_arr[λ_arr .< 0.0] .+= 360
+ϕ_arr = convert2array(ϕ);
+
+ϕ_arr = ϕ_arr[:, 1:270];  ϕ_arr = vcat(ϕ_arr[14:end, :], ϕ_arr[1:13, :])
+λ_arr = λ_arr[:, 1:270];  λ_arr = vcat(λ_arr[14:end, :], λ_arr[1:13, :])
+PAC_msk_arr = PAC_msk_arr[:, 1:270]
+PAC_msk_arr = vcat(PAC_msk_arr[14:end, :], PAC_msk_arr[1:13, :])
 
 year  = reverse(ds_OPT["year"][:]); nt = length(year)
 lon = ds_OPT["longitude"][:]
@@ -18,60 +34,50 @@ depth = ds_OPT["depth"][:]; nz = length(depth)
 theta_OPT = reverse(ds_OPT["theta"][:, :, :, :], dims =1) #reverse time for niceness
 theta_EQ = reverse(ds_EQ["theta"][:, :, :, :], dims =1)
 
-#check to see if I am plotting things correctly 
-import PyCall
-fig, ax = plt.subplots()
-ax.contourf(lon, lat, theta_OPT[1, 1, :, :])
-fig
-wet_mask = (!isnan).(theta_OPT[1, :, :, :])
-
 #coordinate meshgrid
 LONS = lon' .* ones(length(lat))
 LATS = lat .* ones(length(lon))'
 
 #area of interest NPAC 
-PAC_msk = 0.0 .* LATS
-# if region == "NPAC"
-#     PAC_msk .= (23 .<= LATS .<= 56) .&& (120 .<= LONS .<= 290)
-#     PAC_msk .= Float32.(PAC_msk); PAC_msk[iszero.(PAC_msk)] .= NaN
-#     cutout = (15 .<= LATS .<= 56) .&& (260 .<= LONS .<= 290)
-#     PAC_msk .= PAC_msk .- cutout; PAC_msk .= abs.(PAC_msk)
-#     cutout = (-90 .<= LATS .<= -20) .&& (120 .<= LONS .<= 150)
-#     PAC_msk .= PAC_msk .- cutout; PAC_msk .= abs.(PAC_msk)
-# elseif region == "PAC"
-#area of interest PAC 
 
-# PAC_msk = (-56 .<= LATS .<= 60) .&& (140 .<= LONS .<= 290)
-# PAC_msk = Float32.(PAC_msk); PAC_msk[iszero.(PAC_msk)] .= NaN
-# cutout = (15 .<= LATS .<= 56) .&& (260 .<= LONS .<= 290)
-# PAC_msk = PAC_msk .- cutout; PAC_msk = abs.(PAC_msk)
-# cutout = (-90 .<= LATS .<= -20) .&& (120 .<= LONS .<= 150)
-# PAC_msk = PAC_msk .- cutout; PAC_msk = abs.(PAC_msk)
 
-# PAC_msk[isnan.(PAC_msk)] .= 0.0
+#check to see if I am plotting things correctly 
 
-PAC_msk = (-56 .<= LATS .<= 60) .&& (140 .<= LONS .<= 260)
+fig, ax = plt.subplots()
+ax.contourf(lon, lat, theta_OPT[1, 1, :, :])
+fig
+wet_mask = (!isnan).(theta_OPT[1, :, :, :])
+
+PAC_msk = (-38 .<= LATS .<= 64) .&& (115 .<= LONS .<= 300)
+not_sel2 = Float32.((17 .<= LATS .<= 25) .&& (257 .<= LONS .<= 325)); not_sel2[isone.(not_sel2)] .= NaN
+not_sel = Float32.((0 .<= LATS .<= 60) .&& (280 .<= LONS .<= 325)); not_sel[isone.(not_sel)] .= NaN
+not_sel3 = Float32.((25 .<= LATS .<= 40) .&& (255 .<= LONS .<= 325)); not_sel3[isone.(not_sel3)] .= NaN
+not_sel4 = Float32.((-60 .<= LATS .<= -30) .&& (0 .<= LONS .<= 140)); not_sel4[isone.(not_sel4)] .= NaN
+
+PAC_msk = PAC_msk .+ not_sel .+ not_sel2 .+ not_sel3 .+ not_sel4
+PAC_msk[isnan.(PAC_msk)] .= 0
 
 fig, ax = plt.subplots()
 ax.contourf(lon, lat, theta_OPT[1, 1, :, :] .* PAC_msk)
 fig
 #volumes for each cell. volume = 0 if not in area of interst
+
 volumes = GH19_cell_volumes(depth, lon, lat)
 mask_volume = similar(volumes)
 [mask_volume[k, :, :] .= volumes[k, :, :] .* PAC_msk .* wet_mask[k, :, :] for k = 1:nz]
 
 fig, ax = plt.subplots()
-ax.contourf(lon, lat,  mask_volume[10, :, :])
+ax.contourf(lon, lat,  mask_volume[33, :, :])
 fig
 
 
 #weight the data
 ΔTs = []; ps = []
 WOCE_times = findall(1872 .< year .< 1876)[1]
-Challenger_times = findall(1989 .< year .< 2001)[end]
+Challenger_times = findall(1989 .< year .< 2017)[end]
 println(year[WOCE_times] - year[Challenger_times] )
 data_labels = ["EQ-0015", "OPT-0015"]
-E,F = trend_matrices(year[WOCE_times:Challenger_times])
+E,F = ECCOonPoseidon.trend_matrices(year[WOCE_times:Challenger_times])
 
 for (i, data) in enumerate([theta_EQ, theta_OPT])
     weighted_temp = zeros(nt, nz)

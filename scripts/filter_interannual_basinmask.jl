@@ -24,7 +24,7 @@ using MAT
 # ternary notation
 expt == "nointerannual" ? keepregion = false : keepregion = true
 println("Experiment: ",expt)
-
+expt = "nointerannual"
 include(srcdir("config_exp.jl"));
 include(srcdir("config_regularpoles.jl"))
 
@@ -69,13 +69,17 @@ xlabel(xlbl)
 ylabel(ylbl)
 savefig(outfname)
 
+vastfluxdir() = "/vast/eccodrive/files/Version4/Release4/other/flux-forced/forcing/"
+vastfluxdir(expt::String) = "/vast/eccodrive/files/Version4/Release4/other/flux-forced-"*expt*"/forcing/"
+
+
 ## UNTESTED AFTER HERE, GG 29-MAR-2023
 ## START FILTERING
 # This could be put into src code for scientific project.
-inputdir = fluxdir()
+inputdir = vastfluxdir()
 
 # lets use a test directory so we don't overwrite something
-outputdir = fluxdir(expt)*"test"
+outputdir = vastfluxdir(expt)*"tonytest2"
 
 # read lat, lon at center of grid cell
 (ϕC,λC) = latlonC(γ)

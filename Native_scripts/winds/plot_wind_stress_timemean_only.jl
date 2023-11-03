@@ -37,7 +37,7 @@ runpath,diagpath = listexperiments(exprootdir());
 diagpath["clim_tau_iter0"] = "/vast/ECCOv4r4/exps/clim_tau_iter0/run/diags/"
 
 τx_dict = Dict(); τy_dict = Dict(); curlτ_dict = Dict(); ekup_dict = Dict()
-vars = ["iter0_bulkformula", "clim_tau_iter0"]
+vars = ["iter0_bulkformula", "iter129_bulkformula", "only_init", "only_kappa", "only_sfc"]
 
 for expname in vars
     filelist = searchdir(diagpath[expname],"state_2d_set1") # first filter for state_3d_set1

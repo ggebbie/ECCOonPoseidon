@@ -22,23 +22,23 @@ pth = MeshArrays.GRID_LLC90
 γ = GridSpec("LatLonCap",pth)
 Γ = GridLoad(γ;option="full")
 
-#fix floating point errors for Float32 vars
-check_zero(x) = abs(x) < 1e-4 #check if within float32 zero 
-check_notzero(x) = abs(x) > 1e-7 #check if within float32 zero 
-withineps(x) = convert(Float32,x)* check_notzero(x) #replace if close to zero 
+# #fix floating point errors for Float32 vars
+# check_zero(x) = abs(x) < 1e-4 #check if within float32 zero 
+# check_notzero(x) = abs(x) > 1e-7 #check if within float32 zero 
+# withineps(x) = convert(Float32,x)* check_notzero(x) #replace if close to zero 
 
-for ff = 1:5
-    Γ.AngleCS.f[ff] = withineps.(Γ.AngleCS.f[ff])
-    Γ.AngleSN.f[ff] = withineps.(Γ.AngleSN.f[ff])
-    isoneSN = check_zero.(1 .- Γ.AngleSN.f[ff])
-    isoneCS = check_zero.(1 .- Γ.AngleCS.f[ff])
+# for ff = 1:5
+#     Γ.AngleCS.f[ff] = withineps.(Γ.AngleCS.f[ff])
+#     Γ.AngleSN.f[ff] = withineps.(Γ.AngleSN.f[ff])
+#     isoneSN = check_zero.(1 .- Γ.AngleSN.f[ff])
+#     isoneCS = check_zero.(1 .- Γ.AngleCS.f[ff])
     
-    Γ.AngleCS.f[ff][isoneSN] .= sign.(Γ.AngleCS.f[ff][isoneSN])
-    Γ.AngleSN.f[ff][isoneCS] .= sign.(Γ.AngleSN.f[ff][isoneCS])
+#     Γ.AngleCS.f[ff][isoneSN] .= sign.(Γ.AngleCS.f[ff][isoneSN])
+#     Γ.AngleSN.f[ff][isoneCS] .= sign.(Γ.AngleSN.f[ff][isoneCS])
 
-    Γ.AngleCS.f[ff] .= round.(Γ.AngleCS.f[ff], digits = 4)
-    Γ.AngleSN.f[ff] .= round.(Γ.AngleSN.f[ff], digits = 4)
-end
+#     Γ.AngleCS.f[ff] .= round.(Γ.AngleCS.f[ff], digits = 4)
+#     Γ.AngleSN.f[ff] .= round.(Γ.AngleSN.f[ff], digits = 4)
+# end
 
 # no longer needed?
 #γ = setupLLCgrid(datadir("grid/"))
@@ -60,8 +60,6 @@ basin_list=["Pacific","Atlantic","indian","Arctic","Bering Sea",
             "Hudson Bay","Mediterranean Sea","Java Sea","North Sea",
             "Japan Sea", "Timor Sea","East China Sea","Red Sea",
             "Gulf","Baffin Bay","GIN Seas","Barents Sea"];
-
-
             
-z = depthlevels(γ)
-pstdz = pressurelevels(z);
+z = ECCOonPoseidon.depthlevels(γ)
+pstdz = ECCOonPoseidon.pressurelevels(z);

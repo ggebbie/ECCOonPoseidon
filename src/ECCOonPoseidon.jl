@@ -9,7 +9,9 @@ export fluxdir, rectangle, exprootdir, sig1dir,
     diagdir, listexperiments,
     expnames, expsymbols, regpolesdir, rundir,
     Nino34file, historicalNino34, readNino34,
-    sigma1grid, basin_mask, smooth
+    sigma1grid, sigma2grid, basin_mask, smooth
+
+export vastexptdir, vastrundir, vastdiagdir
 
 #statements for budgets.jl
 export extract_ocnTAU, extract_eulerian_velocities, 
@@ -22,12 +24,13 @@ export get_msk, findlatlon, findmin,
 densityJMD95, get_cell_volumes, get_cell_thickness, 
 get_geothermalheating,
 calc_W_conv3D!, calc_UV_conv3D!, exch_UV_llc90, 
-interpolate_to_lateral_faces, interpolate_to_vertical_faces!
+interpolate_to_lateral_faces, interpolate_to_vertical_faces!, 
+cons_offset!
 
 #statements for transports.jl
-export ThroughFlow, extract_meridional_Ψ_Mean, 
+export ThroughFlow, extract_meridional_Ψ_Mean, extract_meridional_Ψ_Eul, 
 extract_meridional_Ψ, 
-extract_meridionalΨ̄timeseries, LatitudeCirclesMask
+extract_meridionalΨ̄timeseries, LatitudeCirclesMask, UVtoTrsp
 
 #statements for mask_tools.jl
 export wet_pts, region_mask
@@ -40,6 +43,8 @@ export PAC_mask
 export get_min_lat, get_max_lat, within_lon, 
 get_cs_and_sn, rotate_UV_native, get_ϕ_max_min_mask
 
+#statements for MeshArraysPlots.jl
+export wrap_λ
 import Base: sum
 import ECCOtour.sigma1grid
 
@@ -49,6 +54,7 @@ include("Transports.jl")
 include("Mask_Tools.jl")
 include("Operations.jl")
 include("PacificOcean.jl")
+# include("MeshArraysPlots.jl")
 
 # add a method to this function
 
@@ -97,9 +103,25 @@ function sigma1grid(focus::String)
     end
 end
 
+""" function sigma2grid()
+    Choice of sigma2 surfaces for gridding
+# Arguments
+- `focus`: what part of water column is the focus?
+# Output
+- `σ₁grid`: list (vector) of σ₁ values
+"""
+function sigma2grid(focus::String)
+    if focus == "NPAC"
+        NPAC_σ = vcat(collect(32:0.25:36.5), collect(36.7:0.01:37), collect(37.03:0.02:37.1))
+        NPAC_σ = sort(unique(NPAC_σ))
+        return NPAC_σ
+    end
+end
+
 fluxdir() = "/batou/eccodrive/files/Version4/Release4/other/flux-forced/forcing/"
 
 fluxdir(expt::String) = "/batou/eccodrive/files/Version4/Release4/other/flux-forced-"*expt*"/forcing/"
+
 
 """
     function exprootdir(expt::String) 
@@ -109,7 +131,7 @@ function exprootdir(expt::String)
     rootdir = "/batou/ECCOv4r4/exps/"*expt*"/"
 
     # If the experiment hasn't been copied to batou, look on poseidon.
-    !isdir(rootdir) ? rootdir = "/poseidon/ECCOv4r4/exps/"*expt*"/" : nothing
+    !isdir(rootdir) ? rootdir = "/vast/ECCOv4r4/exps/"*expt*"/" : nothing
     return rootdir
 end
 
@@ -119,9 +141,18 @@ end
 """
 exprootdir() = "/batou/ECCOv4r4/exps"
 
+
 rundir(expt::String) = exprootdir(expt)*"run/"
 sig1dir(expt::String) = rundir(expt)*"sigma1/"
 diagdir(expt::String) = rundir(expt)*"diags/"
+
+vastexprootdir(expt::String) = "/vast/ECCOv4r4/exps/" * expt*"/"
+vastrundir(expt::String) = vastexprootdir(expt)*"run/"
+vastrundir(expt::String, runname::String) = vastexprootdir(expt)*runname * "/"
+
+vastdiagdir(expt::String) = vastrundir(expt)*"diags/"
+vastdiagdir(expt::String, runname::String) = vastrundir(expt, runname)*"diags/"
+
 regpolesdir(expt::String) = rundir(expt)*"regularpoles/"
 
 function rectangle(region::String)

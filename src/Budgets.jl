@@ -51,6 +51,28 @@ function extract_eulerian_velocities(diagpath, expname, fnameuvw, γ)
 end
 
 """
+Extracts Eulerian velocities u, v, and w from diagnostic files.
+
+Parameters:
+- `diagpath`: Dictionary containing paths to different experiments.
+- `expname`: Name of the experiment.
+- `fnameuvw`: File name of the diagnostic data.
+- `γ`: Grid information.
+
+Returns:
+- `u`: Array of u-component of velocity.
+- `v`: Array of v-component of velocity.
+- `w`: Array of w-component of velocity.
+"""
+function extract_eulerian_velocities(diagpath, expname, fnameuvw, γ, level)
+    UV = γ.read(diagpath[expname]*fnameuvw, MeshArray(γ, Float32, 150))
+    u = UV[:, level]
+    v = UV[:, 50 + level]
+    w = UV[:, 100 + level]
+    return u, v, w
+end
+
+"""
 Extracts Eulerian and bolus velocities u, v, w, Ub, Vb, and Wb from diagnostic files.
 
 Parameters:
@@ -83,7 +105,7 @@ function extract_eulerian_and_bolus_velocities(
     w = UV[:, 101:150]
     GM_PsiX = UV[:, 151:200]
     GM_PsiY = UV[:, 201:250]
-    Ub, Vb, Wb = calc_bolus(GM_PsiX, GM_PsiY, Γ, mskC, mskW, mskS)
+    @time Ub, Vb, Wb = calc_bolus(GM_PsiX, GM_PsiY, Γ, mskC, mskW, mskS)
     return u, v, w, Ub, Vb, Wb
 end
 
@@ -132,7 +154,7 @@ function extract_vertical_heatbudget(diagpath, expname, fnameRθ, γ)
     # Vertical convergences
     dθr = γ.read(diagpath[expname]*fnameRθ, MeshArray(γ, Float32, 150))
     wθ = dθr[:, 1:50]
-    κzθ = dθr[:, 51:100] .+ dθr[:, 101:150]
+    κzθ = dθr[:, 51:100] .+ dθr[:, 101:150] #implicit plus explicit
     return κzθ, wθ
 end
 
@@ -198,28 +220,30 @@ function calc_bolus(
     bolusU = MeshArray(γ, T, nr)
     bolusV = MeshArray(γ, T, nr)
 
-    @inbounds for k = 1:nr-1
-        bolusU[:, k] = (GM_PsiX[:, k+1] .- GM_PsiX[:, k]) ./ Γ.DRF[k]
-        bolusV[:, k] = (GM_PsiY[:, k+1] .- GM_PsiY[:, k]) ./ Γ.DRF[k]
+    for ff=1:5, k = 1:nr-1
+        bolusU.f[ff, k] .= (GM_PsiX.f[ff, k+1] .- GM_PsiX.f[ff, k]) ./ Γ.DRF[k]
+        bolusV.f[ff, k] .= (GM_PsiY.f[ff, k+1] .- GM_PsiY.f[ff, k]) ./ Γ.DRF[k]
     end
-    @inbounds bolusU.f[:, nr] = -GM_PsiX.f[:, nr] ./ Γ.DRF[nr]
-    @inbounds bolusV.f[:, nr] = -GM_PsiY.f[:, nr] ./ Γ.DRF[nr]
+
+    for ff=1:5
+        bolusU.f[ff, nr] .= -GM_PsiX.f[ff, nr] ./ Γ.DRF[nr]
+        bolusV.f[ff, nr] .= -GM_PsiY.f[ff, nr] ./ Γ.DRF[nr]
+    end
 
     # And its vertical part
     # (seems correct, leading to 0 divergence)
     # tmpx and tmpy are the BOLUS transports
     nz_GM = size(GM_PsiX, 2)
-    tmp_x = MeshArray(γ, T, nz_GM)
-    tmp_y = MeshArray(γ, T, nz_GM)
     bolusW = MeshArray(γ, T, nz_GM)
 
-    @inbounds for a in eachindex(tmp_x)
-        tmp_x.f[a] .= GM_PsiX.f[a] .* Γ.DYG.f[a[1]]
-        tmp_y.f[a] .= GM_PsiY.f[a] .* Γ.DXG.f[a[1]]
+    for a in eachindex(GM_PsiX)
+        GM_PsiX.f[a] .= GM_PsiX.f[a] .* Γ.DYG.f[a[1]]
+        GM_PsiY.f[a] .= GM_PsiY.f[a] .* Γ.DXG.f[a[1]]
     end
 
-    calc_UV_conv3D!(tmp_x, tmp_y, bolusW)
-    @inbounds for a in eachindex(tmp_x)
+    @time calc_UV_conv3D!(GM_PsiX, GM_PsiY, bolusW)
+
+    for a in eachindex(GM_PsiX)
         # Negative for divergence instead of convergence
         # Need to rescale bolus W
         bolusW.f[a] .= -1 .* bolusW.f[a] ./ Γ.RAC.f[a[1]]

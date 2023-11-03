@@ -1,3 +1,24 @@
+
+"""
+    cons_offset!(X::MeshArrays.gcmarray{T,2,Matrix{T}}, 
+    Δ::MeshArrays.gcmarray{T,1,Matrix{T}}) where T<:AbstractFloat
+
+Adjust the values of the 2D MeshArray `X` by adding the corresponding values from the 1D MeshArray `Δ`.
+
+# Arguments
+- `X::MeshArrays.gcmarray{T,2,Matrix{T}}`: A 2D MeshArray that will be adjusted.
+- `Δ::MeshArrays.gcmarray{T,1,Matrix{T}}`: A 1D MeshArray containing the offset values to be added to `X`.
+
+# Examples
+```julia
+"""
+function cons_offset!(X::MeshArrays.gcmarray{T,2,Matrix{T}}, 
+    Δ::MeshArrays.gcmarray{T,1,Matrix{T}}) where T<:AbstractFloat 
+    for a in eachindex(X)
+        X.f[a] .+= Δ.f[a[1]]
+    end
+end
+
 """
     wet_pts(Γ)
 
@@ -79,7 +100,7 @@ function findmin(ma::MeshArray)
     i_list = Any[Inf]
     val_list = Any[Inf]
     for ijk in eachindex(ma)
-        temp_val, temp_idx = findmin(ma[ijk])
+        temp_val, temp_idx = Base.findmin(ma[ijk])
         if val_list[1] > temp_val
             f_list[1] = ijk
             i_list[1] = temp_idx
@@ -271,7 +292,7 @@ function calc_W_conv3D!(wFLD::MeshArrays.gcmarray{T, 2, Matrix{T}},
     end
 
     for ff=1:5
-        CONV.f[ff, 50] .= -wFLD.f[ff, 50] #in - out 
+        CONV.f[ff, nz] .= -wFLD.f[ff, nz] #in - out 
     end
 end
 
@@ -399,16 +420,26 @@ Returns:
 function interpolate_to_lateral_faces(uFLD::MeshArrays.gcmarray{T, 1, Matrix{T}}, vFLD::MeshArrays.gcmarray{T, 1, Matrix{T}}, Γ) where T<:Real
     Ugrid = T.(similar(uFLD))
     Vgrid = T.(similar(uFLD))
-    (tmpU, tmpV) = exch_UV_llc90(uFLD, vFLD)
+    DXG = T.(Γ.DXG)
+    DYG = T.(Γ.DYG)
+    (DXG, DYG) = exch_UV(DXG, DYG)
 
-    for a in 1:5
+    (tmpU, tmpV) = exch_UV(uFLD, vFLD)
+
+    for a in eachindex(uFLD)
         (s1, s2) = size(uFLD.f[a])
         tmpU1 = view(tmpU.f[a], 1:s1, 1:s2)
         tmpU2 = view(tmpU.f[a], 2:s1 + 1, 1:s2)
         tmpV1 = view(tmpV.f[a], 1:s1, 1:s2)
         tmpV2 = view(tmpV.f[a], 1:s1, 2:s2 + 1)
-        Ugrid.f[a] .= (tmpU1 + tmpU2) ./ 2
-        Vgrid.f[a] .= (tmpV1 + tmpV2) ./ 2
+        # Setup weights
+        tmpDXG1 = view(DXG.f[a], 1:s1, 1:s2)
+        tmpDXG2 = view(DXG.f[a], 2:s1 + 1, 1:s2)
+        tmpDYG1 = view(DYG.f[a], 1:s1, 1:s2)
+        tmpDYG2 = view(DYG.f[a], 1:s1, 2:s2 + 1)
+
+        Ugrid.f[a] .= ((tmpU1 .* tmpDXG1) + (tmpU2 .* tmpDXG2)) ./ (tmpDXG1 .+ tmpDXG2)
+        Vgrid.f[a] .= ((tmpV1 .* tmpDYG1) + (tmpV2 .* tmpDYG2)) ./ (tmpDYG1 .+ tmpDYG2)
     end
 
     return Ugrid, Vgrid
@@ -429,7 +460,7 @@ function interpolate_to_lateral_faces(uFLD::MeshArrays.gcmarray{T, 2, Matrix{T}}
     Ugrid = T.(similar(uFLD))
     Vgrid = T.(similar(uFLD))
     DXG = T.(Γ.DXG)
-    DYG = T.(Γ.DXG)
+    DYG = T.(Γ.DYG)
     (DXG, DYG) = exch_UV(DXG, DYG)
 
     (tmpU, tmpV) = exch_UV_llc90(uFLD, vFLD)

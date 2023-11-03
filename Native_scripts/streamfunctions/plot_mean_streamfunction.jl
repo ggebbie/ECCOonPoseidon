@@ -1,36 +1,45 @@
-
-@pyimport cmocean.cm as cmo
+@pyimport cmocean.cm as cmos
 @pyimport seaborn as sns;
 @pyimport matplotlib.patches as patches
 region = "PAC"; 
+PAC_msk = PAC_mask(Γ, basins, basin_list, ϕ, λ; 
+region, extent = "false", include_bering = true)
 
-XΨ=collect(-89.0:89.0); Y=reverse(z); #coordinate variables
-Xθ = OHC_helper.ma_zonal_sum(ϕ .* area) ./ OHC_helper.ma_zonal_sum(area)
+(ϕ,λ) = latlonC(γ); area = Float32.(readarea(γ))
+ϕ = Float32.(ϕ); ϕ_avg = zonal_average(ϕ, area .* PAC_msk)
+ϕ_avg = ϕ_avg[isfinite.(ϕ_avg)]
+
 
 uplvl = -1e3; botlvl = -Inf
 lvls = findall( botlvl .<= z[:].<= uplvl)
 Y_mask = reverse(z[lvls])
-XΨ_mask = XΨ[XΨ .> -40]
+
 cp = Vector{Any}(missing, 1)  
 # alabels = ["Iteration 129", "Iteration 0", "Initial 129", "Initial 0"]
 clevels = ["-9.0", "-7.5", "-1.5"]
-for (i, expname) in enumerate(myexps)
+
+expname = "iter0_bulkformula"
+Ψ_exp = jldopen(datadir("Ψ_EulBol_timeseries_"*region*"_" * expname *".jld2"))["Ψ_exp_timeseries"]
+Ψ_mean = mean(Ψ_exp, dims = 3)[:, :, 1]
+
+
+for (i, expname) in enumerate(vars)
     fig,ax=plt.subplots(figsize = (12, 7))
-    Ψ_exp = jldopen(datadir("ΨwBolustimeseries_"*region*"_" * expname *".jld2"))["Ψ_exp"]
+    Ψ_exp = jldopen(datadir("Ψ_EulBol_timeseries_"*region*"_" * expname *".jld2"))["Ψ_exp_timeseries"]
     Ψ_mean = mean(Ψ_exp, dims = 3)[:, :, 1]
-    Ψ_mean = reverse(Ψ_mean', dims = 1)
+    # Ψ_mean = reverse(Ψ_mean', dims = 1)
     ax.set_facecolor("black")
-    Ψ_bounds = round(1e-6 .* maximum(abs.(extrema(Ψ_exp_mean))))
+    # Ψ_bounds = round(1e-6 .* maximum(abs.(extrema(Ψ_exp_mean))))
     Ψ_bounds = 10.5
     levels = -Ψ_bounds:1.5:Ψ_bounds
-    Ψ_exp = Ψ_mean[:, XΨ .> -40]
-    ax.contourf(XΨ_mask, abs.(z[:]), 1e-6.* Ψ_exp, cmap=cmo.delta,levels = levels, 
+    Ψ_exp = Ψ_mean
+    ax.contourf(ϕ_avg, abs.(z[:]), 1e-6.* Ψ_exp, cmap=cmos.delta,levels = levels, 
     vmin = -1.4*Ψ_bounds, vmax = 1.4*Ψ_bounds, extend = "both")
-    cs2 = ax.contour(XΨ_mask, abs.(z[30:46]), 1e-6.* Ψ_exp[30:46, :], colors="k",levels = levels, 
+    cs2 = ax.contour(ϕ_avg, abs.(z[30:46]), 1e-6.* Ψ_exp[30:46, :], colors="k",levels = levels, 
     vmin = -Ψ_bounds, vmax = Ψ_bounds)
-    ax.contour(XΨ_mask, abs.(z[1:30]), 1e-6.* Ψ_exp[1:30, :], colors="k",levels = levels, 
+    ax.contour(ϕ_avg, abs.(z[1:30]), 1e-6.* Ψ_exp[1:30, :], colors="k",levels = levels, 
     vmin = -Ψ_bounds, vmax = Ψ_bounds)
-    ax.contour(XΨ_mask, abs.(z[46:end]), 1e-6.* Ψ_exp[46:end, :], colors="k",levels = levels, 
+    ax.contour(ϕ_avg, abs.(z[46:end]), 1e-6.* Ψ_exp[46:end, :], colors="k",levels = levels, 
     vmin = -Ψ_bounds, vmax = Ψ_bounds)
     labels = ax.clabel(cs2, fontsize=20, inline=true, fmt = "%.1f", 
     inline_spacing = 12, rightside_up = true, use_clabeltext = true)
@@ -55,7 +64,7 @@ for (i, expname) in enumerate(myexps)
     lab = string.(abs.(collect(-40:10:60)))
     lab = lab .* ["°S", "°S", "°S", "°S", "", "°N", "°N", "°N", "°N", "°N", "°N"]
     ax.set_xticklabels(lab)
-    fig.savefig(plotsdir("native/generals/ΨwBolus_"*expname * "_" * region * ".png"), 
+    fig.savefig(plotsdir("native/generals/TESTΨwBolus_"*expname * "_" * region * ".png"), 
                 dpi = 400, bbox_inches = "tight")
 end
 

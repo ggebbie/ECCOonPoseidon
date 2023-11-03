@@ -49,8 +49,9 @@ fig,axes=plt.subplots(2, 1, figsize = (15, 7.5), sharex = true, sharey = false)
 Ψ_maximum = Dict()
 Ψ_NPAC_W = Dict()
 
+
 for (i, expname) in enumerate(myexps)
-    Ψ_exp = jldopen(datadir("ΨwBolustimeseries_"*region*"_" * expname *".jld2"))["Ψ_exp"]
+    Ψ_exp = jldopen(datadir("Ψ_EulBol_timeseries_"*region*"_" * expname *".jld2"))["Ψ_exp"]
     Ψ_exp = reverse(permutedims(Ψ_exp, (2, 1, 3)), dims = 1)
     Ψ_maximum[expname] = -mean(Ψ_exp[44:46, 87:100, :], dims = [1,2])[1, 1, :]
     Ψ_NPAC_W[expname] = -Ψ_exp[42, 114, :]

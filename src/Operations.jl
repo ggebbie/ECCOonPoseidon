@@ -7,7 +7,7 @@ function sum(ma::MeshArrays.gcmarray{T, N, Matrix{T}}) where T<:AbstractFloat wh
     return tmp[1]
 end
 
-function vertical_sum(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:AbstractFloat where N
+function vertical_sum(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:AbstractFloat
     γ = ma.grid #grid info
     sum_temp = MeshArray(γ,T) #make a flat mesharray
     fill!(sum_temp, zero(T))
@@ -20,7 +20,7 @@ end
 #must specify dims
 flat_sum(x::T; dims = Inf) where T<:Matrix = vec(sum(x, dims = dims))
 
-function lateral_sum(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:AbstractFloat where N
+function lateral_sum(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:AbstractFloat
     nz = size(ma, 2)
     faces_sum = zeros(T, nz)
     for a in eachindex(ma)
@@ -47,7 +47,7 @@ function zonal_sum(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
     nz = size(ma, 2)
     temp = zeros(T, nz, 270)
     for lvl in 1:nz
-        temp[lvl, :] .= ma_zonal_sum(ma[:, lvl])
+        temp[lvl, :] .= zonal_sum(ma[:, lvl])
     end
 
     return temp 
@@ -71,7 +71,7 @@ function zonal_average(ma::MeshArrays.gcmarray{T, 2, Matrix{T}},
         numerator[lvl, :] .= zonal_sum(ma[:, lvl] .* weights[:, lvl])
         denom[lvl, :] .= zonal_sum(weights[:, lvl])
     end
-    return temp_num ./ temp_denom
+    return numerator ./ denom
 end
 
 function zonal_average(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real

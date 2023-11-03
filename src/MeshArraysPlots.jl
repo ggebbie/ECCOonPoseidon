@@ -44,3 +44,49 @@ function pcolormesh_ma(ax, λ, ϕ, var, cmap; add_gridlines = false, bounds = no
     end
     return CF[1]
 end
+
+function contourf_ma(ax, λ, ϕ, var, cmap; add_gridlines = false, bounds = nothing, levels = nothing)
+    projPC = crs.PlateCarree()
+    
+    #obtain maximal value 
+    maxval = maximum(abs.(var))
+    isnothing(bounds) && (vmin = -maxval; vmax = maxval)
+    (!isnothing)(bounds) && (vmin = bounds[1]; vmax = bounds[2])
+
+    CF = Any[]
+    for ff = 1:5
+        var[ff]
+        cf = ax.contourf(λ[ff], ϕ[ff],  var[ff], vmin = vmin, vmax = vmax, 
+                            transform=projPC, cmap = cmap)
+        push!(CF, cf)
+    end
+    if add_gridlines
+        gl = ax.gridlines(crs=projPC, draw_labels=true, linewidth=2, 
+        color="gray", alpha=0, linestyle="--")
+        gl.top_labels = false; gl.right_labels = false
+    end
+    return CF[1]
+end
+
+function pcolormesh_ma_log(ax, λ, ϕ, var, cmap; add_gridlines = false, bounds = nothing)
+    projPC = crs.PlateCarree()
+    
+    #obtain maximal value 
+    maxval = maximum(abs.(var))
+    isnothing(bounds) && (vmin = -maxval; vmax = maxval)
+    (!isnothing)(bounds) && (vmin = bounds[1]; vmax = bounds[2])
+
+    CF = Any[]
+    for ff = 1:5
+        cf = ax.pcolormesh(λ[ff], ϕ[ff],  var[ff], vmin = vmin, vmax = vmax, 
+                            transform=projPC, cmap = cmap, norm="log", 
+                            shading = "nearest")
+        push!(CF, cf)
+    end
+    if add_gridlines
+        gl = ax.gridlines(crs=projPC, draw_labels=true, linewidth=2, 
+        color="gray", alpha=0, linestyle="--")
+        gl.top_labels = false; gl.right_labels = false
+    end
+    return CF[1]
+end

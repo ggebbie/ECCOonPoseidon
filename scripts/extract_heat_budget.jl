@@ -13,9 +13,6 @@ area = readarea(γ)
 runpath,diagpath = listexperiments(exprootdir());
 
 ocean_mask = wet_pts(Γ)
-# region = "NPAC"; 
-# PAC_msk = OHC_helper.PAC_mask(Γ, basins, basin_list, ϕ, λ; 
-# region, extent = "not")
 
 cell_depths = get_cell_thickness(ocean_mask, ΔzF, Γ.hFacC); 
 cell_volumes = get_cell_volumes(area, cell_depths);

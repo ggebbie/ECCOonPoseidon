@@ -3,7 +3,7 @@
 # julia --threads=4 --project=@. ./extract_theta_native.jl
 
 include("../../src/intro.jl")
-include("../../src/OHC_helper.jl")
+# include("../../src/OHC_helper.jl")
 
 using Revise,ECCOonPoseidon, ECCOtour, MeshArrays, 
 MITgcmTools, JLD2, DrWatson, Statistics, JLD2, 
@@ -32,20 +32,20 @@ fcycle = 1 # units: yr^{-1}
 overtones= 4; # semi-annual, quad-annual, etc.: helps capture an asymmetric seasonal cycle
 
 # vm = maximum(abs.(θ["iter129_bulkformula"] - mean(θ["iter129_bulkformula"], dims = 2)))
-savename = datadir("native/iter129_bulkformula" * region * "_WaterProp_profile_budget_z.jld2")
+savename = datadir("native/iter129_bulkformula" * "FtLd" * "_WaterProp_profile_budget_z.jld2")
 θS = load(savename)["θS"]
-kmax = 20; z[kmax]
+kmax = 18; z[kmax]
 yearly_avg(x) = hcat([mean(x[:, (i):(i+ 23)], dims = 2) for i in 1:24:312]...)
 
 θ = θS["θ"][1:kmax, :]; S = θS["S"][1:kmax, :]
-σ0 = OHC_helper.densityJMD95.(θ,S, NaN, 0) .- 1000. #EOS from MITGCM 
+σ0 = densityJMD95.(θ,S, NaN, 0) .- 1000. #EOS from MITGCM 
 θ = yearly_avg(θ); S = yearly_avg(S); σ0 = yearly_avg(σ0)
 tecco_avg = yearly_avg(tecco')[:]; nt_avg = length(tecco_avg)
 
 S_min, S_max = extrema(S); θ_min, θ_max = extrema(θ)
 S_levels = S_min:0.005:S_max; θ_levels = θ_min:0.1:θ_max;
 S_grid, θ_grid = meshgrid(S_levels, θ_levels);
-σgrid = OHC_helper.densityJMD95.(θ_grid,S_grid, 0.0, p₀) .- 1000.; #EOS from MITGCM does not require ref pressure
+σgrid = densityJMD95.(θ_grid,S_grid, 0.0, p₀) .- 1000.; #EOS from MITGCM does not require ref pressure
 σ_min, σ_max = extrema(σgrid); levels = σ_min:0.3:σ_max
 ns = floor(Int, size(S_grid, 2) /2)
 
@@ -65,8 +65,8 @@ levels = levels, colors = "black", linewidths = 0.75);
 ax.clabel(CS, fontsize=15, inline=true, fmt = "%.2f");
 ax.set_xlabel("Practical Salinity"); ax.set_ylabel("Potential Temperature");
 
-ax.set_title("65W, 30N; Upper 300 meters")
+ax.set_title("80W, 26N; Upper 200 meters")
 fig.colorbar(plt.matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap),
              ax=ax, orientation="horizontal", label="time", fraction = 0.04, extend = "both")
-fig.savefig(plotsdir("native/subtropical_gyre/TS_Upper300.png"))
+fig.savefig(plotsdir("native/subtropical_gyre/TS_Upper300_FtLtd.png"))
 fig
