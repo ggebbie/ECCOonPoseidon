@@ -1,11 +1,13 @@
+#this script just plots out a rectangular mask 
+
 include("../../src/intro.jl")
 
 using Revise, ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, 
     DrWatson, BenchmarkTools, LaTeXStrings,
     PyCall
-using .OHC_helper
-import PyPlot as plt
+
+    import PyPlot as plt
 @pyimport seaborn as sns;
 @pyimport pandas as pd;
 sns.set_theme(context = "talk", style = "ticks", font_scale = 1.0,

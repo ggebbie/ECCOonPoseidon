@@ -1,20 +1,12 @@
-#analysis should complete within 4 minutes 
-#using 1 threads 
-# julia --threads=4 --project=@. ./extract_theta_native.jl
+#this script uses T-S data to create T-S diagrams at a single point 
 
 include("../../src/intro.jl")
-include("../../src/OHC_helper.jl")
 
 using Revise,ECCOonPoseidon, ECCOtour, MeshArrays, 
 MITgcmTools, JLD2, DrWatson, Statistics, JLD2, 
 Printf, PyCall, LaTeXStrings
 import NaNMath as nm, PyPlot as plt
-@pyimport cmocean.cm as cmo
-@pyimport seaborn as sns;
-@pyimport matplotlib as mpl
 
-sns.set_theme(context = "poster", style = "ticks", font_scale = 1.0,
-              palette = sns.color_palette("colorblind"));
 include(srcdir("config_exp.jl"))'
 
 (ϕ,λ) = latlonC(γ);
@@ -25,24 +17,32 @@ region = "Sargasso"
 tecco= 1992+1/24:1/12:2018 # ecco years
 nt = length(tecco)
 
-# vm = maximum(abs.(θ["iter129_bulkformula"] - mean(θ["iter129_bulkformula"], dims = 2)))
+#load data 
 savename = datadir("native/iter129_bulkformula" * region * "_WaterProp_profile_budget_z.jld2")
 θS = load(savename)["θS"]
+#specify maximum depth 
 kmax = 30; z[kmax]
+
+#functions that takes averages in 2-year chunks
 yearly_avg(x) = hcat([mean(x[:, (i):(i+ 23)], dims = 2) for i in 1:24:312]...)
 
+#extract data
 θ = θS["θ"][1:kmax, :]; S = θS["S"][1:kmax, :]
-σ0 = OHC_helper.densityJMD95.(θ,S, NaN, 0) .- 1000. #EOS from MITGCM 
+
+#compute density
+σ0 = densityJMD95.(θ,S, NaN, 0) .- 1000. #EOS from MITGCM 
+
 θ = yearly_avg(θ); S = yearly_avg(S); σ0 = yearly_avg(σ0)
 tecco_avg = yearly_avg(tecco')[:]; nt_avg = length(tecco_avg)
 
 S_min, S_max = extrema(S); θ_min, θ_max = extrema(θ)
 S_levels = S_min:0.005:S_max; θ_levels = θ_min:0.1:θ_max;
 S_grid, θ_grid = meshgrid(S_levels, θ_levels);
-σgrid = OHC_helper.densityJMD95.(θ_grid,S_grid, 0.0, p₀) .- 1000.; #EOS from MITGCM does not require ref pressure
+σgrid = densityJMD95.(θ_grid,S_grid, 0.0, p₀) .- 1000.; #EOS from MITGCM does not require ref pressure
 σ_min, σ_max = extrema(σgrid); levels = σ_min:0.3:σ_max
 ns = floor(Int, size(S_grid, 2) /2)
 
+#plot_ts diagram
 fig, ax = plt.subplots(1,1, figsize = (10, 10));
 cmap = "Blues"
 norm = plt.matplotlib.colors.Normalize(vmin=1992, vmax=2017)

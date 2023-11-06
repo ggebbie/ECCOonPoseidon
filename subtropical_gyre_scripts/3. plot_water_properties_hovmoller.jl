@@ -1,6 +1,4 @@
-#analysis should complete within 12-13 minutes 
-#using 12 threads 
-# julia --threads=6 --project=@. ./extract_heat_budget_native.jl
+#this script uses T-S data to create Hovmoller diagrams at a single point 
 
 include("../../src/intro.jl")
 include("../../src/OHC_helper.jl")
