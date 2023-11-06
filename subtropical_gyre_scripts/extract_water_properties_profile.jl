@@ -1,24 +1,14 @@
-#analysis should complete within 12-13 minutes 
-#using 12 threads 
-# julia --threads=6 --project=@. ./extract_heat_budget_native.jl
-
 include("../../src/intro.jl")
-# include("../../src/OHC_helper.jl")
 
 using Revise
 using ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, 
     DrWatson, BenchmarkTools, LaTeXStrings,
     PyCall
-# using .OHC_helper
+
 import PyPlot as plt
-@pyimport seaborn as sns;
-@pyimport pandas as pd;
-sns.set_theme(context = "talk", style = "ticks", font_scale = 1.0,
-              palette = sns.color_palette("colorblind"));
               
 cm = pyimport("cmocean.cm");
-
 
 include(srcdir("config_exp.jl"))
 
@@ -33,15 +23,10 @@ include("SargassoMask.jl")
 cell_depths = get_cell_thickness(msk, ΔzF, Γ.hFacC); 
 cell_volumes = (get_cell_volumes(area, cell_depths));
 
-# H = OHC_helper.smush(cell_depths, γ); H[findall(H .== 0.0)] = Inf
-# inv_H = 1 ./ H
 tecco = 1992+1/24:1/12:2018; nz = 50
 
 fcycle = 1 # units: yr^{-1}
-# for removing seasonal cycle from monthly averaged timeseries
-overtones= 4; # semi-annual, quad-annual, etc.: helps capture an asymmetric seasonal cycle
 Ecycle,Fcycle = seasonal_matrices(fcycle,tecco,overtones)
-
 
 function filter_waterprops_budget(diagpath::Dict{String, String}, 
     expname::String, γ::gcmgrid)
