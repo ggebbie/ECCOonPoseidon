@@ -3,14 +3,15 @@ println("Configure the experiment variables and directories")
 # Check that the output has been copied to batou from poseidon
 !isdir(exprootdir(expt)) && error("Experiment missing")
 
-diagpath = diagdir(expt)
+if isdir(rundir(expt)) #only look at these paths if the experiment has already been run
+    diagpath = diagdir(expt)
+    # print output here
+    path_out = sig1dir(expt)
+    !isdir(path_out) ? mkdir(path_out) : nothing;
 
-# print output here
-path_out = sig1dir(expt)
-!isdir(path_out) ? mkdir(path_out) : nothing;
-
-pathout = regpolesdir(expt)
-!isdir(pathout) ? mkdir(pathout) : nothing;
+    pathout = regpolesdir(expt)
+    !isdir(pathout) ? mkdir(pathout) : nothing;
+end
 
 ################################################################
 # get MITgcm / ECCOv4r4 LLC grid and depth information. Store in γ.

@@ -11,7 +11,7 @@ using Revise
 using ECCOtour
 using ECCOonPoseidon
 using Statistics
-using PyPlot
+using PythonPlot
 using Distributions
 using FFTW
 using LinearAlgebra
@@ -25,14 +25,20 @@ using MAT
 expt == "nointerannual" ? keepregion = false : keepregion = true
 println("Experiment: ",expt)
 
+if !isdir(exprootdir(expt))
+    mkdir(exprootdir(expt)) #make a directory for this experiment in /vast/ECCOv4r4/exps/
+end
+
 include(srcdir("config_exp.jl"));
 include(srcdir("config_regularpoles.jl"))
 
-maskname =  ["Pacific","South China Sea","East China Sea","Okhotsk Sea","Java Sea","Japan Sea"]
-hemisphere = :north
+maskname =  ["Pacific","South China Sea","East China Sea","Okhotsk Sea","Java Sea","Japan Sea","Timor Sea"]
+hemisphere = :both
 Lsmooth = 5
+southlat = -15
+northlat = 15
 
-msk = basin_mask(maskname,γ,hemisphere=hemisphere)
+msk = basin_mask(maskname,γ,southlat=southlat,northlat=northlat)
 land2nan!(msk,γ)
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
@@ -51,7 +57,7 @@ ylabel(ylbl)
 savefig(outfname)
 
 ## SMOOTH the EDGES
-msk_smooth = basin_mask(maskname,γ,hemisphere=hemisphere,Lsmooth=Lsmooth)
+msk_smooth = basin_mask(maskname,γ,southlat=southlat,northlat=northlat,Lsmooth=Lsmooth)
 land2nan!(msk_smooth,γ)
 msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
@@ -134,7 +140,7 @@ Ecycle,Fcycle = seasonal_matrices(fcycle,t14day)
 Thann = 100.0 # days
 
 # Get production-ready mask.
-msk = basin_mask(maskname,γ,hemisphere=:north,Lsmooth=5)
+msk = basin_mask(maskname,γ,southlat=southlat,northlat=northlat,Lsmooth=Lsmooth)
 
 #vname = varnames[1] # for interactive use
 for vname ∈ varnames
