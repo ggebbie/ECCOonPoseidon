@@ -21,7 +21,7 @@ sig1grid = sigma1grid("mixed layer")
 TSroot = "state_3d_set1" # 1: θ, 2: S
 RProot = ("trsp_3d_set1","state_3d_set2") # uvel, vvel, gm psix, gm psiy, rhoanoma, phihyd
 
-splorder = 3 # spline order
+splorder = 1 # spline order
 eos_mitgcm = "JMD95"
 
 # first filter for state_3d_set1
@@ -39,9 +39,8 @@ nt = length(datafilelist)
 sigmaatts = Dict("longname" => "Sigma-1", "units" => "kg/m^3 - 1000")
 
 tt = 0
-for datafile in datafilelist
+Threads.@threads for datafile in datafilelist
     global tt += 1
-
 
     #print timestamp
     year,month = timestamp_monthly_v4r4(tt)
@@ -62,7 +61,7 @@ for datafile in datafilelist
     end
     
     # Read from filelist, map to sigma-1, write to file
-    varsσ = mdsio2sigma1(diagpath,path_out,fileroots,γ,pstdz,sig1grid,splorder=splorder,eos=eos_mitgcm)
+    varsσ = mdsio2sigma1(diagpath,path_out,fileroots,γ,pstdz,sig1grid,splorder=splorder,linearinterp=true,eos=eos_mitgcm)
 
     # transfer to regularpoles grid
     varsσregpoles = vars2regularpoles(varsσ,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)

@@ -28,7 +28,7 @@ for Froot in Frootlist
 
     global tt = 0
 
-    for Fname in datafilelist
+    Threads.@threads for Fname in datafilelist
         global tt += 1
         println("filename ",Fname)
 

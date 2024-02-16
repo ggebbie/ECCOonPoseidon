@@ -75,7 +75,6 @@ xlabel(xlbl)
 ylabel(ylbl)
 savefig(outfname)
 
-## UNTESTED AFTER HERE, GG 29-MAR-2023
 ## START FILTERING
 # This could be put into src code for scientific project.
 inputdir = fluxdir()

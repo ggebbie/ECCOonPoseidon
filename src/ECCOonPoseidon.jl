@@ -272,7 +272,7 @@ basinlist()=["Pacific","Atlantic","Indian","Arctic","Bering Sea",
                 "Gulf","Baffin Bay","GIN Seas","Barents Sea"]
 
 """
-    function basin_mask(basin_name,γ;hemisphere=nothing,Lsmooth=nothing)
+    function basin_mask(basin_name,γ;hemisphere=nothing,southlat=nothing,northlat=nothing,Lsmooth=nothing)
 
     Make a mask based on Gael Forget's definitions of ocean basins and sub-basins.
     Note: This mask contains float values. It could be more efficient with a BitArray.
@@ -283,6 +283,8 @@ East China Sea, GIN Seas, Gulf, Gulf of Mexico, Hudson Bay, indian, Japan Sea, J
 Mediterranean Sea, North Sea, Okhotsk Sea, Pacific, Red Sea, South China Sea, Timor Sea.
 -`hemisphere::Symbol`: optional argument with values `:north`, `:south`, and `:both`
 -`Lsmooth::Number`: smoothing lengthscale in grid points
+-'southlat::Number': optional argument specifying southerly latitude of mask
+-'northlat::Number': optional argument specifying northerly latitude of mask
 # Output
 - 'mask': space and time field of surface forcing, value of zero inside
 designated lat/lon rectangle and fading to 1 outside sponge zone on each edge. This is
@@ -311,7 +313,7 @@ function basin_mask(basin_name::String,γ)
     land2nan!(basinmask,γ)
     return basinmask
 end
-function basin_mask(basin_names::Vector,γ;hemisphere=nothing,Lsmooth=nothing)
+function basin_mask(basin_names::Vector,γ;hemisphere=nothing,southlat=nothing,northlat=nothing,Lsmooth=nothing)
     # this is the full version, take a vector of basin names, include optional arguments
     pth = MeshArrays.GRID_LLC90
     Γ = GridLoad(γ;option="full")
@@ -326,6 +328,10 @@ function basin_mask(basin_names::Vector,γ;hemisphere=nothing,Lsmooth=nothing)
         apply_hemisphere_mask!(mask,hemisphere,γ)
     end
 
+    if !isnothing(southlat) && !isnothing(northlat)
+        apply_latitude_mask!(mask,southlat,northlat,γ)
+    end
+    
     if !isnothing(Lsmooth)
         mask = smooth(mask,Lsmooth,γ)
     end
@@ -386,6 +392,22 @@ function apply_hemisphere_mask!(mask,hemisphere,γ)
     # need loop to assign/mutate mask
     for ff in 1:5
         mask[ff] .*= hemisphere_mask[ff]
+    end
+end
+
+function apply_latitude_mask!(mask,southlat,northlat,γ)
+    Γ = GridLoad(γ;option="full")
+    if southlat < northlat
+        southcondition = southlat .≤ Γ.YC;
+        for ff in 1:5
+            mask[ff] .*= southcondition[ff]
+        end
+        northcondition = Γ.YC .≤ northlat;
+        for ff in 1:5
+            mask[ff] .*= northcondition[ff]
+        end
+    else
+        error("choose a southerly latitude with a value less than the northerly latitude")
     end
 end
 
