@@ -12,7 +12,7 @@ Returns:
 - `τy`: Array of τy component.
 """
 function extract_ocnTAU(diagpath, expname, fnameτ, γ)
-    flux_forcing_exps = ["seasonalclimatology", "climatological_tau", "clim_tau_iter0"]
+    flux_forcing_exps = ["seasonalclimatology", "seasonalclimatology", "climatological_tau", "clim_tau_iter0"]
     #could use 
     #  read_bin(diagpath[expname]*fnameτ,Float32,γ) and pull the last two elements
     if expname ∈ flux_forcing_exps

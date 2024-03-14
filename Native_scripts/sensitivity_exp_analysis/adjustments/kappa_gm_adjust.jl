@@ -46,3 +46,25 @@ vmin = -vmax, vmax = vmax)
 fig.colorbar(cb)
 axs.invert_yaxis()
 fig
+
+κGM = read_bin(fname,Float32,γ)
+κGM_zonal = zonal_average(κGM, cell_volumes)
+vmax = nm.maximum(κGM_zonal) 
+ϕ_avg = zonal_average(ϕ, PAC_msk .* area); wherenan = (!isnan).(ϕ_avg .* 1)
+ϕ_avg = ϕ_avg[wherenan]
+κGM_zonal = κGM_zonal[:, wherenan]
+dϕ_avg = ϕ_avg[2:end] .- ϕ_avg[1:end-1]
+
+fig,axs=plt.subplots(figsize = (15, 7.5))
+cb = axs.pcolormesh(ϕ_avg, z,  κGM_zonal, cmap=cmo.delta, 
+vmin = -vmax, vmax = vmax)
+fig.colorbar(cb)
+axs.invert_yaxis()
+fig
+
+fig,axs=plt.subplots(figsize = (15, 7.5))
+cb = axs.pcolormesh((ϕ_avg[2:end] .+ ϕ_avg[1:end-1]) ./ 2 , z,  (κGM_zonal[:, 2:end] .- κGM_zonal[:, 1:end-1]) ./ dϕ_avg', cmap=cmo.delta, 
+vmin = -0.1, vmax = 0.1)
+fig.colorbar(cb)
+axs.invert_yaxis()
+fig

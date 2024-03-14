@@ -48,7 +48,7 @@ ax.contourf(lon, lat, theta_OPT[1, 1, :, :])
 fig
 wet_mask = (!isnan).(theta_OPT[1, :, :, :])
 
-PAC_msk = (-38 .<= LATS .<= 64) .&& (115 .<= LONS .<= 300)
+PAC_msk = (-35 .<= LATS .<= 64) .&& (115 .<= LONS .<= 300)
 not_sel2 = Float32.((17 .<= LATS .<= 25) .&& (257 .<= LONS .<= 325)); not_sel2[isone.(not_sel2)] .= NaN
 not_sel = Float32.((0 .<= LATS .<= 60) .&& (280 .<= LONS .<= 325)); not_sel[isone.(not_sel)] .= NaN
 not_sel3 = Float32.((25 .<= LATS .<= 40) .&& (255 .<= LONS .<= 325)); not_sel3[isone.(not_sel3)] .= NaN
@@ -74,32 +74,23 @@ fig
 #weight the data
 ΔTs = []; ps = []
 WOCE_times = findall(1872 .< year .< 1876)[1]
+# WOCE_times = findall(1989 .< year .< 2017)[1]
+
 Challenger_times = findall(1989 .< year .< 2017)[end]
 println(year[WOCE_times] - year[Challenger_times] )
 data_labels = ["EQ-0015", "OPT-0015"]
 E,F = ECCOonPoseidon.trend_matrices(year[WOCE_times:Challenger_times])
 
-for (i, data) in enumerate([theta_EQ, theta_OPT])
-    weighted_temp = zeros(nt, nz)
-    β = zeros(nz)
 
-    #fill NaNs
+for (i, data) in enumerate([theta_EQ, theta_OPT])
     filled_data = copy(data)
     filled_data[isnan.(filled_data)] .= 0.0
-
-    #volume weighted average 
-    for tt in 1:nt, k in 1:nz
-        weighted_temp[tt, k] =  sum(filled_data[tt, k, :, :] .* mask_volume[k, :, :]) / sum(mask_volume[k, :, :])
+    weighted_temp = zeros(2, nz)
+    for (i, tt) in enumerate([WOCE_times, Challenger_times]), k in 1:nz
+        weighted_temp[i, k] =  sum(filled_data[tt, k, :, :] .* mask_volume[k, :, :]) / sum(mask_volume[k, :, :])
     end
-    for (i, tt) in enumerate(WOCE_times:Challenger_times), k in 1:nz
-        β[k] += F[2,i] * weighted_temp[tt, k] 
-    end
-    # p = contourf(year, depth, weighted_temp_anom, yflip = true, 
-    #         levels = -0.5:.1:0.5, c = :balance, title = data_labels[i], 
-    #         xlabel = "years", ylabel = "depth [m]")
-    #simple temperature difference
 
-    push!(ΔTs, deepcopy(β))
+    push!(ΔTs, (weighted_temp[end, :] .- weighted_temp[1, :]) ./ (year[WOCE_times] - year[Challenger_times]))
     # push!(ps, p)
 end
 
@@ -122,5 +113,5 @@ ax.set_ylabel("Depth [km]")
 ax.invert_yaxis()
 fig
 
-jldsave(datadir("OPT-0015_GH19_PAC.jld2"); ΔT_GH19 = ΔTs[2], depth_GH19 = depth)
+jldsave(datadir("OPT-0015_GH19_PAC4.jld2"); ΔT_GH19 = ΔTs[2], depth_GH19 = depth)
 

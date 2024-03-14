@@ -9,7 +9,9 @@ using MITgcmTools, MeshArrays, Statistics
 using ECCOtour, ECCOonPoseidon, PyCall
 
 sig2dirs = Dict()
-sig2dirs["iter0_bulkformula"] = rundir("iter0_bulkformula")*"sigma2/"
+sig2dirs["iter0_bulkformula"] = vastrundir("iter0_bulkformula")*"sigma2/"
+sig2dirs["iter129_bulkformula"] = vastrundir("iter129_bulkformula")*"sigma2/"
+
 sig2dirs["only_init"] = vastrundir("nosfcadjust_exps", "run_adjust_init")*"sigma2/"
 sig2dirs["only_kappa"] = vastrundir("nosfcadjust_exps", "run_adjust_kappa")*"sigma2/"
 sig2dirs["only_sfc"] = vastrundir("nooceanadjust", "run_noadjusts")*"sigma2/"
@@ -22,18 +24,18 @@ include(srcdir("config_exp.jl"))
 runpath,diagpath = listexperiments(exprootdir())
 
 # define the sigma grid you wish to interpolate onto
-sig2grid = sigma2grid("NPAC")
+sig2grid = ECCOtour.sigma2grid()
 
 ## specific for state
 # the state_3d monthly-average diagnostic output
 TSroot = "state_3d_set1" # 1: θ, 2: S
-RProot = ("trsp_3d_set2","trsp_3d_set3") # uvel, vvel, gm psix, gm psiy, rhoanoma, phihyd
+# RProot = ("trsp_3d_set2","trsp_3d_set3") # uvel, vvel, gm psix, gm psiy, rhoanoma, phihyd
 
 splorder = 3 # spline order
 
 include(srcdir("plot_and_dir_config.jl"))
-
-for expt in ["only_buoyancy",  "only_wind"]
+searchdir(diagpath["iter129_bulkformula"],TSroot)
+for expt in keys(sig2dirs)
     # first filter for state_3d_set1
     filelist = searchdir(diagpath[expt],TSroot)
 

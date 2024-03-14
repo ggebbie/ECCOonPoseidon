@@ -78,8 +78,6 @@ WBol = -(ΨBol["only_kappa"][:, 1:end-2, :] .- ΨBol["only_kappa"][:, 3:end, :])
 area_avg = zonal_sum(PAC_msk .*area)
 area_avg = area_avg[(!isnan).(ϕ_avg), :][:]
 ϕ_avg = ϕ_avg[(!isnan).(ϕ_avg), :][:]
-labels = [L"ΔWres", "ΔWEul", "ΔWBol"]
-
 
 ΨCorr = zeros(size(Wres)[1:2])
 for i in 1:size(Wres, 1), j in 1:size(Wres, 2)
@@ -101,39 +99,9 @@ axs.set_ylabel("Depth [m]", fontweight = "bold")
 lab = string.(abs.(collect(-40:20:60)))
 lab = lab .* ["°S", "°S", "", "°N", "°N", "°N"]
 axs.set_xticklabels(lab)
-axs.set_title("corr("*L"\Delta^{\mathbf{M}} W, \Delta^{\mathbf{M}} W^*" *")")
+axs.set_title("corr("*L"\Delta^{{\kappa}} W, \Delta^{{\kappa}} W^*" *")")
 rect = patches.Rectangle((23, 2000), 59, 1000, linewidth=3, edgecolor="black",facecolor="none", alpha = 0.7)
 axs.add_patch(rect)
 fig
 fig.savefig(plotsdir("native/paper_figures/ΔW_timemean_corr_EulnBol_mix.png"), bbox_inches = "tight", dpi = 400)
-
-
-
-
-ΨCorr = zeros(size(Wres)[1:2])
-for i in 1:size(Wres, 1), j in 1:size(Wres, 2)
-    x = low_pass(WEul[i, j, :][:])
-    y = low_pass(WBol[i, j, :][:])
-    ΨCorr[i, j] = corr(x, y) 
-end
-    
-fig,axs=plt.subplots(figsize = (8, 6), sharex = true)
-ax2.set_facecolor("black")
-levels = -1:0.2:1
-CM = axs.contourf(ϕ_avg[2:end-1], z, ΨCorr,levels = levels, cmap=cmo.balance, 
-vmin = -1, vmax = 1, extend = "both")
-axs.invert_yaxis()
-fig.colorbar(CM, orientation = "horizontal", fraction  =0.04)
-axs.set_xticks(-40:20:60)
-axs.set_xlim(-34, 60)
-axs.set_ylabel("Depth [m]", fontweight = "bold")
-lab = string.(abs.(collect(-40:20:60)))
-lab = lab .* ["°S", "°S", "", "°N", "°N", "°N"]
-axs.set_xticklabels(lab)
-# axs.set_title(labels[i])
-rect = patches.Rectangle((23, 2000), 59, 1000, linewidth=3, edgecolor="black",facecolor="none", alpha = 0.7)
-axs.add_patch(rect)
-fig
-fig.savefig(plotsdir("native/paper_figures/ΔW_timemean_corr_EulnBol_mix_lowpass.png"), bbox_inches = "tight", dpi = 400)
-
 

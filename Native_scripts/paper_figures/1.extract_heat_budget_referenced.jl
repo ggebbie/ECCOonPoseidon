@@ -1,11 +1,13 @@
-include("../../../src/intro.jl")
+include("../../src/intro.jl")
 
 using Revise, ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, DrWatson, 
     BenchmarkTools, LaTeXStrings, PyCall
 import NaNMath as nm
 import PyPlot as plt
+import NumericalIntegration
 
+cumul_integrate = NumericalIntegration.cumul_integrate
 include(srcdir("config_exp.jl"))
 
 cmo = pyimport("cmocean.cm");
@@ -48,12 +50,15 @@ function filter_heat_budget(diagpath::Dict{String, String}, expname::String, γ:
     GTF3d= get_geothermalheating(Γ, γ)
 
     nt = 312;
-    var_names = ["θ", "κxyθ", "κzθ", "GTH", "VθSouth", "VθNorth", "wθTop", "wθBot"]
+    var_names = ["θ", "κxyθ", "κzθ", "GTH", "VθSouth", "VθNorth", "wθTop", "wθBot", "wθ", "uvθ"]
     vars = Dict(varname => zeros(Float32, nt) for varname in var_names)
 
     κxyθ_conv3D = MeshArray(γ,Float32,50);
     κzθ_conv3D = MeshArray(γ,Float32,50);
     ctrl_vol = sum(cell_volumes[:, lvls])
+
+    uvθ_conv3D = MeshArray(γ,Float32,50);
+    wθ_conv3D = MeshArray(γ,Float32,50);
 
     mskC, mskW, mskS = get_msk(Γ)
 
@@ -99,11 +104,17 @@ function filter_heat_budget(diagpath::Dict{String, String}, expname::String, γ:
         calc_UV_conv3D!(κUθ, κVθ, κxyθ_conv3D);
         calc_W_conv3D!(κzθ, κzθ_conv3D)
 
+        calc_UV_conv3D!(Uθ, Vθ, uvθ_conv3D);
+        calc_W_conv3D!(wθ, wθ_conv3D)
+
         vars["VθSouth"][tt] = sum(Nθ[:, lvls] .* ϕ_min_mask ) / ctrl_vol
         vars["VθNorth"][tt] = sum(Nθ[:, lvls] .* ϕ_max_mask ) / ctrl_vol
         vars["wθTop"][tt] = sum(wθref_top  .* mask )/ ctrl_vol
         vars["wθBot"][tt] = sum(wθref_bot .* mask )/ ctrl_vol
         
+        vars["wθ"][tt] = sum(uvθ_conv3D[:, lvls] .* mask ) / ctrl_vol
+        vars["uvθ"][tt] = sum(wθ_conv3D[:, lvls] .* mask ) / ctrl_vol
+
         vars["κxyθ"][tt] = sum(κxyθ_conv3D[:, lvls] .* mask ) / ctrl_vol
         vars["κzθ"][tt] = sum(κzθ_conv3D[:, lvls] .* mask ) / ctrl_vol
 
@@ -114,8 +125,11 @@ end
 # vars = ["iter129_bulkformula",  "iter0_bulkformula", "seasonalclimatology"]
 exps =  ["only_init", "only_kappa", "only_sfc", "iter129_bulkformula",  "iter0_bulkformula"]
 exps =  ["only_buoyancy", "only_wind"]
+
+exps =  [ "only_init", "only_wind", "only_buoyancy", "only_kappa"]
+
 for expname in exps
     vars = filter_heat_budget(diagpath, expname, γ, cell_volumes, H, lvls, PAC_msk)
-    savename = datadir("native/" * expname * region * "_THETA_budget_ref_with_Bolus" * suffix * ".jld2")
+    savename = datadir("native/" * expname * region * "_THETA_budget_ref_with_Bolus_wextra" * suffix * ".jld2")
     jldsave(savename, dθ = vars)
 end

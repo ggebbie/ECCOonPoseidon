@@ -8,6 +8,8 @@ using ECCOonPoseidon, ECCOtour,
 import PyPlot as plt
 
 include(srcdir("plot_and_dir_config.jl"))
+sns.set_theme(context = "paper", style = "ticks",
+              palette = colors, rc = custom_params);
 @pyimport matplotlib.patches as patches
 
 (ϕ,λ) = latlonC(γ)
@@ -28,15 +30,23 @@ tecco = 1992+1/24:1/12:2018; nz = 50
 get_datafiles(expname, key) = filter(x -> occursin("data",x),searchdir(diagpath[expname],key) )
 
 adjust_exps =  jldopen(datadir(region * "_temperature_sens_exps.jld2"))["adjust_exps"]
-lw = 3
-fig, ax = plt.subplots(figsize = (10, 7.5))
-plot_exps = ["iter0_bulkformula", "iter129_bulkformula"]
+adjust_exps["Difference"] = adjust_exps["iter129_bulkformula"] .- adjust_exps["iter0_bulkformula"]
+lw = 2
+
+fig, ax = plt.subplots(figsize = (6.0, 5))
+plot_exps = ["iter0_bulkformula", "iter129_bulkformula", "only_init", "only_kappa", "only_buoyancy", "only_wind", "Difference"]
+exp_colors["Difference"] = "k"
+plot_labels["Difference"] = "Effect of All Control Adjustments"
+ax.set_title("Mid-depth North Pacfic Temperature Anomaly", fontweight = "bold")
 for expt in plot_exps 
+    label = titlecase(plot_labels[expt])
     println(plot_exps)
-    ax.plot(tecco, mid_depths(adjust_exps[expt]), label = plot_labels[expt], color = exp_colors[expt], linewidth = lw)
+    anomaly = mid_depths(adjust_exps[expt]) .- mid_depths(adjust_exps[expt])[1]
+    ax.plot(tecco, 100 .* anomaly, label =label, color = exp_colors[expt], linewidth = lw)
 end
+ax.grid()
 ax.legend(frameon = false)
-ax.set_xlabel("time", fontweight = "bold"); ax.set_ylabel(" θ [°C]", fontweight = "bold")
+ax.set_xlabel("time", fontweight = "bold"); ax.set_ylabel(" θ [cK]", fontweight = "bold")
 fig
 fig.savefig(plotsdir("native/paper_figures/0.North_Pacific_Sens_Exps_T_simple.png"), bbox_inches = "tight")
 

@@ -86,3 +86,36 @@ function zonal_average(ma::MeshArrays.gcmarray{T, 2, Matrix{T}}) where T<:Real
     end
     return temp_num ./ temp_denom
 end
+
+function ma_curl(u::MeshArray,v::MeshArray,Γ::NamedTuple)
+
+	uvcurl=similar(Γ.XC)
+	fac=exchange(1.0 ./Γ.RAZ,1)
+	(U,V)=exchange(u,v,1)
+    (DXC,DYC)=exchange(Γ.DXC,Γ.DYC,1)
+	[DXC[i].=abs.(DXC[i]) for i in eachindex(U)]
+	[DYC[i].=abs.(DYC[i]) for i in eachindex(V)]
+    U_DY = U .* DYC #weight by length of 
+    V_DX = V .* DXC
+
+	[U_DY.f[i][iszero.(U_DY.f[i])] .= NaN for i in eachindex(U_DY)]
+	[V_DX.f[i][iszero.(V_DX.f[i])] .= NaN for i in eachindex(V_DX)]
+	for i in eachindex(U)
+    ucur=U_DY[i][2:end,:]
+    vcur=V_DX[i][:,2:end]        
+    tmpcurl=ucur[:,1:end-1]-ucur[:,2:end]
+    tmpcurl=tmpcurl-(vcur[1:end-1,:]-vcur[2:end,:])
+    tmpcurl=tmpcurl.*fac[i][1:end-1,1:end-1]
+
+		##still needed:
+		##- deal with corners
+		##- if putCurlOnTpoints
+
+		tmpcurl=1/4*(tmpcurl[1:end-1,2:end]+tmpcurl[1:end-1,1:end-1]+
+					tmpcurl[2:end,2:end]+tmpcurl[2:end,1:end-1])
+
+		uvcurl[i]=tmpcurl
+	end
+	
+	return uvcurl
+end

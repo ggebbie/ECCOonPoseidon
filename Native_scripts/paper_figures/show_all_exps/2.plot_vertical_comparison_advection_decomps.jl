@@ -1,4 +1,4 @@
-include("../../src/intro.jl")
+include("../../../src/intro.jl")
 
 using Revise, ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, DrWatson, 
@@ -33,7 +33,7 @@ wΔθ = Dict()
 integrate(start, x) = cumsum([start, x...])[1:end-1]
 include(srcdir("plot_and_dir_config.jl"))
 
-sns.set_theme(context = "talk", style = "ticks",
+sns.set_theme(context = "paper", style = "ticks",
               palette = colors, rc = custom_params);
 
 for (i, expname) in enumerate(vars)
@@ -48,69 +48,85 @@ for (i, expname) in enumerate(vars)
     ΔwΔθ[expname] = 100 .* integrate(0, vars["ΔW_ΔθBot"] .- vars["ΔW_ΔθTop"]).* 2.628f+6
 
 end
-wθ_resid["iter129_bulkformula"] .-= wθ_resid["iter0_bulkformula"]
 
 vars =   [ "only_init", "only_kappa", "only_wind", "only_buoyancy", "iter129_bulkformula"]
-
-fig, axs = plt.subplots(figsize = ( 7, 7))
+E,F = trend_matrices(tecco)
+get_trend(x) = (F * x)[2]
+fig, axs = plt.subplots(figsize = ( 6, 4))
 axs.set_xlabel("time", fontweight = "bold")
-
+axs.set_title("Decomposition of " * L"\mathbf{A}_Z (w_{129}^{res}, \theta_{129})")
 expname =   "iter129_bulkformula"
-lw = 2.5
+lw = 2.0
 
-axs.plot(tecco, wθ_resid[expname], label = L"\Delta \mathbf{A}_Z (w^{res}, \theta^\#)", 
+axs.plot(tecco, wθ_resid["iter129_bulkformula"], label = L"\mathbf{A}_Z (w_{129}^{res}, \theta_{129})", 
 linewidth = lw, color = exp_colors[expname])
-axs.plot(tecco, Δwθ[expname] .-ΔwΔθ[expname] , label = L" \mathbf{A}_Z (\Delta w^{res}, \theta_0^\#)", 
+axs.plot(tecco, wθ_resid["iter0_bulkformula"], label = L"\mathbf{A}_Z (w_0^{res}, \theta_0)", 
+linewidth = lw, color = exp_colors["iter0_bulkformula"])
+
+tm1 = Δwθ[expname] .-ΔwΔθ[expname]
+println((F * tm1)[2])
+axs.plot(tecco, Δwθ[expname] .-ΔwΔθ[expname] , label = L"\mathbf{A}_Z (\Delta w^{res}, \theta_0)", 
 linewidth = 3, color = 0.5 .* exp_colors[expname], alpha = 0.8)
-axs.plot(tecco, wΔθ[expname] .-ΔwΔθ[expname] , label = L" \mathbf{A}_Z (w^{res}_0, \Delta \theta^\#)", 
+tm2 = wΔθ[expname] .-ΔwΔθ[expname]
+println((F * tm2)[2])
+
+axs.plot(tecco, wΔθ[expname] .-ΔwΔθ[expname] , label = L"\mathbf{A}_Z (w_0^{res}, \Delta \theta)",
 linewidth = lw, color = exp_colors[expname], alpha = 0.6)
-axs.plot(tecco, ΔwΔθ[expname], label = L" \mathbf{A}_Z (\Delta w^{res}, \Delta \theta^\#)", 
+tmp = (Δwθ[expname] .-ΔwΔθ[expname]) 
+tmp = (wθ_resid["iter129_bulkformula"] .- wθ_resid["iter0_bulkformula"]) .- tmp
+println((F * tmp)[2])
+
+axs.plot(tecco, tmp , label = L"\mathbf{A}_Z (  \Delta w^{res}, \Delta \theta)", 
 linewidth = lw, color = exp_colors[expname], alpha = 0.3)
-axs.legend(frameon = false, ncols = 2, loc = "lower center",  bbox_to_anchor=(0.5, -0.35))
+axs.legend(frameon = false, ncols = 1, loc = "center right",  bbox_to_anchor=(1.35, 0.5))
 axs.axhline(0, c = "k", linestyle = "--", alpha = 0.2)
 
-axs.set_ylabel("[cK]", fontweight = "bold")
-fig.subplots_adjust(hspace = 0.5)
 fig
-fig.savefig(plotsdir("native/paper_figures/2.HeatBudgetVertΔDecomp.png"), bbox_inches = "tight")
+axs.set_ylabel("[cK]", fontweight = "bold")
+# fig.subplots_adjust(hspace = 0.5)
+axs.grid()
+fig
+fig.savefig(plotsdir("native/paper_figures/2.HeatBudgetVertΔDecomp_all.png"), bbox_inches = "tight", dpi = 400)
 
 fig
 
 
 vars =   [ "only_init", "only_kappa", "only_wind", "only_buoyancy", "iter129_bulkformula"]
 
-Δwθ["SUM"] = sum([Δwθ[nexpt]  for nexpt in vars[1:end-1]])
-Δwθ["eps"] = Δwθ["iter129_bulkformula"] .- Δwθ["SUM"]
+Δwθ0 = Dict()
+[Δwθ0[nexpt] = Δwθ[nexpt] .- ΔwΔθ[nexpt] for nexpt in vars]
 
-ΔwΔθ["SUM"] = sum([ΔwΔθ[nexpt]  for nexpt in vars[1:end-1]])
-ΔwΔθ["eps"] = ΔwΔθ["iter129_bulkformula"] .- ΔwΔθ["SUM"]
-
+Δwθ0["SUM"] = sum([Δwθ0[nexpt] for nexpt in vars[1:end-1]])
+Δwθ0["eps"] = Δwθ0["iter129_bulkformula"] .- Δwθ0["SUM"]
+# Δwθ0["eps"]
 vars = vcat(vars,"SUM")
 plot_labels["eps"] = "ϵ"
 exp_colors["eps"] = "grey"
-fig, axs = plt.subplots(1, figsize = ( 7, 7))
+
+fig, axs = plt.subplots(figsize = ( 7, 4))
+axs.set_title("Effect of Control Adjustments on \n " * L" \mathbf{A_Z (\Delta w^{res}, \theta_0)}")
 axs.set_xlabel("time", fontweight = "bold")
 vars =   [ "only_init", "only_kappa", "only_wind", "only_buoyancy", "eps"]
 
-axs.set_ylabel(L" \mathbf{A_Z (\Delta w^{res}, \theta_0^\#)}" * " [cK]", fontweight = "bold") 
+axs.set_ylabel(" [cK]", fontweight = "bold") 
+
+plot_labels_list = ["Initial Condition\nAdjustment Effect", "Mixing Parameter\nAdjustment Effect", 
+"Wind Stress\nAdjustment Effect ", "Buoyancy Forcing\nAdjustment Effect ", "Non-Linear\nAdjustment Effects"]
 for (i, expname) in enumerate(vars)
     println(expname)
     lw = 2.5
-    tmp = Δwθ[expname].-ΔwΔθ[expname]
-    println(tmp[end])
-
-    axs.plot(tecco, tmp, label = plot_labels[expname], 
+    tmp = Δwθ0[expname]
+    println(round(get_trend(tmp), digits = 3))
+    axs.plot(tecco, tmp, label = plot_labels_list[i], 
     linewidth = lw, color = exp_colors[expname])
-    axs.legend(frameon = false, ncols = 3, loc = "lower center",  bbox_to_anchor=(0.5, 1))
     axs.axhline(0, c = "k", linestyle = "--")
-
-    # axes[3].legend(markerscale = 0.1, ncols = 1, columnspacing = 0.5, frameon = false)
-
 end
+axs.grid()
 fig
 fig.subplots_adjust(hspace = 0.5)
-
-fig.savefig(plotsdir("native/paper_figures/2.HeatBudgetVertΔWDecomp.png"), bbox_inches = "tight")
+axs.legend(frameon = false, ncols = 3, loc = "lower center",  bbox_to_anchor=(0.5, -0.42))
+fig
+fig.savefig(plotsdir("native/paper_figures/2.HeatBudgetVertΔWDecomp_Adjustments_all.png"), bbox_inches = "tight", dpi = 400)
 
 fig
 

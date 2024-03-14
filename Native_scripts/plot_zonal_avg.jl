@@ -22,7 +22,7 @@ area = readarea(γ)
 
 region = "PAC56"
 PAC_msk = OHC_helper.PAC_mask(Γ, basins, basin_list, ϕ, λ; 
-region, extent = "not")
+region, extent = "full")
 cell_depths = OHC_helper.get_cell_depths(PAC_msk, ΔzF, Γ.hFacC); 
 cell_volumes = OHC_helper.get_cell_volumes(area, cell_depths);
 
@@ -42,7 +42,7 @@ for ijk in eachindex(P)
     P[ijk] .= -pstdz[ijk[2]]
 end
 Y = abs.((z))
-X = OHC_helper.ma_zonal_sum(ϕ .* area) ./ OHC_helper.ma_zonal_sum(area)
+X = zonal_sum(ϕ .* area) ./ zonal_sum(area)
 X_mask = X[X .> -40]
 
 colors = [cm.delta, cm.dense, cm.balance]
@@ -93,20 +93,22 @@ end
 svename = datadir("native/native_sigma2_zonalavg_" * region *"_1995_2017.jld2")
 jldsave(svename, ρθSavg = ρθSavg)
 
-# fig,axes=plt.subplots(1,1, sharey = true, figsize = (15, 20))
-# time_mean_zonal_avg = ρθSavg["iter129_bulkformula"]["σ1"]
-# bounds = nm.extrema(time_mean_zonal_avg)
-# println(bounds)
-# CS = axes.contourf(X_mask, Y, time_mean_zonal_avg[:, X .> -40], 
-# cmap=colors[2], vmin = bounds[1], vmax = bounds[2]*1.1, 
-# levels = sigma2grid(), extend = "both");
-# CS = axes.contour(X_mask, Y, time_mean_zonal_avg[:, X .> -40], colors="black", levels = sigma2grid());
-# axes.clabel(CS, fontsize=20, inline=true)
-# axes.set_xlim(-40, 60)
+ρθSavg = jldopen(svename)["ρθSavg"]
+
+fig,axes=plt.subplots(1,1, sharey = true, figsize = (15, 20))
+time_mean_zonal_avg = ρθSavg["iter129_bulkformula"]["σ2"]
+bounds = nm.extrema(time_mean_zonal_avg)
+println(bounds)
+CS = axes.contourf(X_mask, Y, time_mean_zonal_avg[:, X .> -40], 
+cmap=colors[2], vmin = minimum(ECCOtour.sigma2grid()), vmax = maximum(ECCOtour.sigma2grid()), 
+levels = ECCOtour.sigma2grid(), extend = "both");
+CS = axes.contour(X_mask, Y, time_mean_zonal_avg[:, X .> -40], colors="black", levels = ECCOtour.sigma2grid());
+axes.clabel(CS, fontsize=20, inline=true)
+axes.set_xlim(-40, 60)
 # axes.set_title("Density in ECCO (" * expname* ")")
-# axes.invert_yaxis()
-# axes.set_xticks(-40:10:60)
-# axes.set_xlim(-39, 60)
-# fig
-# fig.savefig(plotsdir("NativePlots/DensityAvg" * "_" * expname * ".png"), dpi = 200)
-# # end
+axes.invert_yaxis()
+axes.set_xticks(-40:10:60)
+axes.set_xlim(-39, 60)
+fig
+fig.savefig(plotsdir("NativePlots/DensityAvg" * "_" * expname * ".png"), dpi = 200)
+# end

@@ -19,19 +19,19 @@ runpath,diagpath = listexperiments(exprootdir());
 
 tecco= 1992+1/24:1/12:2018 # ecco years
 E,F = trend_matrices(tecco)
-sig1grid = sigma2grid("NPAC")
+sig1grid = ECCOtour.sigma2grid()
 nσ = length(sig1grid)
-
 TSroot = "THETA_on_sigma2" 
+
 sig2dirs = Dict()
-sig2dirs["iter0_bulkformula"] = rundir("iter0_bulkformula")*"sigma2/"
+sig2dirs["iter0_bulkformula"] = vastrundir("iter0_bulkformula")*"sigma2/"
+sig2dirs["iter129_bulkformula"] = vastrundir("iter129_bulkformula")*"sigma2/"
 sig2dirs["only_init"] = vastrundir("nosfcadjust_exps", "run_adjust_init")*"sigma2/"
 sig2dirs["only_kappa"] = vastrundir("nosfcadjust_exps", "run_adjust_kappa")*"sigma2/"
-sig2dirs["only_sfc"] = vastrundir("nooceanadjust", "run_noadjusts")*"sigma2/"
 sig2dirs["only_buoyancy"] = vastrundir("nooceanadjust", "run_noadjusts_nowind")*"sigma2/"
 sig2dirs["only_wind"] = vastrundir("nooceanadjust", "run_noadjusts_nobuoyancy")*"sigma2/"
 #read in the first time step of S and θ
-for expname in ["only_buoyancy", "only_wind"]
+for expname in keys(sig2dirs)
     println(expname)
     # Get list of files for salinity on sigma1
     filelist = searchdir(sig2dirs[expname], TSroot)

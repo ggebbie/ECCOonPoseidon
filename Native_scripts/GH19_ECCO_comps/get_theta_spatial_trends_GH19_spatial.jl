@@ -12,30 +12,34 @@ depth = ds_OPT["depth"][:]; nz = length(depth)
 zlevs = findall(2000 .<= depth .<= 3000)
 
 nt = length(year)
-WOCE_times = findall(1990 .< year .< 2000)[1]
-Challenger_times = findall(2016 .<= year )[end]
+WOCE_times = findall(1872 .< year .< 1876)[1]
+Challenger_times = findall(1989 .< year .< 2017)[end]
 
 theta_OPT = reverse(ds_OPT["theta"][:, zlevs, :, :], dims =1) #reverse time for niceness
-theta_OPT = theta_OPT[WOCE_times:Challenger_times, :, :, :]
+# theta_OPT = theta_OPT[WOCE_times:Challenger_times, :, :, :]
 year_CH_WC = year[WOCE_times:Challenger_times]
-E,F = trend_matrices(year_CH_WC); nt = length(year_CH_WC)
+β = (theta_OPT[Challenger_times, :, :, :] .- theta_OPT[WOCE_times, :, :, :]) ./ (year[WOCE_times] - year[Challenger_times])
+# E,F = trend_matrices(year_CH_WC); nt = length(year_CH_WC)
 
-nt = length(year_CH_WC); nz = length(zlevs)
-weighted_temp = zeros(nt, 90, 180)
+# nt = length(year_CH_WC); nz = length(zlevs)
+weighted_temp_trend = zero(β[1, :, :])
 #volume weighted average 
-for tt = 1:nt, k in 1:nz
-    weighted_temp[tt, :, :] .+=  theta_OPT[tt, k, :, :] ./ nz 
+nz = length(zlevs)
+for k in 1:nz
+    weighted_temp_trend[:, :] .+=  β[k, :, :] ./ nz 
 end
 
-β = zeros(90, 180)
+# β = zeros(90, 180)
 
-for tt = 1:nt
-    β .+= F[2,tt] .* weighted_temp[tt, :, :]
-end
+# for tt = 1:nt
+#     β .+= F[2,tt] .* weighted_temp[tt, :, :]
+# end
 
 #coordinate meshgrid
 LONS = lon' .* ones(length(lat))
 LATS = lat .* ones(length(lon))'
 
-fname = "modern_OPT-0015_θ_trends_2to3km.jld2"
-jldsave(datadir(fname), β = β, λ = LONS, ϕ = LATS, years = year_CH_WC)
+fname = "modern_OPT-0015_θ_trends_2to3km_2.jld2"
+jldsave(datadir(fname), β = weighted_temp_trend, λ = LONS, ϕ = LATS, years = year_CH_WC)
+
+

@@ -3,13 +3,12 @@
 # julia --threads=6 --project=@. ./extract_heat_budget_native.jl
 
 include("../../src/intro.jl")
-include("../../src/OHC_helper.jl")
 
 using Revise, ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, DrWatson, 
     BenchmarkTools, LaTeXStrings, PyCall
-using .OHC_helper
-import NaNMath as nm
+
+    import NaNMath as nm
 import PyPlot as plt
 
 include(srcdir("config_exp.jl"))
@@ -22,12 +21,12 @@ colors =  sns.color_palette("deep")[1:4]
 (ϕ,λ) = latlonC(γ)
 area = readarea(γ)
 ignore_list= ["noIA", "129ff"]
-shortnames = OHC_helper.reduce_dict(expnames(), ignore_list)
+shortnames = reduce_dict(expnames(), ignore_list)
 tecco = 1992+1/24:1/12:2018
 
 ocean_mask = OHC_helper.wet_pts(Γ)
 region = "NPAC"; 
-PAC_msk = OHC_helper.PAC_mask(Γ, basins, basin_list, ϕ, λ; region, extent = "not", include_bering = false)
+PAC_msk = PAC_mask(Γ, basins, basin_list, ϕ, λ; region, extent = "not", include_bering = false)
 cell_depths = OHC_helper.get_cell_depths(PAC_msk, ΔzF, Γ.hFacC); 
 cell_volumes = Float32.(OHC_helper.get_cell_volumes(area, cell_depths));
 uplvl = -2e3; botlvl = -3e3; suffix = "2to3"
@@ -51,7 +50,7 @@ cs, sn = OHC_helper.get_cs_and_sn(γ)
 rotate_uv
 transports_dict = Dict()
 runpath,diagpath = listexperiments(exprootdir());
-vars = ["seasonalclimatology"]
+vars = ["iter129_bulkformula"]
 
 cell_volume = sum(cell_volumes[:, lvls])
 function filter_advection_budget(diagpath::Dict{String, String}, expname::String, γ::gcmgrid, 

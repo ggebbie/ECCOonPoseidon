@@ -1,4 +1,4 @@
-include("../../src/intro.jl")
+include("../../../src/intro.jl")
 
 using Revise, ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, DrWatson, DSP, PyCall, 
@@ -45,7 +45,7 @@ normalize(x) = (x[:] .- mean(x[:])) ./ std(x[:])
 corr(x, y) = cov(normalize(x), normalize(y)) / (var(normalize(x)) * var(normalize(y)))
 corr(x, y, dims) = cov(normalize(x, dims), normalize(y, dims); dims = dims) / (var(normalize(x); dims = dims) * var(normalize(y); dims = dims))
 
-vars =  ["only_kappa",  "iter0_bulkformula"]
+vars =  ["only_init",  "iter0_bulkformula"]
 ϕ_avg = jldopen(datadir("Ψ_Eul_timeseries_PAC_only_init" *".jld2"))["ϕ_avg"]
 Ws = Dict(); ΨEul = Dict(); ΨBol = Dict(); ΨEulBol = Dict()
 z_ref = findall( -3300 .<= -z[:].<= -2000)
@@ -62,49 +62,46 @@ for (i, expname) in enumerate(vars)
     ΨEulBol[expname] = 1 .* Ψ_exp
 end
 
-ΨEulBol["only_kappa"] .-= ΨEulBol["iter0_bulkformula"]
-
-ΨEul["only_kappa"] .-= ΨEul["iter0_bulkformula"]
-ΨBol["only_kappa"] .-= ΨBol["iter0_bulkformula"]
-
-ϕ_avg = zonal_average(ϕ, PAC_msk .* area); 
-
-Wres = -(ΨEulBol["only_kappa"][:, 1:end-2, :] .- ΨEulBol["only_kappa"][:, 3:end, :])
-WEul = -(ΨEul["only_kappa"][:, 1:end-2, :] .- ΨEul["only_kappa"][:, 3:end, :])
-WBol = -(ΨBol["only_kappa"][:, 1:end-2, :] .- ΨBol["only_kappa"][:, 3:end, :])
-
+ΨEulBol["only_init"] .-= ΨEulBol["iter0_bulkformula"]
+ΨEul["only_init"] .-= ΨEul["iter0_bulkformula"]
+ΨBol["only_init"] .-= ΨBol["iter0_bulkformula"]
 
 ϕ_avg = zonal_average(ϕ, PAC_msk .* area); 
+
+Wres = -(ΨEulBol["only_init"][:, 1:end-2, :] .- ΨEulBol["only_init"][:, 3:end, :])
+WEul = -(ΨEul["only_init"][:, 1:end-2, :] .- ΨEul["only_init"][:, 3:end, :])
+WBol = -(ΨBol["only_init"][:, 1:end-2, :] .- ΨBol["only_init"][:, 3:end, :])
+
+ϕ_avg = zonal_average(ϕ, PAC_msk .* area); 
+ϕ_area = zonal_sum(PAC_msk .* area); 
+ϕ_area=ϕ_area[(!isnan).(ϕ_avg), :][:][2:end-1]
 ϕ_avg = ϕ_avg[(!isnan).(ϕ_avg), :][:][2:end-1]
 
-Ψ_bounds = 3
-levels = -Ψ_bounds:0.5:Ψ_bounds
-cmpday = 100 * 86400
-
 z1 = 150; z2 = 2500; ϕtgt = 38
-labels = [L"\Delta^{\mathbf{M}} \overline{W^{res}}", 
-L"\Delta^{\mathbf{M}} \overline{W}", L"\Delta^{\mathbf{M}} \overline{W^*}"]
+labels = [L"\Delta^{{\mathbf{I}}} \overline{W^{res}}", 
+L"\Delta^{\mathbf{I}} \overline{W}", L"\Delta^{\mathbf{I}} \overline{W^*}"]
 
-fig, ax = plt.subplots(1, 3, figsize = (17, 5), sharey = true)
+cmpday = 100 * 86400
+mpyear = 1 * 86400 * 365
+
+Ψ_bounds = Int(floor(3 * mpyear / cmpday)) - 1
+levels = -Ψ_bounds:1.5:Ψ_bounds
+
+fig, ax = plt.subplots(1, 3, figsize = (17, 7), sharey = true)
 cms = []
 for (i, Wfill) in enumerate([Wres, WEul, WBol])
     ax2 = ax[i]
     W_ = zeros(size(Wfill)...)
     for it in 1:312
-        W_[:, :, it] .= cmpday .* Wfill[:, :, it] ./ ϕ_area'
+        W_[:, :, it] .= mpyear .* Wfill[:, :, it] ./ ϕ_area'
     end
-
     ax2.set_facecolor("black")
-
-
-
     mean_W =  mean(W_, dims = 3)[:,:,1]
-
     CM = ax2.contourf(ϕ_avg, z, mean_W,levels = levels, cmap=cmo.balance, 
     vmin = -Ψ_bounds, vmax = Ψ_bounds, extend = "both")
     push!(cms, CM)
     ax2.invert_yaxis()
-    ax2.scatter(ϕtgt, z2, c = "black", marker = "*", s = 300)
+    ax2.scatter(ϕtgt, z2, c = "black", marker = "*", s = 200)
     ax2.set_title(labels[i])
     ax2.set_xticks(-40:20:60)
     ax2.set_xlim(-34, 60)
@@ -117,29 +114,42 @@ end
 fig.subplots_adjust(wspace = 0.1)
 ax[1].set_ylabel("Depth [m]", fontweight = "bold")
 
+fig_labs = uppercase.(["a", "b", "c", "d", "e", "f"])
+for (i, a) in enumerate(ax)
+    a.annotate(fig_labs[i], (0.93, 0.02), fontsize = 25, color = "white", 
+    xycoords="axes fraction", fontweight = "bold")
+end
+
 fig.colorbar(cms[1], ax = ax[:], orientation = "horizontal",
-fraction = 0.05, label = " [cm day" * L" ^{-1}" * "]", pad = 0.2)
-fig.savefig(plotsdir("native/paper_figures/ΔW_timemean_comp_kappa.png"), bbox_inches = "tight", dpi = 400)
+fraction = 0.05, label = " [m year" * L" ^{-1}" * "]", pad = 0.2)
+fig.savefig(plotsdir("native/paper_figures/6.ΔW_timemean_comp_init.png"), bbox_inches = "tight", dpi = 400)
+fig
 
 fig, ax = plt.subplots(1, 2, figsize = (10, 6), sharex = true, sharey = true)
 iϕ = Base.findmin(abs.(ϕ_avg .- ϕtgt))[2]
 iz2 = Base.findmin(abs.(z .- z2))[2]
 
-W = cmpday .* Wres ./ ϕ_area[iϕ]
-ax[1].plot(tecco, W[iz2, iϕ, :][:], c = "k", label = L"\Delta^{\mathbf{M}} W^{res}")
+W = mpyear .* Wres ./ ϕ_area[iϕ]
+ax[1].plot(tecco, W[iz2, iϕ, :][:], c = "k", label = L"\Delta^{\mathbf{I}} W^{res}")
 fig
-W = cmpday .* WEul ./ ϕ_area[iϕ]
-ax[2].plot(tecco, W[iz2, iϕ, :][:], c = "k", alpha = 0.8, label = L"\Delta^{\mathbf{M}} W", lw = 2)
-W = cmpday .* WBol ./ ϕ_area[iϕ]
-ax[2].plot(tecco, W[iz2, iϕ, :][:], c = "k", alpha = 0.5, label =  L"\Delta^{\mathbf{M}} W^*", lw = 2)
+W = mpyear .* WEul ./ ϕ_area[iϕ]
+ax[2].plot(tecco, W[iz2, iϕ, :][:], c = "k", alpha = 0.8, label = L"\Delta^{\mathbf{I}} W", lw = 2)
+W = mpyear .* WBol ./ ϕ_area[iϕ]
+ax[2].plot(tecco, W[iz2, iϕ, :][:], c = "k", alpha = 0.5, label =  L"\Delta^{\mathbf{I}} W^*", lw = 2)
 
-ax[2].set_ylim(-4, 4)
-[a.set_ylabel(" [cm day" * L"\mathbf{ ^{-1}}" * "]", fontweight = "bold") for a in [ax[1]]]
+ax[2].set_ylim(-13, 13)
+[a.set_ylabel(" [m year" * L"\mathbf{ ^{-1}}" * "]", fontweight = "bold") for a in [ax[1]]]
 [a.set_xlabel("time", fontweight = "bold") for a in ax]
 for a in ax[:]
     a.legend(frameon = false, ncols = 2, fontsize = 15, loc = "lower left")
 end
+
+fig_labs = uppercase.(["a", "b", "c", "d", "e", "f"])
+for (i, a) in enumerate(ax)
+    a.annotate(fig_labs[i], (0.05, 0.90), fontsize = 25, color = "k", 
+    xycoords="axes fraction", fontweight = "bold")
+end
 fig
 fig.subplots_adjust(wspace = 0.1)
-fig.savefig(plotsdir("native/paper_figures/ΔW_timeseries_comp_Mix.png"), bbox_inches = "tight", dpi = 400)
+fig.savefig(plotsdir("native/paper_figures/6.ΔW_timeseries_comp_init.png"), bbox_inches = "tight", dpi = 400)
 fig

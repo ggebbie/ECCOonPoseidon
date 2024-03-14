@@ -1,4 +1,4 @@
-include("../../../src/intro.jl")
+include("../../src/intro.jl")
 
 using Revise
 using ECCOonPoseidon, ECCOtour,
@@ -14,7 +14,7 @@ include(srcdir("plot_and_dir_config.jl"))
 area = readarea(γ)
 
 ocean_mask = wet_pts(Γ)
-region = "PAC"; 
+region = "NPAC"; 
 PAC_msk = PAC_mask(Γ, basins, basin_list, ϕ, λ; region)
 
 cell_depths = get_cell_thickness(PAC_msk, ΔzF, Γ.hFacC); 
@@ -50,14 +50,16 @@ end
 
 adjust_exps = Dict()
 adjust_exps["iter0_bulkformula"] = get_temperature(diagpath, "iter0_bulkformula", γ, cell_volumes)
-# adjust_exps["only_kappa"] = get_temperature(diagpath, "only_kappa", γ, cell_volumes)
+adjust_exps["only_kappa"] = get_temperature(diagpath, "only_kappa", γ, cell_volumes)
 adjust_exps["only_init"] = get_temperature(diagpath, "only_init", γ, cell_volumes)
-# adjust_exps["only_sfc"] = get_temperature(diagpath, "only_sfc", γ, cell_volumes)
-# adjust_exps["only_wind"] = get_temperature(diagpath, "only_wind", γ, cell_volumes)
-# adjust_exps["only_buoyancy"] = get_temperature(diagpath, "only_buoyancy", γ, cell_volumes)
+adjust_exps["only_wind"] = get_temperature(diagpath, "only_wind", γ, cell_volumes)
+adjust_exps["only_buoyancy"] = get_temperature(diagpath, "only_buoyancy", γ, cell_volumes)
 adjust_exps["iter129_bulkformula"] = get_temperature(diagpath, "iter129_bulkformula", γ, cell_volumes)
 
 jldsave(datadir(region * "_temperature_sens_exps.jld2"), adjust_exps= adjust_exps)
+
+adjust_exps = jldopen(datadir(region * "_temperature_sens_exps.jld2"))["adjust_exps"]
+
 
 E,F = trend_matrices(Float32.(tecco))
 compute_depth_trends(x) = (100 * 10) .* (x * F[2, :])

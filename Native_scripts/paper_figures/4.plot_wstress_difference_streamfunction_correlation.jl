@@ -17,7 +17,7 @@ nz = 50
 area = readarea(γ)
 λ_wrap = wrap_λ(λ)
 ocean_mask = wet_pts(Γ)
-@pyimport cmocean.cm as cmo
+cmo = pyimport("cmocean.cm")
 
 region = "PAC"
 PAC_msk = PAC_mask(Γ, basins, basin_list, ϕ, λ; region = region)
@@ -38,7 +38,7 @@ square_error(x, y) = sum((x .- mean(x) .* (y .- mean(y))))
 corr(x, y) = cov(x, y) / (std(x) * std(y))
 # corr(x, y, dims) = cov(x, , normalize(y, dims); dims = dims) / (var(normalize(x); dims = dims) * var(normalize(y); dims = dims))
 
-function get_transports(diagpath::Dict{String, String}, 
+function get_winds(diagpath::Dict{String, String}, 
     expname::String, γ::gcmgrid)
 
     filelist = searchdir(diagpath[expname],"state_2d_set1") # first filter for state_3d_set1
@@ -47,7 +47,6 @@ function get_transports(diagpath::Dict{String, String},
     nt = length(datafilelist_τ);
     nϕ = length(ϕ_avg)
     curlτ = zeros(Float32, nϕ, nt);
-
     @time for tt = 1:nt
         println(tt)
 
@@ -61,8 +60,32 @@ function get_transports(diagpath::Dict{String, String},
     return curlτ
 end
 
+function get_transports(diagpath::Dict{String, String}, 
+    expname::String, γ::gcmgrid)
+
+    filelist = searchdir(diagpath[expname],"state_2d_set1") # first filter for state_3d_set1
+    datafilelist_τ  = filter(x -> occursin("data",x),filelist) # second filter for "data"
+
+
+    nt = length(datafilelist_τ);
+    nϕ = length(ϕ_avg)
+    W_zonal_avg = zeros(Float32, nz, nϕ, nt);
+    @time for tt = 1:nt
+        println(tt)
+
+        Tname = datafilelist_τ[tt]
+        τx, τy = extract_ocnTAU(diagpath, expname , Tname, γ)
+        τcurl = MeshArrays.curl(τx, τy, Γ)
+        curlτ[:, tt] .= zonal_average(τcurl, PAC_msk .* area)[:]
+
+    end
+
+    return curlτ
+end
+
+
 τ_mean = Dict()
-τ_mean["only_wind"]   = get_transports(diagpath, "only_wind", γ)
+τ_mean["only_wind"]   = get_winds(diagpath, "only_wind", γ)
 τ_mean["iter0_bulkformula"]   = get_transports(diagpath, "iter0_bulkformula", γ)
 τ_mean["only_wind"] .-= τ_mean["iter0_bulkformula"]
 
@@ -120,6 +143,43 @@ for (i, W_) in enumerate([Wres, WEul, WBol])
     levels = -1:0.2:1
     CM = axs.contourf(ϕ_avg[2:end-1], z, ΨCorr,levels = levels, cmap=cmo.balance, 
     vmin = -1, vmax = 1, extend = "both")
+    push!(cms, CM)
+    axs.invert_yaxis()
+    axs.set_xticks(-40:20:60)
+    axs.set_xlim(-34, 60)
+    lab = string.(abs.(collect(-40:20:60)))
+    lab = lab .* ["°S", "°S", "", "°N", "°N", "°N"]
+    axs.set_xticklabels(lab)
+    axs.set_title("corr(" * L"\Delta^{\mathbf{W}} \mathcal{T}, ~" *  labels[i] * ")")
+    rect = patches.Rectangle((23, 2000), 59, 1000, linewidth=3, edgecolor="black",facecolor="none", alpha = 0.7)
+    axs.add_patch(rect)
+
+end
+ax[1].set_ylabel("Depth [m]", fontweight = "bold")
+fig.subplots_adjust(wspace = 0.1)
+fig.colorbar(cms[1], ax = ax[:], orientation = "horizontal", fraction  =0.04, label = "correlation")
+fig
+
+fig.savefig(plotsdir("native/paper_figures/ΔW_timemean_corr_wind.png"), bbox_inches = "tight", dpi = 400)
+
+
+fig,ax=plt.subplots(1, 3, figsize = (17, 6), sharey = true)
+cms = []
+for (i, W_) in enumerate([Wres, WEul, WBol])
+    axs = ax[i]
+    W = 1e-6 .* W_
+
+    ΨCorr = zeros(size(W)[1:2])
+    for i in 1:size(W, 1), j in 1:size(W, 2)
+        x = W[i, j, :][:]
+        y = τ[j, :]
+        ΨCorr[i, j] = corr(x, y) 
+    end
+    
+    axs.set_facecolor("black")
+    levels = 0.5:0.1:1
+    CM = axs.contourf(ϕ_avg[2:end-1], z, ΨCorr.^2 ,levels = levels, cmap=cmo.thermal, 
+    vmin = 0.5, vmax = 1, extend = "both")
     push!(cms, CM)
     axs.invert_yaxis()
     axs.set_xticks(-40:20:60)

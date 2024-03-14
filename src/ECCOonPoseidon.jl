@@ -36,7 +36,7 @@ extract_meridionalΨ̄timeseries, LatitudeCirclesMask, UVtoTrsp
 export wet_pts, region_mask
 
 #statements for Operations.jl 
-export lateral_sum, vertical_sum, zonal_sum, zonal_average
+export lateral_sum, vertical_sum, zonal_sum, zonal_average, ma_curl
 
 #statements for PacificOcean.jl
 export PAC_mask

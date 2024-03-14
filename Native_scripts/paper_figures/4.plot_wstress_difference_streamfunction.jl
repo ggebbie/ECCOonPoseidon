@@ -1,4 +1,4 @@
-include("../../../src/intro.jl")
+include("../../src/intro.jl")
 
 using Revise, ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, DrWatson, DSP, PyCall, 
@@ -32,6 +32,7 @@ normalize(x) = (x[:] .- mean(x[:])) ./ std(x[:])
 
 corr(x, y) = cov(normalize(x), normalize(y)) / (var(normalize(x)) * var(normalize(y)))
 corr(x, y, dims) = cov(normalize(x, dims), normalize(y, dims); dims = dims) / (var(normalize(x); dims = dims) * var(normalize(y); dims = dims))
+var_explained(x, y) = 100 * (1 - (var(y - x) / var(y)) )
 
 function regress_matrix(x)
 
@@ -133,16 +134,17 @@ PC1 = vec(s.U[:, 1]' * Y)
 ϕ_ref = findall( 23 .<= ϕ_avg .<= 65)
 
 fig,axs=plt.subplots(5, 1, figsize = (10, 15), sharex = true)
-
+E, F = trend_matrices(tecco)
+mult = 100 * 86400 * 365 * 10 
+coefs = F * mult * wθ_resid["only_wind"]
 wind_color = exp_colors["only_wind"]
 curl = mean(τ_mean["only_wind"][ϕ_ref, :], dims = 1)[:]
-axs[1].plot(tecco,low_pass(curl), c= wind_color, linewidth = 3,label = "WIND Effect");
-mult = 100 * 86400 * 365 * 10 
+axs[1].plot(tecco,-(curl), c= wind_color, linewidth = 3,label = "WIND Effect");
 axs[1].set_ylabel("∇ × " * L"\mathbf{\tau_{wind}}" * " \n [N per m³]", fontweight = "bold")
-axs[2].plot(tecco,mult * wθ_resid["only_wind"] , c= wind_color, linewidth = 3,label = "WIND Effect");
+axs[2].plot(tecco,-(mult * wθ_resid["only_wind"] .- coefs[2].*tecco), c= wind_color, linewidth = 3,label = "WIND Effect");
 axs[2].set_ylabel( L"-\mathbf{∇(wθ)}" * " \n [cK per decade]", fontweight = "bold")
 axs[3].plot(tecco, 1e-6 .* Ws["only_wind"][1, :],label = "WIND Effect", c= wind_color, linewidth = 3);
-axs[4].plot(tecco, 1e-6 .* Ws["only_wind"][2, :],label =  "WIND Effect", c= wind_color, linewidth = 3);
+axs[4].plot(tecco, 1e-6 .* Ws["only_wind"][2, :] .- trend(Ws["only_wind"][2, :]),label =  "WIND Effect", c= wind_color, linewidth = 3);
 axs[1].set_ylim(-2e-13, 2e-13)
 axs[2].set_ylim(-2, 2); axs[2].invert_yaxis()
 axs[3].set_ylabel(L"\mathbf{W |_{z = 150}}" * "\n [Sv]", fontweight = "bold")
