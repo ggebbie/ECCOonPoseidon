@@ -8,17 +8,30 @@ Clone with `git clone https://github.com/ggebbie/ECCOonPoseidon` \
 Or `git clone git@github.com:ggebbie/ECCOonPoseidon.git` with SSH keys.
 
 # Requirements
-- Julia 1.6
-- matplotlib
 
-Install a Julia-specific version of Python with Matplotlib through the Julia REPL:\
-`ENV["PYTHON"] = ""`\
-`# make sure python command is available, not just python 3`\
-`using Pkg`\
-`pkg"add PyCall"`\
-`Pkg.build("PyCall")`\
-`using Conda`\
-`Conda.add("matplotlib")`
+- Julia 1.9
+- matplotlib
+- cmocean
+- cartopy
+- PythonPlot.jl
+- PythonCall.jl
+
+GGplot.jl uses matplotlib, cmocean, and cartopy. Direct the python environment to an existing system-wide version of python with these already installed:
+`ENV["PYTHON"]="python/directory/on/your/machine"`
+
+Or use a Julia-specific python environment built from scratch following the directions from `deps/build.jl`. Or, at the Julia REPL, run:
+```julia
+using Pkg
+using CondaPkg
+Pkg.add("PythonCall")
+Pkg.add("PythonPlot")
+ENV["PYTHON"]="" 
+import Pkg; Pkg.build("PythonCall")
+Pkg.build("PythonCall")	
+CondaPkg.add("matplotlib")
+CondaPkg.add("cartopy")
+CondaPkg.add("cmocean")
+```
 
 - Add DrWatson to your default enviroment.
 

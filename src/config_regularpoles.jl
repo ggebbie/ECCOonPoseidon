@@ -29,7 +29,9 @@ tecco = range(tstart,step=1/12,stop=2018)
 nt = length(tecco)
 
 # reading NetCDF attributes
-filelog = rundir(expt)*"available_diagnostics.log"
+if isdir(rundir(expt))
+    filelog = rundir(expt)*"available_diagnostics.log"
+end
 
 lonatts = Dict("longname" => "Longitude", "units" => "degrees east")
 latatts = Dict("longname" => "Latitude", "units" => "degrees north")
