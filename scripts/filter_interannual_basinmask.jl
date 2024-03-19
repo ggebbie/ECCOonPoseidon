@@ -38,7 +38,7 @@ Lsmooth = 5
 southlat = -15
 northlat = 15
 
-msk = basin_mask(maskname,γ,southlat=southlat,northlat=northlat)
+msk = ECCOtour.basin_mask(maskname,γ,southlat=southlat,northlat=northlat)
 land2nan!(msk,γ)
 msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
 
