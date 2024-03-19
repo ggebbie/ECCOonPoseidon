@@ -5,8 +5,11 @@
 include("../src/intro.jl")
 
 using Revise # for interactive use
-using MITgcmTools, MeshArrays, Statistics
-using ECCOtour, ECCOonPoseidon
+using MITgcmTools
+using MeshArrays
+using Statistics
+using ECCOtour
+using ECCOonPoseidon
 # using JLD2, Dierckx, Interpolations
 
 include(srcdir("config_exp.jl"))
