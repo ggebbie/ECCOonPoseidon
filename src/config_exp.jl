@@ -7,10 +7,10 @@ if isdir(rundir(expt)) #only look at these paths if the experiment has already b
     diagpath = diagdir(expt)
     # print output here
     path_out = sig1dir(expt)
-    !isdir(path_out) ? mkdir(path_out) : nothing;
+    !isdir(path_out) && mkdir(path_out) 
 
     pathout = regpolesdir(expt)
-    !isdir(pathout) ? mkdir(pathout) : nothing;
+    !isdir(pathout) && mkdir(pathout) 
 end
 
 ################################################################
@@ -18,13 +18,23 @@ end
 pth = MeshArrays.GRID_LLC90
 γ = GridSpec("LatLonCap",pth)
 Γ = GridLoad(γ;option="full")
-
-# no longer needed?
-#γ = setupLLCgrid(datadir("grid/"))
-
 nf = length(γ.fSize)
 
 # get standard levels of MITgcm
 p₀ = 1000.0; # dbar
 z = depthlevels(γ)
 pstdz = pressurelevels(z);
+
+
+
+
+
+
+
+
+
+
+
+
+
+

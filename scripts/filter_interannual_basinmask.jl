@@ -11,7 +11,7 @@ using Revise
 using ECCOtour
 using ECCOonPoseidon
 using Statistics
-using PythonPlot
+#using PythonPlot
 using Distributions
 using FFTW
 using LinearAlgebra
