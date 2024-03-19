@@ -2,7 +2,7 @@
 
 julia_version = "1.10.2"
 manifest_format = "2.0"
-project_hash = "f4289cc335e630a8e7339c962dafafafaae2967a"
+project_hash = "baab94d22c411cae2d615d2e2d0879d4c8ddc651"
 
 [[deps.AbstractFFTs]]
 deps = ["LinearAlgebra"]
@@ -204,18 +204,20 @@ deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[deps.Distributions]]
-deps = ["FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsAPI", "StatsBase", "StatsFuns", "Test"]
-git-tree-sha1 = "3d5873f811f582873bb9871fc9c451784d5dc8c7"
+deps = ["FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SpecialFunctions", "Statistics", "StatsAPI", "StatsBase", "StatsFuns"]
+git-tree-sha1 = "7c302d7a5fec5214eb8a5a4c466dcf7a51fcf169"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.25.102"
+version = "0.25.107"
 
     [deps.Distributions.extensions]
     DistributionsChainRulesCoreExt = "ChainRulesCore"
     DistributionsDensityInterfaceExt = "DensityInterface"
+    DistributionsTestExt = "Test"
 
     [deps.Distributions.weakdeps]
     ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
     DensityInterface = "b429d917-457f-4dbc-8f4c-0cc954292b1d"
+    Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.DocStringExtensions]]
 deps = ["LibGit2"]
@@ -465,9 +467,9 @@ weakdeps = ["Serialization"]
     SerializationExt = ["Serialization"]
 
 [[deps.LaTeXStrings]]
-git-tree-sha1 = "f2355693d6778a178ade15952b7ac47a4ff97996"
+git-tree-sha1 = "50901ebc375ed41dbf8058da26f9de442febbbec"
 uuid = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
-version = "1.3.0"
+version = "1.3.1"
 
 [[deps.LazyArtifacts]]
 deps = ["Artifacts", "Pkg"]
@@ -549,9 +551,9 @@ version = "0.10.6"
 
 [[deps.MITgcmTools]]
 deps = ["ClimateModels", "CodecZlib", "DataFrames", "Dates", "Downloads", "FortranFiles", "Glob", "MeshArrays", "OrderedCollections", "Printf", "Scratch", "SparseArrays", "Suppressor", "Tar", "UUIDs"]
-git-tree-sha1 = "27219f86870e0e3631b8775cea6951dae07f78ae"
+git-tree-sha1 = "1f88b1dc3944c136c342ab97828bebabd9ae1dff"
 uuid = "62725fbc-3a66-4df3-9000-e33e85b3a198"
-version = "0.2.7"
+version = "0.2.8"
 
 [[deps.MKL_jll]]
 deps = ["Artifacts", "IntelOpenMP_jll", "JLLWrappers", "LazyArtifacts", "Libdl", "Pkg"]
@@ -994,10 +996,13 @@ deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[deps.TranscodingStreams]]
-deps = ["Random", "Test"]
-git-tree-sha1 = "9a6ae7ed916312b41236fcef7e0af564ef934769"
+git-tree-sha1 = "a09c933bebed12501890d8e92946bbab6a1690f1"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.9.13"
+version = "0.10.5"
+weakdeps = ["Random", "Test"]
+
+    [deps.TranscodingStreams.extensions]
+    TestExt = ["Test", "Random"]
 
 [[deps.UUIDs]]
 deps = ["Random", "SHA"]
