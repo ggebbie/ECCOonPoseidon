@@ -11,7 +11,7 @@ using Revise
 using ECCOtour
 using ECCOonPoseidon
 using Statistics
-#using PythonPlot
+using PythonPlot
 using Distributions
 using FFTW
 using LinearAlgebra
@@ -19,6 +19,9 @@ using StatsBase
 using MeshArrays
 using MITgcmTools
 using MAT
+
+# test expt
+expt = "interannual_northpac"
 
 # from intro.jl, default is nointerannual
 # ternary notation
@@ -29,7 +32,7 @@ if !isdir(exprootdir(expt))
     mkdir(exprootdir(expt)) #make a directory for this experiment in /vast/ECCOv4r4/exps/
 end
 
-include(srcdir("config_exp.jl"));
+include(srcdir("config_exp.jl"))
 include(srcdir("config_regularpoles.jl"))
 
 maskname =  ["Pacific","South China Sea","East China Sea","Okhotsk Sea","Java Sea","Japan Sea","Timor Sea"]
@@ -38,18 +41,24 @@ Lsmooth = 5
 southlat = -15
 northlat = 15
 
-msk = ECCOtour.basin_mask(maskname,γ,southlat=southlat,northlat=northlat)
-land2nan!(msk,γ)
-msk_regpoles = var2regularpoles(msk,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+msk = basin_mask(maskname,γ,southlat=southlat,northlat=northlat)
+land2nan!(msk,γ) # also MeshArrays.mask technique
 
+msk_regpoles = regularpoles(msk,γ,rp_params)
+
+# missing coastlines!
 figure()
 clf()
 cmap_seismic =get_cmap("seismic")
 lims = range(0.0,step=0.05,stop=1.0)
-contourf(λC,ϕC,msk_regpoles',lims,cmap=cmap_seismic)
+contourf(rp_params.λC,
+    rp_params.ϕC,
+    msk_regpoles',
+    lims,
+    cmap=cmap_seismic)
 colorbar(label="weight",orientation="vertical",ticks=lims)
 !ispath(plotsdir()) && mkpath(plotsdir())
-outfname = plotsdir("mask_temp1.eps")
+outfname = plotsdir("mask_temp1.pdf")
 xlbl = "longitude "*L"[\degree E]"
 ylbl = "latitude "*L"[\degree N]"
 xlabel(xlbl)
@@ -59,13 +68,17 @@ savefig(outfname)
 ## SMOOTH the EDGES
 msk_smooth = basin_mask(maskname,γ,southlat=southlat,northlat=northlat,Lsmooth=Lsmooth)
 land2nan!(msk_smooth,γ)
-msk_smooth_regpoles = var2regularpoles(msk_smooth,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+msk_smooth_regpoles = regularpoles(msk_smooth,γ,rp_params)
 
 figure()
 clf()
 cmap_seismic =get_cmap("seismic")
 lims = range(0.0,step=0.05,stop=1.0)
-contourf(λC,ϕC,msk_smooth_regpoles',lims,cmap=cmap_seismic)
+contourf(rp_params.λC,
+    rp_params.ϕC,
+    msk_smooth_regpoles',
+    lims,
+    cmap=cmap_seismic)
 colorbar(label="weight",orientation="vertical",ticks=lims)
 !ispath(plotsdir()) && mkpath(plotsdir())
 outfname = plotsdir("mask_smooth_temp.eps")
@@ -220,7 +233,7 @@ if diags # this section requires updating to paths
     field2 = read_bin(filename2,Float32,γ)
 
     # translate to regularpoles
-    field_regpoles =  var2regularpoles(field2[:,100]-field1[:,100],γ,nx,ny,nyarc,farc,iarc,jarc,warc,nyantarc,fantarc,iantarc,jantarc,wantarc)
+    field_regpoles =  regularpoles(field2[:,100]-field1[:,100],γ,rp_params)
 
     figure()
     clf()
