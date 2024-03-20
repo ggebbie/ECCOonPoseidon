@@ -12,6 +12,8 @@ using ECCOtour
 using ECCOonPoseidon
 # using JLD2, Dierckx, Interpolations
 
+expt = "interannual_northpac"
+
 include(srcdir("config_exp.jl"))
 include(srcdir("config_regularpoles.jl"))
 
@@ -32,6 +34,10 @@ filelist = searchdir(diagpath,TSroot)
 
 # second filter for "data"
 datafilelist  = filter(x -> occursin("data",x),filelist)
+
+#
+#path_out = path_out*"jake"
+#pathout = pathout*"jake"
 
 # make an output directory for each expteriment
 !isdir(path_out) && mkdir(path_out)
@@ -78,13 +84,21 @@ Threads.@threads for datafile in datafilelist
     @time varsσregpoles = regularpoles(varsσ,γ,rp_params)
 
     # write to NetCDF
-    @time writeregularpoles(varsσregpoles,γ,
-        pathout, filesuffix, filelog,
+    @time ECCOtour.write(varsσregpoles,
         rp_params,
+        γ,
+        pathout,
+        filesuffix,
+        filelog,
         gridatts)
-        # filelog, rp_params.λC,
-        # gridatts.lon, rp_params.ϕC,
-        # gridatts.lat,
-        # sig1grid, sigmaatts)
 
 end
+
+
+
+
+
+
+
+
+

@@ -100,9 +100,9 @@ end
 exprootdir() = "/vast/ECCOv4r4/exps"
 
 rundir(expt::String) = exprootdir(expt)*"run/"
-sig1dir(expt::String) = rundir(expt)*"sigma1/"
 diagdir(expt::String) = rundir(expt)*"diags/"
-regpolesdir(expt::String) = rundir(expt)*"regularpoles/"
+regpolesdir(expt::String) = rundir(expt)*"regularpoles_jake/"
+sig1dir(expt::String) = rundir(expt)*"sigma1_jake/"
 
 function rectangle(region::String)
 
