@@ -1,7 +1,6 @@
 # map θ, S, p to sigma 1 surfaces.
 # This is a wrapper routine to read files on poseidon.
-# ggebbie, 1-Apr-2021
-
+# ggebbie, started 1-Apr-2021
 include("../src/intro.jl")
 
 using Revise # for interactive use
@@ -35,23 +34,21 @@ filelist = searchdir(diagpath,TSroot)
 # second filter for "data"
 datafilelist  = filter(x -> occursin("data",x),filelist)
 
-#
-#path_out = path_out*"jake"
-#pathout = pathout*"jake"
-
 # make an output directory for each expteriment
 !isdir(path_out) && mkdir(path_out)
 
-# attributes of sigma-1 vertical coordinate
-# for writing to NetCDF
-sigmaatts = Dict("longname" => "Sigma-1", "units" => "kg/m^3 - 1000")
+println("number of threads ",Threads.nthreads())
 
-tt = 0
+# NetCDF is not thread-safe
+OI_lock = ReentrantLock()
+
 Threads.@threads for datafile in datafilelist
-    global tt += 1
 
-    #print timestamp
-    year,month = timestamp_monthly_v4r4(tt)
+    println("datafile: ", datafile, "\t Thread ID: ", Threads.threadid())
+
+    # given a datafile, find year and month for simpler file output
+    year,month = timestamp_monthly_v4r4(datafile)
+
     if month < 10
         filesuffix = "_on_sigma1_"*string(year)*"_0"*string(month)*".nc"
     else 
@@ -83,22 +80,16 @@ Threads.@threads for datafile in datafilelist
     # transfer to regularpoles grid
     @time varsσregpoles = regularpoles(varsσ,γ,rp_params)
 
-    # write to NetCDF
-    @time ECCOtour.write(varsσregpoles,
-        rp_params,
-        γ,
-        pathout,
-        filesuffix,
-        filelog,
-        gridatts)
+    # write to NetCDF (not thread safe)
+    lock(OI_lock) do
+        @time ECCOtour.write(varsσregpoles,
+            rp_params,
+            γ,
+            pathout,
+            filesuffix,
+            filelog,
+            gridatts)
+        #ncsla[:,:,n] = fi
+    end
 
 end
-
-
-
-
-
-
-
-
-
