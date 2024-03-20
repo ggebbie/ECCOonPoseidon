@@ -19,7 +19,7 @@ if isdir(rundir(expt))
     filelog = rundir(expt)*"available_diagnostics.log"
 end
 
-gridatts = grid_attributes()
+gridatts = ECCOtour.sigmagrid_attributes()
 # lonatts = Dict("longname" => "Longitude", "units" => "degrees east")
 # latatts = Dict("longname" => "Latitude", "units" => "degrees north")
 # depthatts = Dict("longname" => "Depth", "units" => "m")

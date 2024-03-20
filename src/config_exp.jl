@@ -24,17 +24,3 @@ nf = length(γ.fSize)
 p₀ = 1000.0; # dbar
 z = depthlevels(γ)
 pstdz = pressurelevels(z);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
