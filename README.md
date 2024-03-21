@@ -7,31 +7,9 @@ Analysis of ECCO version 4 release 4 using output from Poseidon @ WHOI. A scient
 Clone with `git clone https://github.com/ggebbie/ECCOonPoseidon` \
 Or `git clone git@github.com:ggebbie/ECCOonPoseidon.git` with SSH keys.
 
-# Requirements
+# Recommendations
 
-- Julia 1.9
-- matplotlib
-- cmocean
-- cartopy
-- PythonPlot.jl
-- PythonCall.jl
-
-GGplot.jl uses matplotlib, cmocean, and cartopy. Direct the python environment to an existing system-wide version of python with these already installed:
-`ENV["PYTHON"]="python/directory/on/your/machine"`
-
-Or use a Julia-specific python environment built from scratch following the directions from `deps/build.jl`. Or, at the Julia REPL, run:
-```julia
-using Pkg
-using CondaPkg
-Pkg.add("PythonCall")
-Pkg.add("PythonPlot")
-ENV["PYTHON"]="" 
-import Pkg; Pkg.build("PythonCall")
-Pkg.build("PythonCall")	
-CondaPkg.add("matplotlib")
-CondaPkg.add("cartopy")
-CondaPkg.add("cmocean")
-```
+- Julia 1.10
 
 - Add DrWatson to your default enviroment.
 
@@ -46,9 +24,15 @@ Backspace to leave shell \
 `activate .` \
 `instantiate`
 
+- `GeoPythonPlot` for plotting
+
+`GeoPythonPlot.jl` uses matplotlib, cmocean, and cartopy. It should automatically build a Conda/Python environment within Julia for you. If you find this wasteful or duplicative, direct the python environment to an existing system-wide version of python with these already installed:
+`ENV["PYTHON"]="python/directory/on/your/machine"` and rebuild GeoPythonPlot. 
+
+
 # Directory structure
-- `scripts`: production-ready scripts
-- `src`: definitions of poseidon-specific variables and functions
+- `scripts`: production-ready scripts (may require updating)
+- `src`: definitions of *poseidon-specific* variables and functions (other variables and functions belong in `ECCOtour.jl`)
 
 # Running scripts
 
@@ -65,9 +49,11 @@ For long jobs, it is worth using nohup following:
 `nohup julia --project=@. scripts/postprocess.jl nointerannual > postprocess_nointerannual_23nov2021.out &`
 
 - Preprocessing \
-filter_interannual.jl 
+filter_interannual.jl \
+filter_interannual_basinmask.jl 
 
 - Postprocessing\
+state2sigmaregularpoles.jl \
 map2regularpolesDepth.jl \
 mdsio2regularpoles.jl \
 netcdf2regularpoles.jl \
@@ -80,6 +66,13 @@ experiment_divergence.jl \
 plot_divergence.jl \
 trends.jl \
 trends_plot.jl
+
+# Workflow for updating code
+
+1. check out main branch on ECCOonPoseidon.
+2. activate and instantiate in Julia REPL
+3. get julia to latest version using `juliaup update` (should be julia 1.10.2 at time of writing)
+4. batch run with e.g., 36 threads: `~/.juliaup/bin/julia -t 36 --project=@. state2sigmaregularpoles.jl `
 
 # Reproducibility
 
