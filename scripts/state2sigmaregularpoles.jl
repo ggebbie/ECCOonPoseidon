@@ -11,8 +11,6 @@ using ECCOtour
 using ECCOonPoseidon
 # using JLD2, Dierckx, Interpolations
 
-expt = "interannual_northpac"
-
 include(srcdir("config_exp.jl"))
 include(srcdir("config_regularpoles.jl"))
 
