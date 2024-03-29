@@ -40,19 +40,19 @@ Scripts are available for preprocessing, postprocessing, and scientific analysis
 `cd BASEDIR/ECCOonPoseidon/scripts`, where `BASEDIR` is where you cloned the repository.
 
 Preprocess the forcing fields with:\
-`julia --project=@. filter_interannual.jl southpac`, one example where the script takes one argument (surface region).
+`julia --project=@. pre_process/filter_interannual.jl southpac`, one example where the script takes one argument (surface region).
 
 Postprocess the experimental output with:\
 `julia --project=@. postprocess.jl nointerannual`, one example where the script takes one argument (experiment name).
 
 For long jobs, it is worth using nohup following:
-`nohup julia --project=@. scripts/postprocess.jl nointerannual > postprocess_nointerannual_23nov2021.out &`
+`nohup julia --project=@. scripts/postprocess.jl nointerannual > postprocess_nointerannual_date.out &`
 
-- Preprocessing \
+- Preprocessing in `scripts/pre_process` \
 filter_interannual.jl \
 filter_interannual_basinmask.jl 
 
-- Postprocessing\
+- Postprocessing in `scripts/post_process` \
 state2sigmaregularpoles.jl \
 map2regularpolesDepth.jl \
 mdsio2regularpoles.jl \
@@ -60,7 +60,7 @@ netcdf2regularpoles.jl \
 regularpoles2sigma1.jl \
 state2sigma1.jl 
 
-- Scientific Analysis \
+- Scientific Analysis in `scripts/diags` \
 argotrends.jl \
 experiment_divergence.jl \
 plot_divergence.jl \
