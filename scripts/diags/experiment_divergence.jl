@@ -2,8 +2,7 @@
 # recreate MATLAB difference plots
 # use files directly on poseidon through cifs mount
 
-rootdir = "projects/ECCOonPoseidon"
-include(joinpath(rootdir,"src/intro.jl"))
+include("../../src/intro.jl")
 
 using Revise 
 using MITgcmTools
