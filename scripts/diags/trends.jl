@@ -44,7 +44,6 @@ tend = 2018
 tecco = range(tstart,step=1/12,stop=2018)
 nt = length(tecco)
 
-<<<<<<< HEAD
 # eliminate spinup years
 tstart = 2004 + 1/24
 tend = 2018
@@ -55,10 +54,6 @@ ntcrop = length(teccocrop)
 E,F = trend_matrices(teccocrop)
 Ecrop = vcat(zeros(nt - ntcrop,size(E,2)),E)
 Fcrop = (Ecrop'*Ecrop)\Ecrop' # least squares estimator
-=======
-# get weight matrix for finding trends
-E,F = trend_matrices(tecco)
->>>>>>> origin/main
 
 # pre-allocate β, linear trends
 nz = length(z)
@@ -66,11 +61,7 @@ nz = length(z)
 # cycle through all chosen experiments
 for expt in exps
 
-<<<<<<< HEAD
     local β = trend_theta(diagpath[expt],tecco,γ,Fcrop)
-=======
-    β = trend_theta(diagpath[expt],tecco,γ,F)
->>>>>>> origin/main
 #        trend_theta!(β,diagpath[expt],tecco,γ,F)
     println(maximum(β))
     # save β for each experiment
