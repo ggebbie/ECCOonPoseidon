@@ -24,7 +24,7 @@ expbase = "iter129_bulkformula"
 expcompare = "noinitadjust"
 
 if readfromfile
-    outfile = datadir("faststats_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*".jld2")
+    outfile = datadir("divergence","faststats_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*".jld2")
     @load outfile xbar σx xmax xmin absxbar z 
 else
     # or re-run diagnostics

@@ -2,11 +2,16 @@
 # recreate MATLAB difference plots
 # use files directly on poseidon through cifs mount
 
-include("../src/intro.jl")
+rootdir = "projects/ECCOonPoseidon"
+include(joinpath(rootdir,"src/intro.jl"))
 
 using Revise 
-using MITgcmTools, MeshArrays, ECCOonPoseidon, ECCOtour
-using Statistics, JLD2
+using MITgcmTools
+using MeshArrays
+using ECCOonPoseidon
+using ECCOtour
+using Statistics
+using JLD2
 
 # save output to file?
 output2file = true
@@ -67,7 +72,7 @@ end
 
 # save output as JLD2
 if output2file
-    outfile = datadir("faststats_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*".jld2")
+    outfile = datadir("divergence","faststats_"*shortnames[expbase]*"_vs_"*shortnames[expcompare]*".jld2")
     @save outfile absxbar xbar σx xmax xmin z 
 end
 
