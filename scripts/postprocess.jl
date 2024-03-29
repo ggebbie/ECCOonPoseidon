@@ -6,7 +6,7 @@
  4. put state variables on regularpoles grid.
     - save to NetCDF =# 
 
-include("state2sigmaregularpoles.jl")
+include("post_process/state2sigmaregularpoles.jl")
 
 # 1. take state and translate it to regularpoles grid.
-include("state2regularpoles.jl")
+include("post_process/state2regularpoles.jl")

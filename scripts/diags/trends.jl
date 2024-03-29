@@ -2,6 +2,7 @@
 # Modeled after "filter_interannual.jl"
 # Solve for linear trends at all points.
 
+<<<<<<< HEAD
 include("../../src/intro.jl")
 
 using Revise
@@ -13,6 +14,13 @@ using Statistics
 using Distributions
 using LinearAlgebra
 using StatsBase
+=======
+include("../src/intro.jl")
+
+using Revise
+using ECCOtour, ECCOonPoseidon,  MeshArrays, MITgcmTools
+using Statistics, PyPlot, Distributions, LinearAlgebra, StatsBase
+>>>>>>> origin/main
 
 include(srcdir("config_exp.jl"))
 
@@ -36,6 +44,7 @@ tend = 2018
 tecco = range(tstart,step=1/12,stop=2018)
 nt = length(tecco)
 
+<<<<<<< HEAD
 # eliminate spinup years
 tstart = 2004 + 1/24
 tend = 2018
@@ -46,6 +55,10 @@ ntcrop = length(teccocrop)
 E,F = trend_matrices(teccocrop)
 Ecrop = vcat(zeros(nt - ntcrop,size(E,2)),E)
 Fcrop = (Ecrop'*Ecrop)\Ecrop' # least squares estimator
+=======
+# get weight matrix for finding trends
+E,F = trend_matrices(tecco)
+>>>>>>> origin/main
 
 # pre-allocate β, linear trends
 nz = length(z)
@@ -53,7 +66,11 @@ nz = length(z)
 # cycle through all chosen experiments
 for expt in exps
 
+<<<<<<< HEAD
     local β = trend_theta(diagpath[expt],tecco,γ,Fcrop)
+=======
+    β = trend_theta(diagpath[expt],tecco,γ,F)
+>>>>>>> origin/main
 #        trend_theta!(β,diagpath[expt],tecco,γ,F)
     println(maximum(β))
     # save β for each experiment
