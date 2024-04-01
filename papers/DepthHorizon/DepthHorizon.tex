@@ -1,0 +1,1429 @@
+%**start of header
+\documentclass[authoryear,round,12pt]{article}
+%\usepackage[letterpaper]{geometry}
+\usepackage{color}
+\usepackage{natbib}
+%\usepackage{draftcopy} % uncomment to print a large DRAFT watermark on background
+%\usepackage{fancybox}
+%\usepackage[dvips]{graphicx}
+\usepackage[pdftex]{graphicx}
+\usepackage{type1cm}
+\usepackage{eso-pic}
+
+%\usepackage{graphicx}
+\usepackage{pslatex}
+\usepackage{subfigure}
+% \usepackage{setspace}
+% \usepackage[dvips]{epsfig}
+\usepackage[pdftex]{epsfig}
+
+%% draftcopy equivalent for pdflatex:
+ % \makeatlette
+ % \AddToShipoutPicture{%
+ %  \setlength{\@tempdimb}{.5\paperwidth}\setlength{\@tempdimc}{.5\paperheight}%
+ %  \setlength{\unitlength}{1pt}\put(\strip@pt\@tempdimb,\strip@pt\@tempdimc){%
+ %  \makebox(0,0){\rotatebox{45}{\textcolor[gray]{0.75}%
+ %  {\fontsize{5cm}{5cm}\selectfont{Draft}}}}%
+ %  }}
+ % \makeatother
+
+%\usepackage[dvips,bookmarks,colorlinks=true,plainpages=false, 
+%citecolor=black,urlcolor=blue,filecolor=blue]{hyperref} % usage: \href{URL}{text}
+\usepackage[pdftex,bookmarks,colorlinks=true,plainpages=false, 
+citecolor=black,urlcolor=blue,filecolor=blue]{hyperref} % usage: \href{URL}{text}
+\usepackage{pslatex}
+%\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{verbatim} % allows the use of \begin{comment} ... \end{comment}
+\renewcommand{\baselinestretch}{1.0}
+\setlength{\oddsidemargin}{0pt}
+\setlength{\evensidemargin}{0pt}
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0.0in}
+\def\degree{\hbox{$^\circ$}}
+\def\elnino{El Ni{\~n}o}
+\def\lanina{La Ni{\~n}a}
+%\DeclareGraphicsRule{.png}{eps}{.png.bb}{`convert #1 'eps:-'}
+%\DeclareGraphicsRule{.jpg}{eps}{.jpg.bb}{`convert #1 'eps:-'}
+%\DeclareGraphicsRule{.gif}{eps}{.gif.bb}{`convert #1 'eps:-'}
+%\DeclareGraphicsRule{.tif}{eps}{.tif.bb}{`convert #1 'eps:-'}
+\begin{document}
+%**end of header
+% \begin{center}
+%  \textit{Title page}
+
+%  \bigskip
+ 
+%  \textbf{{\Large Deep Pacific Cooling: Do Satellites Detect Remnants of the Little Ice Age?}}
+\pagenumbering{gobble}
+
+\newpage
+\setcounter{page}{0}
+
+\begin{center}
+
+ \bigskip
+ 
+  \textbf{{\Large Where are ECCO Reanalysis 26-year trends  ``trustworthy''?}}
+
+ \bigskip
+ Geoffrey Gebbie \\
+Woods Hole Oceanographic Institution
+\end{center}
+
+
+\medskip
+\newpage
+
+\setcounter{page}{1}
+
+\section{Introduction} 
+\label{sec:introduction}
+
+Initial conditions come from this file: T OWPv1 M eccollc 90x50. 
+1. OCEAN HEAT CONTENT IS IMPORTANT.
+1B. EVEN MID-DEPTH, DEEP OCEAN IS IMPORTANT.
+2. REALLY NEED DECADES TO GET TRENDS WITHOUT EDDY CONTAMINATION.
+3. DIFFICULT TO SAMPLE PROBLEM, CHANGES IN OBSERVATIONAL NETWORK, ARGO
+IS PARTIAL.
+4. NEED REANALYSIS PRODUCTS TO DO THE JOB.
+Surface warming of the Earth is caused by an imbalance in the
+atmospheric heat budget, but measurement of the degree of imbalance is
+difficult due to the complex effects of clouds and aerosols
+\citep[e.g.,][]{myhre2013anthropogenic}. The ocean has
+stored about 30 times more heat than the atmosphere over the last 50
+years
+\citep[e.g.,][]{Levitus-Antonov-2005:Warming,Lyman-Johnson-2014:Estimating},
+and therefore the best place to look for a signal of global energy
+imbalance may actually be the ocean. In addition, oceanic heat uptake
+acts as an important brake on atmospheric warming that has been
+proposed to explain decadal variations in warming rates
+\citep[e.g.,][]{Meehl-Arblaster-2011:Model,Trenberth-Fasullo-2013:apparent}. Upper
+ocean heat uptake is known relatively well, as the uncertainty has
+been reported to be as small as 0.01 W/m$^2$ when put into terms of an
+equivalent top-of-atmosphere heat flux
+\citep{Balmaseda-Trenberth-2013:Distinctive}, but the uncertainty of
+global ocean heat content is certainly much larger due to limitations
+in models and observations in the denser water classes of the polar,
+mid-depth and abyssal oceans. For example, the Coupled Model
+Intercomparison Project Phase 5 (CMIP5) coupled climate models
+underestimate heat uptake in the Southern Ocean
+\citep{Durack-Gleckler-2014:Quantifying}, implying as much as a 20\%
+revision to the planetary heat imbalance. Quasi-global observational
+sampling by thousands of Argo profiling floats has been available
+since about 2005 \citep[e.g.,][]{Wijffels-Roemmich-2016:Ocean}, but
+these floats do not measure below 2000 meters depth. Thus, temperature
+and salinity are rarely measured by in-situ instruments over about
+half of the ocean's volume.
+
+PERHAPS ELIMINATE THIS PARAGRAPH.
+Next we review evidence that the mid-depth and deeper oceans
+significantly contribute to the global exchange of heat despite their
+relatively-weak temperature trends. Furthermore, recent evidence from
+historical hydrographic observations and marine paleoceanographic
+archives suggest that the mid-depth ocean reflects longer-term climate
+variability and is cooling in some regions counter to the general
+warming of the oceans. Of course, those data sources contain issues
+with quality control and interpretation, so we also review the
+potential for state-of-the-art data products, such as satellite
+altimetry, satellite gravity measurements, and ocean reanalysis
+products, to corroborate these findings.
+
+   
+
+
+% IS IT REAL OR NOT? USUALLY SEEN TO BE INSIGNIFICANT. OTHER DATA SETS SUGGEST IT COULD BE REAL.
+% 1. REANALYSES.
+% 2. RECENT REPEAT HYDROGRAPHY. (MID-DEPTH MINIMUM.)
+% 3. LONG-TERM HYDROGRAPHIC OBSERVATIONS.
+% 4. LONG-TERM SIMULATIONS. SHOWING LITTLE ICE AGE EFFECT.
+
+REANALYSES DISAGREE.  Reanalysis products augment the information from
+long-line hydrographic data with other observations and the laws of
+ocean physics, and thus have the potential to best constrain
+temperature trends. This is especially true in the upper 2 km after
+2004 when Argo data are available. A recent compilation of ocean
+reanalyses found subsurface cooling trends over the intervals,
+1970-2009 and 1993-2009, when averaging across multiple products
+\citep{Palmer-Roberts-2017:Ocean}. In particular, the integrated trend
+below 700 meters depth is for warming in the Atlantic and Southern
+Oceans, and for cooling in the Pacific and parts of the Indian Ocean
+(Figure 4), similar to the spatial fingerprint independently
+recognized by paleoceanographic and HMS Challenger data.
+
+%but no consensus on the sign of deep-Pacific temperature trends has emerged amongst these estimates \cite{Palmer-Roberts-2017:Ocean}. 
+%Some reanalyses do, however, show a pattern of Atlantic warming and deep-Pacific cooling that is congruent with our findings \cite{Fukumori--2002:partitioned,Koehl--2015:Evaluation} (Supplementary Material). 
+% As the Pacific is the largest ocean basin, it is possible that the deep ocean as a whole is cooling, suggesting that the inference from altimetry and GRACE might be reasonable.
+
+
+There is a substantial spread across different reanalyses, and the
+cooling trends in the ensemble mean originate from two reanalyses of
+the Estimating the Circulation and Climate of the Ocean (ECCO)
+Consortium: ECCO-JPL \citep{Fukumori--2002:partitioned} and GECCO2
+\citep{Koehl--2015:Evaluation}.  Whereas it was suggested that this
+deep-Pacific cooling in reanalyses originates from model
+initialization artifacts \citep{Palmer-Roberts-2017:Ocean}, we
+hypothesize that such temperature drifts should be expected on
+physical grounds. If the subsurface ocean is still responding to
+ancient surface signals, then ocean reanalyses must encapsulate this
+information in the initial conditions. Thus, the models behind the
+reanalyses should not be initialized in equilibrium, but instead must
+contain the disequilbrium that results from climate variations on all
+timescales. Secondly, it was suggested that there are only weak data
+constraints for the deep ocean \citep{Palmer-Roberts-2017:Ocean},
+which is true for abyssal temperature trends that rely upon repeat
+hydrographic data decades apart. Here, we suggest that long-term
+temperature trends should be located in the most isolated waters that
+reside at about 2 km depth, and thus are potentially better
+constrained by the wealth of Argo data.
+
+
+INTERPRETATION OF DISAGREEMENT.
+Modern-day radiocarbon observations indicate that waters in the deep
+ocean were last in contact with the atmosphere several hundred years
+ago \citep{Key-Kozyr-2004:global}. The most isolated waters in the
+Pacific are not at the sea floor where bottom water enters the basin
+from the south, but instead reside at about two kilometers depth
+\citep{Matsumoto--2007:Radiocarbon}. Atlantic deep waters are not as
+isolated from the surface as the Pacific due to vigorous deep water
+formation, but their radiocarbon concentrations suggest radioactive
+decay over $200-500$ years since they had atmospheric values.  That
+the Atlantic could have such long timescales may be surprising, as the
+response of the Deep Western Boundary Current (DWBC) to surface
+perturbations is a few decades or less
+\citep[e.g.,][]{Johnson-Marshall-2002:theory,Jackson-Peterson-2016:Recent},
+but this DWBC response is just the arrival of an initial signal and
+the full equilibrium response takes much longer
+\citep{Khatiwala-Visbeck-2001:Age,Gebbie-Huybers-2012:mean}.  If the
+ocean adjusts to surface temperature anomalies over timescales greater
+than 1,000 years in the deep Pacific
+\citep{Primeau--2005:Characterizing}, then some influence of changes
+in surface climate over the last millennium should still be present
+today \citep[e.g.,][]{Wunsch-Heimbach-2014:Bidecadal}. For example,
+the Little Ice Age was a period of colder conditions over roughly the
+years, $1400-1800$ \citep[e.g.,][]{Paasche-Bakke-2010:Defining}, that
+was synonymous with cold European winters as immortalized in the works
+of European master painters.  Paleoceanographic proxy data compiled by
+the Ocean2k project \citep{Mcgregor-2015:Robust} indicate that there
+was a global cooling from the Medieval Warm Period to the Little Ice
+Age over the years, $900-1800$, followed by modern warming which began
+around 1850. These signals are most likely to be found in the most
+isolated ocean waters, such as those in the mid-depth Pacific.
+
+To better quantify how centennial-scale changes in surface temperature
+could influence the interior ocean, \citet{Gebbie-Huybers-2019:Little}
+used an empirical ocean circulation model derived by inverting
+millions of modern-day tracer observations. The net effects of
+subgridscale processes on advective and diffusive transport were
+empirically constrained at 2$^\circ$ resolution in the horizontal and
+33 levels in the vertical.  When integrated with prescribed surface
+values, the estimated circulation accurately reproduced interior
+$\delta^{13}$C \citep{Gebbie-Huybers-2011:How} and radiocarbon values
+\citep{Gebbie-Huybers-2012:mean}. The circulation model was
+specifically derived in order to realistically simulate the relative
+influences of major water masses that set the mid-depth and abyssal
+ocean response
+\citep[e.g.,][]{Gebbie-Huybers-2010:Total,DeVries-Primeau-2011:Dynamically}. In
+addition, \citet{Gebbie-Huybers-2019:Little} simulated the transient
+oceanic response over the last 2,000 years with their empirical
+circulation model. The resulting simulation showed that
+globally-coherent surface temperature anomalies propagate into the
+ocean interior and give rise to slow but consistent basinwide-average
+temperature trends at depth. Below 2 km depth, the Atlantic is
+expected to warm at an average rate of $0.1^\circ$C over the last
+century, whereas the deep Pacific is expected to cool by $0.05^\circ$C
+over the last century (Figure~1).
+
+\begin{figure}%[htbp]
+\begin{center}
+%\includegraphics[scale=0.65]{figures/Cmeters_OPT15_01-Nov-2017.eps}\\
+\noindent 
+\caption{{\bf Depth-integrated temperature trend over  750-5750 meters depth for the interval, $1970-2010$.} Results from a simulation of the last 2,000 years from \citet{Gebbie-Huybers-2019:Little}. Long-term surface climate variability suggests ongoing mid-depth and deep ocean temperature trends today.}
+\end{center} 
+\end{figure}
+
+The pattern of temperature trends can be understood as a basic
+consequence of an advective-diffusive adjustment to surface
+conditions.  Deep Atlantic waters are directly replenished by their
+formation in the North Atlantic, but deep Pacific waters must
+propagate from the Atlantic and Southern Oceans.  Radiocarbon
+observations \citep{Key-Kozyr-2004:global} indicate that most waters
+in the deep Atlantic were last at the surface $1-4$ centuries ago,
+whereas most deep Pacific waters have been isolated from the
+atmosphere for $8-14$ centuries \citep{Gebbie-Huybers-2012:mean}. Due
+to the differing response times, Atlantic temperature trends reflect
+warming over recent centuries, including that associated with
+anthropogenic influences, whereas the Pacific is still cooling as a
+consequence of ongoing replacement of Medieval Warm Period waters by
+Little Ice Age waters.
+
+END OF INTRODUCTION.  The combined information from the GRACE
+satellite, satellite altimeters, and the Argo program show the
+potential for the subsurface ocean to host cooling that counteracts
+the prevailing modern warming, but the uncertainties are too large to
+be conclusive. Additional evidence from ocean reanalyses, historical
+hydrographic data, and paleoceanographic records supports the notion
+that large regions of the subsurface ocean may still be cooling,
+especially near 2 km depth in the Pacific. Here we propose to analyze
+the ECCO suite of reanalyses, with emphasis on the recent ECCO Version
+4 release 3. This ECCO reanalysis is advantageous both for
+reconstructing deep ocean heat content with as much information as
+possible and also for dynamically interpreting the results. Through
+this approach, we will evaluate whether a long-term climate response
+is detectable in the deep ocean, with consequences for the planetary
+energy balance. The project is organized into three main goals.
+
+
+\section{Methods}
+\label{sec:methods}
+
+\subsection{ECCO reanalysis products}
+
+The ECCO (Estimating the Circulation and Climate of the Oceans) Consortium has produced multiple time-evolving reconstructions of temperature and salinity on a global grid. These products are derived from a weighted least squares fit of the MIT General Circulation Model \citep[e.g., MITgcm][]{Marshall-Adcroft-1997:Hydrostatic} to millions of modern ocean observations, and thus we refer to it as a ``state estimate'' or ``ocean reanalysis.'' The observations used to constrain the model include those from the series of satellite altimeters, the GRACE gravity data, and the Argo subsurface data, but also include long-line hydrographic cruise data, mooring data, and meteorological information from the Interim European Centre for Medium-Range Weather Forecasts (ECMWF) reanalysis \citep{Dee-Uppala-2011:ERA}. Next, we detail three particular ECCO products that will be used in this project.
+
+We propose to work primarily with the latest ECCO release, Version 4
+Release 4 (V4r4), covering the period $1992-2017$ \citep[following the
+manual,][]{ECCOConsort--2019:ECCO}. This state estimate has
+approximately $1^{\circ}$ horizontal resolution with enhanced meridional resolution at the equator \citep{Forget-Campin-2015:ECCO,Fukumori-Wang-2017:ECCO}. This product has been recently updated to include the Arctic Ocean, a sea-ice model \citep{Fenty-Heimbach-2013:Coupled}, and Aquarius satellite observations. A number of other improvements are especially important to the scientific purposes of this project. GRACE observations are now included, so that direct comparisons can be made to previous studies that used these satellites \citep[e.g.,][]{Llovel-Willis-2014:Deep}. In addition, this ECCO release includes geothermal heating through the seafloor with an average magnitude of about $0.1$ W/m$^2$. This heating significantly affects the deep ocean heat budget and circulation \citep[e.g.,][]{Piecuch-Heimbach-2015:Sensitivity}.
+
+%GENERALLY SPEAKING, FROM WUNSCH: ECCO v4 r1.
+% ``The Estimating the Circulation and Climate of the
+% Oceans (ECCO) 3 ‘‘state estimate’’ has been described in
+% a number of places (e.g., Wunsch and Heimbach 2007,
+% 2013a,b). In summary, it is a weighted least squares fit of
+% a general circulation model [an evolved version of theMassachusetts Institute of Technology general circula-
+% tion model (MITgcm); see Marshall et al. (1997) and
+% Adcroft et al. (2004) for early forms] to the quasi-global
+% datasets (which include the atmospheric forcing) using
+% Lagrange multipliers. 
+
+% An initial
+% (then adjusted) meteorological forcing is derived from
+% the Interim European Centre for Medium-Range
+% Weather Forecasts (ECMWF) Re-Analysis (ERA-
+% Interim; Dee et al. 2011). 
+
+A major scientific goal of this project is to diagnose the heat budget of the mid-depth ocean. For this reason, ECCO V4r4 is especially useful because it is a free-running general circulation model that is adjusted to fit the data without altering the dynamical equations. The numerical algorithm for enforcing the model equations is the method of Lagrange multipliers, also known as the adjoint method or 4D-VAR. A previous release of this dynamically-consistent state estimate was used for the slightly shorter interval, $1992-2011$, to describe the changes in oceanic temperatures and heat content in the deep ocean \citep{Wunsch-Heimbach-2014:Bidecadal} . 
+
+\subsection{Re-animation of ECCO}
+\label{sec:re-animation-ecco}
+
+Our proposed technique is to ``re-animate'' the ECCO V4r4 analysis according to the instructions provided by \citet{Wang--2019:Instructions}. Using the MITgcm code, the first-guess forcing fields and initial conditions, and the adjustments to the control variables (e.g., surface and initial conditions, mixing coefficients), we will re-generate the ECCO V4r4 output. The advantage of the re-animation process is that we can systematically withhold or vary the parameters in ECCO V4r4 and produce new output. Then, we will quantify temperature trends in ECCO V4r4, including spatial maps of the integrated trend (750-5750 meters depth) following the diagnostics of \citet{Palmer-Roberts-2017:Ocean}. %Care will be taken to harmonize the time intervals over which the diagnostics are performed. In case that there is consistency over certain intervals but not others, we will further investigate the impact of interannual variability, including its magnitude and timing in these three ECCO reanalyses. 
+We will document ECCO V4r4 mid-depth trends relative to GECCO2 and ECCO-JPL reanalyses. Of particular interest is the depth at which long-term trends rival or dominate the forced response.  
+
+
+
+%WHICH ONES WILL I USE? REFER TO PIECUCH
+%\citep{Piecuch-Heimbach-2015:Sensitivity}
+%ECCO v4 , r1: forget et al 2015a, forget and ponte 2015.
+
+% Interpretation requires close attention to the long memory of the deep ocean, implying that meteorological forcing of decades to thousands of years ago should still be producing trendlike changes in abyssal heat content. Much of the deep-ocean volume remained unobserved. At the present time, warming is seen in the deep western Atlantic and Southern Oceans, roughly consistent with those regions of the ocean expected to display the earliest responses to surface disturbances. Parts of the deeper ocean, below 3600 m, show cooling.  Most of the variation in the abyssal Pacific Ocean is comparatively featureless, consistent with the slow, diffusive approach to a steady state expected there. In the global average, changes in heat content below 2000 m are roughly 10\% of those inferred for the upper ocean over the 20-yr period. A useful global observing strategy for
+% detecting future change has to be designed to account for the different time and spatial scales manifested in the observed changes. If the precision estimates of heat content change are independent of systematic errors, de- termining oceanic heat uptake values equivalent to 0.1 W m 22 is possibly attainable over future bidecadal periods.
+
+%\citep{Wunsch--2016:Globala} can't load on annual review of marine science.
+%PALMER FOR IDEAS.
+
+THERE ARE OTHER REANALYSES, BUT THEY ARE OMITTED HERE.
+% Two other ECCO
+% reanalysis products are crucial for this project because they infer
+% widespread cooling signals in the deep ocean
+% \citep{Palmer-Roberts-2017:Ocean}.  The ECCO-JPL product has
+% 1$^{\circ}$ horizontal resolution and was derived for the years
+% $1993-2011$ using an Kalman Filter/Smoother algorithm
+% \citep{Fukumori--2002:partitioned}.  The GECCO2 reanalysis
+% \citep{Koehl--2015:Evaluation} offers the best opportunity to track
+% decadal trends, as it employs the method of Lagrange multipliers to
+% estimate the ocean state over the interval, $1948-2012$. Despite the
+% very different methods to fit the MITgcm to data, these two reanalyses
+% both reconstruct cooling trends in major parts of the deep ocean. This
+% project plans to revisit these estimates to understand the mechanisms
+% behind the cooling.
+
+
+CHECK WUNSCH PAPER REGARDING ABYSSAL WARMING IN ECCO.
+Analysis of repeat hydrographic observations available over recent
+decades has emphasized the surprising rates of warming in the abyssal
+ocean below 4000 m
+\citep[e.g.,][]{Johnson-Mecking-2007:Recent,Purkey-Johnson-2010:Warming}.
+The bulk of the Challenger observations that indicate 20th Century cooling, however, are found at different depths in the Pacific (i.e., between 2 and 4 km depth), and thus there is no immediate conflict. The rate of heat loss in this Pacific layer was estimated to be 1 TW on the centennial timescale \citep{Gebbie-Huybers-2019:Little}, as compared to $6 \pm 7$ TW over the $1991-2010$ time period \citep{Desbruy`e-Purkey-2016:Deep}. Some of the uncertainty in rate estimates is likely due to decadal variability and the time periods over which trends are computed \citep{Wunsch-Heimbach-2014:Bidecadal}. The errors incurred by differencing repeat hydrographic surveys would be reduced, however, by using other observations and the known oceanic spatial covariance to statistically combine the multiple sources of information, as is done in ocean reanalysis products. 
+
+significant trends were not detected for the deep Pacific between 2000 and 4000 m depth where warming was recently estimated to be $6 \pm 7$ TW over $1991-2010$ \cite{Desbruy`e-Purkey-2016:Deep}. 
+While the {\it Challenger} data provides motivation to look for a centennial-scale deep Pacific cooling trend, it is unclear whether the signal should be detectable in recent repeat hydrographic surveys that also record significant interannual and decadal variability. 
+
+A number of other studies have examined trends in deep-ocean
+temperature, albeit over shorter intervals.  Analysis of repeat
+hydrographic surveys since 1981 C.E.~indicates a general warming of
+the deep ocean, but with enhanced warming in the abyssal ocean along
+the seafloor
+\citep{Purkey-Johnson-2010:Warming,Desbruy`e-Purkey-2016:Deep}. The
+{\it Challenger} data, on the other hand, suggest the greatest cooling
+is centered at about 2500 meters depth in the Pacific.  Thus, it
+appears that hydrographic sections do not rule out the possibility
+that some depths of the Pacific host a centennial cooling trend upon
+which decadal and shorter-term variations are superimposed.
+
+
+
+
+
+% While these two reanalyses are produced using different algorithms and time intervals, they do share the MIT General Circulation Model \citep{Marshall-Adcroft-1997:Finite} as the underlying dynamical core. A concern is that this dynamical model undergoes a slow adjustment in the deep ocean as a numerical artifact. The physics and resolution of this model should not have any disadvantage relative to the models used for other reanalyses, however. In addition, there is no obvious distinction between numerical or physical drift in an ocean general circulation model. More generally, there is good reason to believe that
+%  models should not be initialized in equilibrium and, thus should drift, given that climate varies over all timescales. This topic deserves to be the focus of its own study. \\
+% XXX CONSIDER HOW TO GET THIS INFO IN THERE BETTER. LOOK INTO SUPP INFO FOR MORE CONTEXT RE DESBRUYERES.
+
+% The ocean temperature trends found in the GECCO ocean reanalyses are also dismissed, even though these are estimated using the model physics and resolution the reviewer advocates for, as well as the same hydrographic data analysed by Desbruyeres et al. (2016).  The reviewers claims that the GECCO reanalysis is less representative of the deep ocean than other reanalyses because the GECCO ocean general circulation model undergoes an 'adjustment' in the deep Pacific. 
+
+% The deep Pacific cooling trend that we explore in our manuscript would lead exactly to this kind of adjustment. 
+%XX THAT REAL VS. NUMERICAL TREND IS DIFFICULT TO DISCERN.
+
+
+% As OPT-0015 is constrained using only basinwide averages, regional
+% temperature patterns can be independently compared against
+% observations.  Notable in this regard is that OPT-0015 produces
+% greater rates of cooling in the deep North Pacific and greater warming
+% in the vicinity of the Atlantic deep western boundary current
+% (Fig.~2).  Similar patterns are evident in the \textit{Challenger}
+% observations (Figs.~S9$-$S10), as well as the average of ocean reanalyses
+% \cite{Palmer-Roberts-2017:Ocean}.
+
+% DESCRIBE OCEAN REANALYSIS. GIVE LIST USED BY PALMER. SHOW MAP.
+% DESCRIBE SPATIAL PATTERN.
+% GECCO2 -- ECCOJPL ARE OUTLIERS
+
+
+%NEW METHOD BY LLOVEL ET AL. PREVOUS LEVIELETTE
+%XX ADD THIS SOMEWHERE CLOSING
+%The sea level rise budget  
+%SEA LEVEL RISE BUDGET WITH ALTIMETRY ARGO GRACE \citep{leuliette2009closing}
+%``To do so, we consider the total amount of sea-level rise
+%observed by satellite altimeters between 2005 and 2013 and subtract
+%the amount attributable to upper-ocean warming (as observed by
+%Argo) and ocean mass increase (as observed by GRACE). The
+%residual is then used to place a constraint on the possible range of
+%deep-ocean warming during this period.''
+
+
+\subsection{Satellite-derived heat content}
+\label{sec:satell-deriv-heat}
+
+While the ocean is opaque to electromagnetic radiation and thus
+satellites cannot directly see the interior of the ocean, the
+combination of satellite altimeters and the GRACE (Gravity Recovery
+and Climate Experiment) satellite gravity measurements offer a unique
+vantage point on the ocean. The series of satellite altimeters,
+including TOPEX/POSEIDON and Jason$-1$, Jason$-2$, and Jason$-3$, see
+the ocean surface in terms of sea surface height, and the GRACE
+satellite sees the sea floor in terms of the bottom pressure that can
+be related to oceanic mass. Together, these two satellites put bounds
+on the behavior of the interior ocean. The two contributors to
+sea-level rise are changes in seawater density (i.e., steric changes)
+and oceanic mass \citep[e.g.,][]{Munk--2002:Twentieth}.  Taking the
+total amount of sea-level rise observed by satellite altimeters and
+subtracting the steric effect of upper-ocean warming as observed by
+Argo and ocean mass increase as observed by GRACE, the residual gives
+an estimate of the deep-ocean steric height contribution
+\citep{Leuliette-Miller-2009:Closing}. With information about the
+equation of state of seawater, this estimate can be translated into an
+estimate of deep ocean warming that is at depths not measured by Argo
+floats.
+
+Sea level is rising at a rate of about $2.8\pm 0.3$ mm/yr, while the
+addition of oceanic mass accounts for $2.0\pm 0.1$ mm/yr
+(Figure~5). The difference between these two is almost exactly
+explained by the steric height changes above 2000 m depth that are
+directly inferred from in-situ observations. The ocean below 2 km
+depth is then indirectly inferred to contribute about $-0.1 \pm 0.7$
+mm/yr to sea-level change and $-0.1 \pm 0.4$ W/m$^2$ to the planetary
+energy imbalance \citep{Llovel-Willis-2014:Deep}. Thus, the combined
+satellite information suggests a best estimate that the deep ocean is
+actually cooling, not warming, as a whole. If the large formal errors
+can be narrowed, the findings suggest that the deep ocean is not
+warming in synchrony with the rest of the world ocean (compare red and
+dashed black lines). Here we recognize that the errors in the
+satellite-derived analysis are too large to be considered robust, and
+instead we focus on analysis of the ECCO reanalysis products as our
+primary avenue of research.
+
+
+\begin{figure}[htbp]
+\begin{center}
+%  \includegraphics[scale=1]{Llovel-Fig1.png}
+  %\includegraphics[scale=0.5]{figures/Llovel-Fig1.png}
+  \caption{{\bf Global-mean observed sea-level variations}: satellite altimetry ({\it blue}), ocean mass contributions based on GRACE satellite gravity measurements ({\it solid black}), and steric sea-level contribution from above 2000 m depth based primarily on Argo in-situ observations ({\it red}), reproduced from \citet{Llovel-Willis-2014:Deep}. The steric sea-level contribution from below 2000 m depth ({\it dashed black}) was calculated as a residual of the three observed indices. Curves were offset for clarity.}
+\end{center}
+  \label{fig:llovel}
+\end{figure}
+
+
+% grace/altimeters not quite enough.
+% FIND ADDITIONAL INFORMATION TO SEE IF A LACK OF WARMING IS REALLY OCCURRING IN THE DEEP OCEAN. 
+% use ecco reanalysis, determine whether it is faithful to satellites, and compute climate indices. next, dynamically interpret adjustment processes. IF SO, DOES IT HAVE A SPATIAL PATTERN THAT MATCHES EXPECTATION? could it be a very long term signal.
+
+% HOW TO PROCEED? ADD MORE DATA TO REDUCE ERROR BARS. ALREADY DONE WITH ECCO REANALYSIS. WUNSCH SHOWS HOW TO COMPUTE MEAN.
+% 1. compute indices like Llovel.
+% 2. dynamically interpret with ECCO.
+% 3. evaluate whether it is possibly long term passive response.
+
+We outline the main \textbf{objectives} of the proposed research, the
+\textbf{practical steps} we will take to achieve these objectives, and
+the \textbf{significance} to NASA priorities in this section.
+
+ \begin{enumerate}
+ \item \textbf{Objective:} To elucidate the physical mechanisms that connect the sea surface to the interior and give rise to trends in ocean heat content.
+   \\
+   \textbf{Practical Steps:} We will determine the mechanistic origin of mid-depth and abyssal ocean temperature trends in the ECCO reanalyses, including the impact of geothermal heating, changes in deep water-mass formation and ventilation rates, and the interplay of interannual, decadal, and centennial timescale variability.  
+   \\
+   \textbf{Significance:} The accurate reconstruction of ocean heat uptake, sea-level rise, and the planetary heat budget relies upon our dynamical understanding of these processes. 
+
+% steric height of the last few de
+
+% This step is a stringent test of the current observational system and the ECCO reanalyses to isolate what deep-ocean processes are well constrained and to highlight what improvements need to be made.
+
+
+ \item \textbf{Objective:} To investigate how well
+the ECCO suite of reanalyses use information from the GRACE satellite, satellite altimetry, and the Argo program to constrain interior ocean changes in heat content, mass, and steric height over the last few decades. 
+   \\
+   \textbf{Practical Steps:} We will diagnose the observational influence by reproducing the first and last iterations of the ECCO optimization procedure, thereby permitting an evaluation of the value added to the underlying dynamical model by the observations.   
+   \\
+   \textbf{Significance:} This step is a stringent test of the current observational system and the ECCO reanalyses to isolate what depths and regions are well constrained and to highlight what improvements need to be made.
+   % \textbf{Significance:} The lack of in-situ observations in the deep ocean give rise to uncertainty in the global oceanic heat content and the planetary energy budget. This study aims to reduce those uncertainties by leveraging additional information encapsulated in ocean reanalyses.
+
+
+ \item \textbf{Objective:} To determine whether the signal of surface climate variability from decades and centuries past is still detectable in the subsurface ocean today.
+   \\
+   \textbf{Practical Steps:} We will place the ECCO reanalysis products into the context of historical hydrographic data and paleoceanographic records of surface climate, especially through comparison of the basinwide-average temperature trends and spatial patterns. 
+   \\
+   \textbf{Significance:} The heat capacity of the mid-depth and abyssal ocean is so large that small  temperature trends can significantly modify existing ocean heat uptake estimates that are dominantly based on the upper ocean.  
+
+\end{enumerate}
+
+
+% \subsection{Basic vs applied science in the proposed work}
+% \label{sec:basic-vs-applied}
+
+% The major thrust of the proposed work is an applied science project
+% whose objective is quite practical -- improve ENSO forecast skill.
+
+
+
+\subsection{Satellite altimetry and gravity measurements}
+
+The University of Colorado Sea Level Research Group  produces a global-mean sea level time series that stitches together information from four satellite altimeters: TOPEX/POSEIDON ($1993-2002$), Jason-1 ($2002-2008$), Jason-2 ($2008-2016$), and Jason-3 ($2016-$present), which is available online \citep{CUSeaLevel--2019:}.
+Over the 25-year interval, sea level is rising at a rate of $3.1\pm0.4$ mm/yr, with recent detection of an accelerating rate \citep{Nerem-Beckley-2018:Climate}. We plan to use the most recent version of the global mean sea level time series, currently 2018 Release 1 that includes the first 70 cycles from the Jason-3 altimeter. The sea level time series has 10-day averages with an estimated uncertainty of 4 mm that is consistent with tide gauge measurements \citep[e.g.,][]{Leuliette-Scharroo-2010:Integrating}.
+
+The global-mean sea level time series is advantageous relative to the raw satellite data because of the lengthy post-processing steps. In particular, corrections are made for geophysical processes such as glacial rebound \citep{Nerem-Chambers-2010:Estimating}. In addition, assumptions are made to take the near-global satellite coverage to $66^{\circ}$ north and south latitude and to make the estimate global. When considering the estimation of trends, this time series is advantageous because it is corrected for any systematic trends by comparison with tide gauges \citep{Mitchum--2000:Improved}.
+
+% Total sea level has been continuously observed by satellite altimetry since 1992
+% with the launch of TOPEX/Poseidon followed by Jason-1 and -2, launched in
+% 2001 and 2008, respectively. This family of satellites provides a near-global
+% coverage (±66 ◦ of latitude) of the oceans every ten days. We have considered here
+% the global mean sea-level time series from the University of Colorado 17 , available
+% at http://sealevel.colorado.edu/. These data have been processed by applying
+% geophysical corrections and verified using independent tide gauge records.
+% (For more information about data processing, see ref. 17.) 
+
+%For a period of ten
+% days, random errors in the global average are estimated to be about 4 mm and
+% have been verified through comparison with tide gauges 9,22,29 . To compute
+% monthly error averages, we assume that these ten-day averaged altimetric data
+% have an e-folding correlation time of ten days. Then, the accuracy of the monthly
+% global mean sea level is estimated to be ±2.6 mm (which represents random
+% measurement error).
+
+%\subsection{Satellite gravity measurements}
+
+The GRACE  twin satellites provide unprecedented measurements of the Earth's gravity field. We plan to use the latest available gravity observations from PO.DAAC to estimate global oceanic mass trends. Currently, this is Release 6 of the Level-2 observations, which are available from 2003 to 2016 from three institutions, CSR, GFZ, and JPL \citep[data available at,][]{PODAAC--2019:GRACE}. The arithmetic mean of the three estimates will be used to reduce the remaining noise \citep{Sakumura-Bettadpur-2014:Ensemble}. Level-2 observations include corrections for Earth's dynamic oblateness \citep[e.g.,][]{Dickey-Marcus-2005:Interannual}, motion of the geocenter \citep[e.g.,][]{Swenson-Chambers-2008:Estimating}, and glacial rebound. Data within 300 km of land is omitted to eliminate contamination by land moisture signals \citep[e.g.,][]{Llovel-Willis-2014:Deep}, but this incurs an additional uncertainty in ocean mass estimates. The accuracy
+% (which represents random measurement error) 
+of the monthly ocean mass estimates is assumed to be 1.2 mm of sea level equivalent \citep{Johnson-Chambers-2013:Ocean}, a conservative assessment given that the standard deviation of the three Level-2 estimates is 0.4 mm.
+
+The GRACE Tellus Team released a Level-3 ocean-mass data product on June 20, 2017, with several notes of caution. We will monitor the status of the Level-3 product as an additional data set to complement the Level-2 products above. For now, we propose to begin with the Level-2 products in part to remain consistent with previously-published studies. Additionally, we will implement recent corrections for the pole tide \citep{Wahr-Nerem-2015:pole}
+
+% LLOVEL AND WILLIS: ``To estimate global mean ocean mass variations, we use GRACE CSR
+% Release-05 time-variable gravity observations from April 2002 through to
+% December 2013 (available at ftp://podaac-ftp.jpl.nasa.gov/allData/grace/L2/
+% CSR/RL05/). Standard processing steps were followed (details can be found in
+% ref. 30) by accounting for geocentre motion 31 , glacial isostatic adjustment 32 and
+% changes in Earth’s dynamic oblateness (that is, C(2, 0) coefficients) 33 . The impact
+% of land signals on GRACE ocean mass is reduced by omitting data within 300 km
+% of land. The resulting ocean average represents ocean mass changes and can thus
+% be directly compared to the steric-corrected sea level. We estimate the accuracy
+% (which represents random measurement error) of the monthly ocean mass
+% estimates to be ±1.2 mm (ref. 30). Additional GRACE solutions from GFZ
+% (available at ftp://podaac-ftp.jpl.nasa.gov/allData/grace/L2/GFZ/RL05/) and JPL
+% (available at ftp://podaac-ftp.jpl.nasa.gov/allData/grace/L2/JPL/RL05/) were also
+% analysed. The standard deviation among the three solutions is ±0.4mm, which
+% indicates that the formal error estimate above is conservative.''
+
+
+\subsection{Argo-based in-situ observations}
+
+%Argo: is longer than before
+
+We propose to use information from in-situ measurements of temperature and salinity derived from the Argo program of autonomous profiling floats. In particular, we will use the global, gridded Argo-only data set produced by optimal interpolation of in-situ float profiles, as produced by the Scripps Insitute of Oceanography  \citep[available at ][]{Argo--2019:Argo}. This data product has a global grid with $1^{\degree}$ horizontal resolution, 58 vertical levels between the sea surface and 2000 meters depth, and monthly fields since January, 2004 \citep{Roemmich-Gilson-2009:2004}. 
+The input temperature and salinity data are extensively quality controlled \citep{Wong-Keeley-2009:Argo}. However, the global-mean steric height contribution from above 2000 meters depth relies upon the mapping procedure and contains uncertainties. In particular, Argo floats undersample boundary currents, the Southern Ocean, and regions with sea ice. Previously this global-mean steric height contribution was estimated to have an uncertainty of 3 mm \citep{Willis-Chambers-2008:Assessing}.
+
+%LLOVEL: ``Gridded temperature and salinity estimates used in this study are obtained
+%from four separate groups: Scripps Institution of Oceanography (updated from
+%ref. 34), International Pacific Research Center (IPRC), Japan Agency for
+%Marine-Earth Science and Technology (JAMSTEC, ref. 35) and National Oceanic
+%and Atmospheric Administration (NOAA, ref. 24). These data can be
+% downloaded at www.argo.ucsd.edu/Gridded_fields.html for SCRIPPS, IPRC and
+% JAMSTEC data sets and www.nodc.noaa.gov/OC5/3M_HEAT_CONTENT/ for
+% the NOAA data set. 
+
+The Argo gridded product is expressly chosen because it is an Argo-only product, and we wish to have an Argo-only product to differentiate from the full suite of in-situ data used to produce the ECCO reanalyses. Should this choice turn out to be insufficient, other products are available, including those from NOAA, JAMSTEC, and IPRC.
+% combine not only Argo floats, but also other in situ measurements (for example,
+% expendable bathythermograph (XBT), CTD and mooring data). 
+
+
+%Steric sea-level time series are
+% computed by using temperature and salinity fields from each data product.
+% (Further details of this computation can be found in ref. 11, section 2.1.1.) On a
+% monthly basis, the global mean steric sea-level evolution of the upper 2,000 m of
+% the ocean is estimated with an accuracy of ±3 mm (refs 5,9). As for altimetry and
+% GRACE, this uncertainty represents an estimate of random measurement error in
+% estimating the global mean using available observations. The partitioning of heat
+% content change above and below 700 m has been motivated because of the
+% historical sampling for the past decades 23 .
+
+\section{Technical approach, methodology and detailed work plan}
+
+%XX ADD THIS SOMEWHERE CLOSING SEA LEVEL RISE BUDGET WITH ALTIMETRY ARGO GRACE \citep{leuliette2009closing}
+%\subsection{Notes: questions to answer}
+
+
+\subsection{What physical processes give rise to subsurface ocean temperature trends in ECCO V4r4?}
+%2. dynamically interpret the ecco reanalyses
+
+
+{\bf Do ECCO subsurface ocean trends come from surface forcing during the estimation interval or from adjustments to prior surface conditions?} 
+A key benefit of the ECCO V4r4 product is self-consistency with the equations of motion that permits  dynamical interpretation of the results. Here we aim to distinguish between subsurface ocean responses that are forced by surface conditions during the state estimation interval, and those that are due to adjustment to prior surface conditions. As the reanalysis was performed over a fixed time interval, the impact of prior surface conditions is encoded in the initial conditions. 
+
+%WHY IS GECCO-JPL SOLUTIONS SO DIFFERENT FROM OTHER REANALYSES?
+%WHERE DOES GECCO-JPL TREND COME FROM? 
+% {\bf Why does the deep ocean cool more in the GECCO2 and ECCO-JPL estimates than in other reanalyses?}
+% We noted above that other reanalyses that do not use the MIT GCM as their dynamical core did not show large-scale regions of cooling in the deep ocean. To address this question, we ask more specific questions next.
+%If ECCO V4r4 does show deep cooling, this leads us to further investigate the general characteristics of the MIT GCM.
+%IS TREND IN FIRST GUESS MODEL SIMULATION?
+
+The question in bold will be addressed by comparing ECCO V4r4 to a re-animated model that contains the time-mean surface forcing. The difference in the model runs will give the impact of surface forcing during the estimation interval. Here we plan to perform two different simulations, one with the 1992-2015 time mean, and another with the 1992-2015 climatological seasonal cycle.
+
+%WHAT IMPACT DOES GEOTHERMAL HEATING HAVE? CITE PIECUCH. COMPARE TRENDS BEFORE AND AFTER V4R3 TO V4R1.
+In our diagnostics, we will pay close attention to the impact of geothermal heating. ECCO V4r4 includes geothermal heating but ECCO Version 4 release 2, ECCO-JPL, and GECCO2 reanalyses do not. The difference in deep ocean trends between these estimates will be partially due to this sea-floor forcing. In a transient case, \citet{Piecuch-Heimbach-2015:Sensitivity} show a significant reorganization of circulation due to geothermal heating. Here we test the hypothesis that a steady geothermal forcing represents a different case study, where the ocean is already in balance with the sea-floor forcing. 
+
+%Our hypothesis is that deep ocean cooling is still present in the geothermally-forced reanalysis. 
+%Or is the effect to impose a mean offset in deep ocean temperatures?
+
+%WHAT ARE TTDS FOR DEEP OCEAN FROM ECCO V4R3? PASSIVE TRACER SIMULATION 2 WAYS: 1. REPEATING TIMESERIES OF FORCING 2. CLIMATOLOGICAL SEASONAL CYCLE, MAY GET AT DYNAMICAL IMPACT OF TRANSIENT CIRCULATION.
+%{\bf Do ECCO deep ocean trends reflect a model shortcoming?} 
+
+General circulation models can have difficulty representing the bottom flows important for deep water formation. If a model is initialized with the proper volume of a deep water mass but inaccurate formation rates, a subsurface temperature trend may result. The calculation of the boundary Green's function of ECCO V4r4 circulation (i.e., Transit Time Distributions) would identify such an issue. We propose to follow the experimental method of \citet{Wunsch-Heimbach-2008:How} and \citet{Siberlin-Wunsch-2011:Oceanic}. A passive tracer concentration will be imposed at the surface in 14 oceanographically-relevant patches as defined by \citet{Gebbie-Huybers-2010:Total} and then integrated into the interior by a temporally-repeating ECCO-derived circulation. These numerical integrations will permit diagnosis of the ECCO V4r4 water-mass geometry and ventilation timescales. We will compare these diagnostics to information not used in the reanalysis system, such as global radiocarbon distributions \citep{Key-Kozyr-2004:global}.
+
+\subsection{ECCO-Argo comparison}
+
+The re-animation technique of the previous section is also helpful for
+determining observational constraints and influence. ECCO V4r4 is
+produced by an iterative procedure that starts with a first guess and
+sequentially improves the model fit to observations. Here we will
+reconstruct the first-guess model simulation by zeroing out the
+control-variable adjustments in ECCO V4r4.  The result is ``iteration
+0'' of the optimization process.
+Then, the comparison of the subsurface temperature trends between iteration 0 and the final iteration of V4r4 is used to address the following question.
+%will reflect whether they originate from the model's dynamical constraints or the observational constraints.
+% RE-ANIMATION HELPFUL FOR DETERMINING OBSERVATIONAL CONSTRAINTS AND INFLUENCE. DESCRIBE ITERATIVE PROCESS OF ADJOINT METHOD. DIFFERENCE IN ITERATIONS IS DUE TO FITTING DATA, AS WELL AS OTHER TERMS IN THE COST FUNCTION. 
+Do ECCO subsurface temperature trends originate from the model's
+dynamical constraints or the imposed observational constraints?  All
+re-animated ECCO reanalyses show deep ocean cooling, and it suggests
+that it arises due to the ``first-guess'' model configuration that is
+calculated before any observations are assimilated. 
+
+
+The influence of the observations on temperature trends is expected to
+be a function of depth.  In particular, the Argo profile data is
+available above 2 km depth and becomes more plentiful later in the
+analysis interval. We aim to quantify the depths at which the ECCO
+temperature trends are informed by this data. It is likely that the
+influence of Argo data is also felt at some depths below 2 km, as
+would be expected due to the dynamical interpolation of the reanalysis
+method.
+
+We suggest a second line of inquiry to better understand the
+observational constraints from satellite gravity, satellite altimetry,
+and the Argo program. Satellite and Argo observations are not truly
+global, and previous studies needed to make assumptions to produce a
+global map. ECCO V4r4 essentially uses the MITgcm as a dynamical
+interpolator to make global maps. Here we will test the hypothesis
+that the more sophisticated ECCO-based mapping method adds value to
+the observational data. To test this hypothesis, we will design an
+experiment where we ``observe'' the ECCO V4r4 product as GRACE, the
+satellite altimeter, and Argo would. Then, we use the method of
+\citet{Llovel-Willis-2014:Deep} to back out the deep ocean heat
+content trend. This backed-out estimate can be compared to the
+``truth'' as given by ECCO V4r4. This experiment is designed to test
+the robustness of previous methods and the potential impact of mapping
+techniques.
+
+% The aim of this part of the project is to use the ECCO reanalyses that contain satellite gravity and altimetry observations, as well as millions of in-situ observations, to produce a best guess of recent trends in deep ocean heat content, steric height, and deep ocean mass. Here we also focus on the robustness of these global estimates and attempt to determine which datasets provide the most relevant information. Specific aims follow next.
+%1. compute GLOBAL-MEAN deep ocean indices.
+%{\bf Do the ECCO reanalysis products (ECCO V4r4, ECCO-JPL, GECCO2) provide corroborating evidence for %deep ocean cooling as found in a previous analysis of GRACE, altimetry, and Argo data?} 
+
+%Our plan is to employ ECCO V4r4 
+To reproduce the analysis of \citet{Llovel-Willis-2014:Deep}, we will remove seasonal signals first. 
+We will proceed by diagnosing steric height contributions above 2 km depth that are constrained by Argo. Steric height will be computed with V4r4 temperature and salinity fields following \citet{Piecuch-Heimbach-2015:Sensitivity}. Next we compute oceanic mass over the entire water column that is constrained by GRACE. We note that the ocean model conserves volume rather
+than mass, and thus is corrected following the method of \citet{Greatbatch--1994:note}. In addition, it is difficult to recover trends from GRACE data, but recent corrections for the pole tide are promising for removing noise from the data \citep{Wahr-Nerem-2015:pole}.
+Finally we add sea-surface height information from V4r4 that is constrained by satellite altimetry. From the residual of these metrics, we can back out the steric height contribution from below 2 km depth and relate it to temperature trends in the mid-depth and abyssal ocean. If these data sets are sufficient to constrain temperature trends, then ECCO V4r4 represents a promising avenue to reduce the existing uncertainties in these quantities.  
+
+%On a global scale, how consistent are the deep ocean trends? As we expect some inconsistencies, we pose the additional follow-on questions.
+
+% This post hoc correction consists of “adding back” to the diag-
+% nosed sea level and bottom pressure fields, where bottom pressure
+% is converted to units of water thickness, the time series of the global
+% mean steric height inferred from the estimated density field.
+
+
+% (Further details of this computation can be found in ref. 11, section 2.1.1.)
+
+%DO GECCO/JPL SOLUTIONS RESPECT THE GLOBAL-MEAN OBSERVATIONS FROM GRACE/T/P/ARGO?
+% {\bf How well do the ECCO reanalyses respect the global-mean observations from GRACE, the altimeters, and Argo?} The ECCO reanalyses are constructed to fit these observations, but the degree of fit depends upon the iteration number and convergence rate of the algorithm. Discrepancies between ECCO-derived estimates and those of \citet{Llovel-Willis-2014:Deep} may simply derive from small systematic offsets between the ECCO solutions and the data. It is worth double-checking this possibility upfront. In addition, the earlier ECCO reanalyses did not explicitly include the GRACE data. How much value does the GRACE data add to the ECCO V4r4 product?
+
+%MAPPED METRICS MAY DIFFER DUE TO DATA MISFIT, OR DIFFERENCE IN INTERPOLATION/MAPPING METHOD.
+%{\bf What is the impact of the dynamical interpolation method used by ECCO relative to simpler mapping procedures used by previous observational studies?} 
+
+
+
+%DOES THE ECCO DEEP BELOW 2KM DIRECT ESTIMATION OF TEMPERATURE MATCH UP WITH LLOVEL ESTIMATE? ``OBSERVE'' ECCO REANALYSIS AS IF IT WERE OBSERVATIONS TO SEE UNCERTAINTY IN ANSWER.
+
+%BOTH STERIC HEIGHT, HEAT CONTENT
+
+%MENTION HOW TO COMPUTE STERIC HEIGHT. 
+%Steric sea-level time series are
+% computed by using temperature and salinity fields from each data product.
+% (Further details of this computation can be found in ref. 11, section 2.1.1.) On a
+% monthly basis, the global mean steric sea-level evolution of the upper 2,000 m of
+% the ocean is estimated with an accuracy of ±3 mm (refs 5,9). As for altimetry and
+% GRACE, this uncertainty represents an estimate of random measurement error in
+% estimating the global mean using available observations. The partitioning of heat
+% content change above and below 700 m has been motivated because of the
+% historical sampling for the past decades 23 .
+
+%ABOUT VOLUME VS. MASS IN ECCO, FROM PIECUCH 2015:
+%``Eighteen-year (1993–2010) trends in sea level η (mm yr −1 ) from the baseline
+%solution without geothermal forcing. 
+
+%MENTION WHETHER SEASONAL CYCLE REMAINS IN PRODUCTS.
+
+\subsection{Are ECCO temperature trends consistent with a centennial-scale climate response?}
+
+As there are regions in the abyss and the polar oceans that have very little observational information, it is premature to suggest that ECCO V4r4 can constrain subsurface temperature trends throughout the global ocean. Instead, progress can be made by posing a hypothesis test.
+% , and
+% It is clearly a difficult task to constrain centennial-scale temperature trends with a 23-year reanalysis product. 
+% DIFFICULT TO SUGGEST THAT
+% CLEARLY A  CENTENNIAL-SCALE CLIMATE TREND CANNOT BE VALIDATED BY A 23-YEAR RECONSTRUCTION. ALSO IT IS DIFFICULT TO COMPUTE ERROR ESTIMATES FROM ECCO -- 
+% {\bf Can deep ocean trends be traced to the initial conditions used in the ECCO reanalyses?} This question follows on the dynamical studies in the previous section. 
+% It might be thought that trends that are due to the initial conditions must be numerical artifacts. In the ECCO reanalyses, however, the initial conditions can be adjusted to account for the disequilibrium effects of forcing that occurred before the state estimation time interval. To determine whether long-term trends are accurately being reproduced in the ECCO products, we formulate the following sub-questions.
+{\bf Are the basinwide-average temperature trends estimated by ECCO V4r4 consistent with expectations from the historical hydrographic observations and paleoceanographic proxy data?}
+Here we concentrate on the large-scale signals that can be diagnosed by averages over the entire Atlantic and Pacific Oceans. %What are the spatial patterns in trends of GRACE-derived ocean mass, satellite-altimeter-derived sea surface height, and ECCO-diagnosed deep ocean heat content? 
+In particular, we seek a correlation with the age of seawater as previously computed by \citet{Gebbie-Huybers-2012:mean}. We will also include the GECCO2 reanalysis in these tests because it reconstructed the longest time interval. 
+
+%COMPARE TO COMMON ERA LONG-TERM STATE ESTIMATE. MAGNITUDE RIGHT SIZE, OR TOO BIG, MUST BE INTERANNUAL OR NUMERICAL DRIFT.
+We will diagnose whether the ECCO V4r4 decadal trends have a plausible magnitude to be caused by long-term surface climate changes. The ECCO reanalyses will be compared to HMS Challenger-to-WOCE temperature differences of \citet{Gebbie-Huybers-2019:Little} which sets expectations of centennial-scale trends in the deep ocean. These trends are small, and thus the ECCO reanalyses can be used to study whether such a trend is detectable over 20-year time periods. In addition, the temperature differences have error estimates that will permit the hypothesis test to be quantified with a p-value.
+
+The value of the proposed analysis is not restricted to centennial-scale trends, but will also
+seek any trends that are longer than the reanalysis time interval. We also suggest that a mid-depth Pacific cooling trend is not the only signature of ancient climate signals, but rather any fingerprint of increased Atlantic warming relative to the Pacific is consistent with the  \citet{Gebbie-Huybers-2019:Little} hypothesis. If consistency is found, the existence of ancient climate signals in today's ocean should not be considered ``validated,'' but it represents the best information to date that such a process is real. The implications for ocean heat uptake during the modern warming era are of first-order importance for the global energy budget. 
+
+%To do so, we will compute the potential ``contamination'' of these trends by analyzing the interannual and higher-frequency variability in the ECCO reanalyses in the deep ocean. 
+
+% {\bf Are the adjustments in the initial conditions of the ECCO reanalyses consistent with historical hydrographic measurements before the start of the reconstruction?}
+% Ultimately the goal is to determine whether the ECCO-derived deep ocean trends are real or an artifact of the state estimation machinery. The first-guess temperature and salinity fields are taken from climatologies that are usually constructed primarily with data from the more recent era. Do the adjustments in the initial conditions have the right sense to take the initial conditions back in time to the appropriate year at the start of the state estimate? Alternatively, one may determine that the adjustments to the initial conditions are actually attempting to compensate for model errors. If so, are there similarities between the adjustments to GECCO2 and ECCO V4r4 even though they start during different decades?
+
+%  and attempt to compensate for the actual time of the start 
+
+% MISMATCH IN TIMING OF INITIAL CONDITIONS/ MORE RECENT REANALYSIS.
+
+% 1. CLIMATOLOGY, IS CLIMATOLOGY CORRECT FOR ACTUAL INITIALIZATION PERIOD. 
+
+% COMPUTE BASINWIDE-AVERAGE TRENDS AND SPATIAL PATTERNS. 
+
+% IF INITIAL CONDITIONS MATTER, THEN THIS BECOMES VERY RELEVANT. 
+
+% 3. IS ATLANTIC/PACIFIC PATTERN AVAILABLE? ARE INITIAL CONDITIONS ADJUSTED IN A WAY CONSISTENT WITH HISTORICAL HYDROGRAPHY? HOW CLOSE IS THE TEMPERATURE RESPONSE TO A PASSIVE ONE?
+
+
+% %\subsection{Technical details}
+
+% TO WHAT EXTENT IS SHORT PERIOD REPRESENTATIVE OF LONGER-TERM TRENDS? IS IT JUST INTERANNUAL VARIABILITY? RELY UPON GECCO2
+
+% IS GECCO/JPL SUBJECT TO NUMERICAL DRIFT IN DEEP OCEAN? HOW WOULD ONE DISTINGUISH NUMERICAL FROM REAL DRIFT? 
+
+
+
+% \subsection{Preliminary Results, adaptation of adjoint to 4D-VAR}
+% \label{sec:preliminary-results-adaptation}
+
+% % Preliminary work has been undertaken over the last four years, and
+% % have now reached the stage where much of the painstaking technical
+% % effort involved in the adjoint model development for GFDL's MOM4 ocean
+% % model has been completed.  Furthermore, the adjoint code derivation
+% % was designed so that the TAF (Transformations of Algorithms in
+% % Fortran) tool of FastOpt is used to semi-automatically regenerate the
+% % adjoint and tangent linear codes given any changes in the forward
+% % model \citep{Giering-Kaminski-1998:recipes}.  An example of
+% % sensitivity information gleaned from the adjoint model is shown in
+% % Figure \ref{fig:nino34_xy_360day}.  Adjoint-based modeling tools open
+% % exciting possibilities for both sensitivity and data assimilation
+% % studies.
+
+% % \begin{figure}[!thb]
+% %   %\includegraphics[width=5.5in]{figures/nino34_xy_360day.pdf}
+% %   \caption{The sensitivity (nondimensional) of the NINO3.4 index at
+% %     $t=360$ days to the sea surface temperature field at $t=0$, as
+% %     calculated by one integration of the MOM4 adjoint model.  The
+% %     sensitivity pattern primarily reflects the influence of advection
+% %     and diffusion in the upper ocean.}
+% %   \label{fig:nino34_xy_360day}
+% % \end{figure}
+
+% % The MOM4 model solves the hydrostatic primitive equations for the
+% % ocean, and is the ocean component of the CM 2.1 coupled climate model
+% % used in the GFDL IPCC (Intergovernmental Panel on Climate Change)
+% % runs. Furthermore, the model is a participating member of the Coupled
+% % Model Intercomparison Project (CMIP), along with the GISS coupled
+% % model among others.  The origins of the model trace back to Kirk
+% % Bryan, Mike Cox, and Bert Semtner \citep{Bryan-1969:numerical,
+% %   Bryan-Cox-1972:approximate, Semtner-1974:oceanic,
+% %   Pacanowski-1996:gfdl}.  MOM4 is the latest version of MOM, with its
+% % first public release in January, 2004
+% % \citep{Griffies-Harrison-Pacanowski-et-al-2003:technical}, and
+% % continued updates including the MOM 4.1 version in 2009.  The GFDL
+% % model's performance in the tropical Pacific has been documented
+% % \citep{Wittenberg-Rosati-Lau-et-al-2006:gfdls} as one of the best
+% % available models.
+
+% % In addition, we have used the GFDL hybrid coupled model (MOM4 coupled
+% % to a statistical atmosphere) to study the impact of westerly wind
+% % bursts on ENSO dynamics.  Specifically, we have shown that the
+% % dynamical link between SST and wind bursts may be the critical
+% % dynamical process that creates interannual variability in the tropical
+% % Pacific \citep[e.g.,][]{Gebbie-Eisenman-Wittenberg-et-al-2007:modulation}.
+% % These wind bursts are predictable given the SST
+% % \citep{Gebbie-Tziperman-2009:predictability} and a preliminary
+% % predictability study was better able to predict the 1997 El Ni\~no
+% % event \citep{Gebbie-Tziperman-2009:incorporating}.
+
+% % The development of the adjoint model has already included the
+% % following steps.  Four numerical tests have been performed to confirm
+% % the accuracy of the adjoint: (1) forward test for reproducible
+% % behavior, (2) tangent-linear gradient check, (3) adjoint test gradient
+% % check, and (4) inner-product test. The forward test confirms that the
+% % code is reproducible.  Given a particular input (or so-called
+% % ``independent'' variable), the output (or ``dependent'' variable) is
+% % checked.  Special care was taken to derive the adjoint of Fortran 90
+% % code elements used in MOM4 and to make sure the adjoint is accurate
+% % when run in parallel on multiple processors.
+
+% % There are a few remaining technical steps to be completed to turn the
+% % adjoint model into a 4D-VAR system.  A cost function defined as the
+% % sum of squared misfits between the model and data must be implemented,
+% % and this is detailed later in the connection to satellite data.  For
+% % optimization, we will use the limited-memory Quasi-Newton gradient
+% % descent method, as previously coded by our JPL collaborators (section
+% % \ref{sec:proj-management}).  As the JPL optimization code is written
+% % in a modular way, it can be easily ported to the 4D-VAR system of this
+% % project.
+
+
+% \subsection{Initializing with reanalysis products}
+% \label{sec:init-with-reanalysis}
+
+% % It is important that we have a benchmark with which to compare our
+% % assimilation results, and we plan to use an initialization with two
+% % NASA products,
+% % GMAO/\href{http://gmao.gsfc.nasa.gov/research/ocean/GEOSODAS/index.php}{GEOS-ODAS}
+% % and \href{http://ecco2.jpl.nasa.gov/}{ECCO} state estimation, for this
+% % purpose.  Note that this does not require the use of 4D-VAR, but
+% % simply the initiation of the fully coupled ocean-atmosphere CM2.1
+% % model with the ocean state at the appropriate time, and running it in
+% % a forecast mode.  The forecasts initialized with previous ocean
+% % reanalyses will serve as a baseline by which to compare our later
+% % adjoint assimilation results.  As explained in the introduction, there
+% % is reason to expect the 4D-VAR product from this project to do better
+% % than the baseline, given that it will eliminate the initialization
+% % shock and be optimized for improved prediction skill (including the
+% % optimization of the assimilation window length, observational weights
+% % as discussed below, the use of atmospheric dynamics in the
+% % assimilation phase, and the use of the same ocean model in the
+% % assimilation and prediction phases).
+
+% % In addition to the use of the alternative assimilation products for
+% % benchmark purposes, we will use them to study the dynamics of the
+% % initialization shock, as outlined in section
+% % \ref{sec:dynamics-coupling-shocks}.
+
+
+% \subsection{Optimization of satellite and in-situ observations}
+% \label{sec:optimization-of-data-to-use}
+
+% % This portion of the research deals again with both scientific
+% % questions and technical issues.  On the science side, we plan to
+% % explore which types of observations contribute most to the forecast
+% % skill.  Certain data types will be included (specifically, ocean
+% % vector winds, altimetry, SST, and in-situ observations) and the effect
+% % on ENSO predictability will be examined.  This will be complemented by
+% % a set of forecast experiments using the 20th Century CM2.1
+% % model-generated ``observations,'' subsampled and then assimilated
+% % similarly to the actual observations available from satellite and
+% % in-situ observations.  This Observing System Simulation Experiment
+% % (OSSE) will lead to specific recommendations for the data types and
+% % instruments that are essential to continue in the future.
+
+% % On a technical level, we will complete the development of cost
+% % function routines, which determines the quality of fit of the model
+% % simulation to the set of available observations, as a weighted sum of
+% % squared differences between the model results and observations, in a
+% % form similar to that used by the
+% % \href{http://ecco2.jpl.nasa.gov/}{ECCO} (Estimating the Climate and
+% % Circulation of the Ocean) Consortium
+% % \citep[e.g.,][]{Fukumori-2002:partitioned,
+% %   Stammer-Wunsch-Giering-et-al-2002:global,
+% %   Stammer-Wunsch-Giering-et-al-2003:volume}.  We will use the
+% % quality-controlled data stream which is already employed in the GFDL
+% % 3D-VAR and sequential optimal filter assimilation techniques
+% % \citep{Zhang-Harrison-Wittenberg-et-al-2005:tropical,
+% %   Zhang-Harrison-Rosati-et-al-2007:system}.  Within the cost function,
+% % each data of a given type (e.g., the full suite of satellite and
+% % in-situ observations mentioned above) needs to be weighted based on
+% % its error covariance and one needs to exercise care when weighting
+% % different types of data relative to each other.  These issues have
+% % been considered in the context of 4D-VAR by
+% % \citet{Tziperman-Thacker-Long-et-al-1992:oceanic-I,
+% %   Tziperman-Thacker-Long-et-al-1992:oceanic-II}, but here we will
+% % consider whether the weights need to changed for the goal of
+% % prediction rather than reanalysis.
+
+% \subsection{Statistical atmospheric model and ocean surface boundary
+%   conditions}
+% \label{sec:atmosph-model-initialization}
+
+% % The assimilation algorithm uses the adjoint model to calculate the
+% % gradient of the cost function with respect to the ``control
+% % variables,'' which are the model initial conditions and adjustable
+% % parameters.  Because of the chaotic nature of the synoptic scale
+% % atmospheric circulation and corresponding exponential sensitivity to
+% % initial conditions, an adjoint of the atmospheric model is unstable
+% % (see Introduction), making it impossible to use an atmospheric GCM in
+% % the assimilation phase.  To be faithful to the physics of ENSO,
+% % minimize the coupling shock, and avoid artificial adjustment of
+% % atmospheric forcing fields, the coupled dynamics must be represented
+% % in the assimilation phase.
+
+% % We will therefore use a statistical atmospheric model representing the
+% % response of atmospheric winds and air-sea fluxes to the surface
+% % temperature.  This model does not represent synoptic scale motions
+% % which destabilize the adjoint, but it does capture the large-scale
+% % atmospheric dynamics that give rise to ENSO.  The adjoint of the
+% % hybrid coupled model is stable, so that unlike the full atmospheric
+% % GCM, it may be used during the 4D-VAR assimilation.  Over long
+% % timescales such as decades, even the hybrid, coupled model may have an
+% % unstable adjoint, but at the timescales necessary for initialization
+% % (less than 2 years), this is not a problem
+% % \citep{Gebbie-Heimbach-Wunsch-2006:strategies}.  After initialization,
+% % the actual ENSO prediction will be carried out using the fully coupled
+% % ocean-atmosphere GCM (CM 2.1).
+
+% % The statistical atmospheric model to be used for the tropical Pacific
+% % is based on those of \citet{Syu-Neelin-Gutzler-1995:seasonal} and
+% % \citet{Harrison-Rosati-Soden-et-al-2002:evaluation}.  The hybrid
+% % coupled model represents atmospheric feedbacks and therefore should
+% % help reduce initialization shock upon coupling.  However, the
+% % simplicity of the statistical atmosphere could lead to undesired
+% % biases, so we will need to examine the advantages and disadvantages of
+% % using it for the initialization phase.  We will also compare the
+% % results to simpler ways of treating the ocean surface boundary
+% % conditions during the development stage of the 4D-VAR system.  The
+% % first option is to prescribe surface ocean temperature, salinity and
+% % winds, via simple surface restoring terms.  The second possibility is
+% % to use surface fluxes of heat and fresh water, as well as surface
+% % winds, possibly supplemented by weak restoring terms as well.  We have
+% % already developed and used all of these options and will test them for
+% % best performance, as measured by the resulting prediction skill,
+% % during the proposed work.
+
+% % \begin{figure}[!thb]
+% %   %\includegraphics[width=5.5in]{Figures/4dvar_forecast.pdf}
+% %   \caption{Schematic of the 4D-VAR forecast system proceeding through
+% %     time from left to right.  In the ``assimilation window'', the
+% %     state (e.g.~ temperature, solid black line) is estimated by
+% %     finding the model initial conditions which best fits the
+% %     observations (X's).  Note that both the observations and model
+% %     have errors, and thus the state estimate does not necessarily fit
+% %     the data perfectly.  A forecast is made (red line) by running the
+% %     fully coupled model forward in time.  It is also possible to make
+% %     ensemble forecasts by perturbing the atmospheric state (thin black
+% %     lines).}
+% %   \label{fig:4dvar_forecast}
+% % \end{figure}
+
+
+% \subsection{Finding and understanding the optimal assimilation window}
+% \label{sec:optimizing-init-window}
+
+% \textbf{Technical scope:} A schematic of the 4D-VAR forecast system is
+% shown in Figure \ref{fig:4dvar_forecast}.  The 4D-VAR system uses a
+% finite time window of observations to initialize the forecast, while a
+% 3D-VAR system only uses observations at a single time at each
+% application of the method.  The assimilation window length controls
+% the degree to which the raw observations and model dynamics affect the
+% calculated initial conditions, and an optimal window length for ENSO
+% initialization must be long enough to capture ocean dynamics, but not
+% so long that the constraints of the most-recent observations are
+% weakened.  A number of forecasts will be made with different
+% initialization windows in the range of 3-12 months, based on the
+% preliminary experience of
+% \citet{Galanti-Tziperman-Harrison-et-al-2003:study}.
+
+% \textbf{Dynamical analysis:} Once the optimal assimilation window has
+% been identified, we will compare it with a sub-optimal (say longer)
+% assimilation window.  We will plot the difference between the model
+% simulations initialized with the two different initial conditions,
+% project this difference on equatorial wave modes, and attempt to
+% understand what led to the deterioration of prediction skill in the
+% initial conditions based on the sub-optimal assimilation window.
+% Specifically, which wave modes are excited or not excited by the
+% optimal vs sub optimal assimilation window length, and what effect do
+% these waves have on the consequent prediction?  This analysis is
+% similar to the one to be used to study the dynamics of the
+% initialization shock, and has proved most valuable in previous studies
+% of ENSO dynamics carried by the PIs and many others.
+
+
+% % \subsection{Retrospective forecasts, ENSO prediction skill}
+% % \label{sec:retrospective-forec}
+
+% % Once the assimilation and forecast system has been optimized,
+% % retrospective forecasts will be performed with 25 years of historical
+% % data.  We will initialize forecasts in both January and July for each
+% % year, for a total of 50 forecast experiments.  ENSO prediction skill
+% % will be analyzed with standard measures of prediction, such the
+% % standard deviation of error and the correlation coefficient between
+% % prediction and observations, as was done, for example, by
+% % \citet{Landsea-Knaff-2000:how}.  In addition, it is worth considering
+% % other measures of prediction skill, such as those based on information
+% % theory \citep[e.g.,][]{Tang-Kleeman-Moore-2008:comparison}, an
+% % engineering viewpoint
+% % \citep[e.g.,][]{Schneider-Griffies-1999:conceptual}, and those which
+% % are probabilistic \citep[e.g.,][]{Griffies-Bryan-1997:predictability,
+% %   Tippett-Chang-2003:some}.  Another issue is to separate the skill of
+% % the model for El Ni\~no, La Ni\~na, and neutral conditions, as the
+% % model may be very good in some of the cases, but not all.
+
+% % An example of these different skill measures is reproduced from
+% % \citet{Gebbie-Tziperman-2009:incorporating} in Figure
+% % \ref{fig:all_prediction_stats}.  In that particular case, the focus
+% % was to determine the impact of westerly wind bursts on ENSO prediction
+% % skill.  Skill measures were grouped by type of event, month of
+% % initialization, and by root mean square (RMS) versus anomaly
+% % correlation.  These different measures are
+% % critical to discovering the mechanisms behind the predictability of
+% % ENSO and understanding why forecast improvement has been stalled. 
+
+% % \begin{figure}[!thb]
+% %   %\includegraphics[width=6.0in]{Figures/all_prediction_stats.pdf}
+% %   \caption{Examples of measures of ENSO prediction skill used by
+% %     \citet{Gebbie-Tziperman-2009:incorporating}.  In this case the
+% %     measures have been used to study the effects of a westerly wind
+% %     burst parameterization.  The upper four panels show the RMS errors
+% %     for a prediction of the NINO 3.4 index ($^\circ$C) relative to
+% %     persistence (dash), and based on the hybrid coupled model with
+% %     (red) and without (black) the WWB model.  The RMS is shown
+% %     averaged over (a) all January initializations, (b) all July
+% %     initializations, (c) over \elnino{} years and (d) \lanina{} years.
+% %     The lower four panels show the anomaly correlations for the same
+% %     cases.}
+% %   \label{fig:all_prediction_stats}
+% % \end{figure}
+
+
+% % \subsection{Dynamics of initialization and coupling shocks}
+% % \label{sec:dynamics-coupling-shocks}
+
+% % Initialization shocks result from inconsistencies between the initial
+% % state and the model dynamics, even if the initial state is completely
+% % consistent with observations.  It is well known that the adjoint
+% % method leads to a reduction of these shocks, hence its successful
+% % usage in operational weather forecasting.  But there are no studies in
+% % the context of ENSO exploring the physical mechanism of these shocks
+% % and how they are reduced by 4D-VAR data assimilation.
+
+% % We will initialize our model both using the output of a 3D-VAR scheme
+% % (using one of the available products mentioned above) and using our
+% % own 4D-VAR scheme, and examine the difference in the simulation by
+% % projecting it on equatorial wave modes.  The hope is to identify a
+% % \textit{fast manifold} and a \textit{slow manifold}, similar to the
+% % well studied case in weather forecasting.  The fast manifold could
+% % correspond to either equatorial Poincare modes, equatorial Kelvin or
+% % Yanai waves, or perhaps rapid barotropic ocean modes excited by the
+% % inconsistency between the coupled model dynamics and the initial
+% % state.  Such an identification of a fast manifold that deteriorates
+% % the prediction skill will both help our understanding of the dynamics
+% % and be informative in our attempt to improve the ENSO prediction
+% % skill.
+
+
+% % \subsection{Decadal change scenarios}
+% % \label{sec:global-warming}
+
+% % Our longer term goals, to be reached in the fourth year of the
+% % project, include two more elements that are both examples of open and
+% % interesting scientific problems that will become accessible to
+% % analysis once the basic 4D-VAR machinery has been developed.
+% % \textbf{First} is a study of decadal variability of ENSO
+% % predictability.  The stability of the coupled tropical Pacific climate
+% % system has been suggested to vary in time
+% % \citep[e.g.,][]{Yeh-Kirtman-2005:pacific, Yeh-Kirtman-2004:tropical}.
+% % Specifically, the dynamical regime of ENSO may vary on a decadal scale
+% % \citep[e.g.,][]{Burgman-Schopf-Kirtman-2008:decadal,
+% %   Kirtman-Schopf-1998:decadal}, perhaps between self-sustained and
+% % chaotic \citep{Tziperman-Cane-Zebiak-1995:irregularity,
+% %   Tziperman-Stone-Cane-et-al-1994:el, Jin-Neelin-Ghil-1994:enso} on
+% % the one hand, to damped and stochastically driven
+% % \citep{Penland-Sardeshmukh-1995:optimal, Kleeman-Moore-1997:theory} on
+% % the other.  We can explore this issue by comparing retrospective ENSO
+% predictions based on 4D-VAR grouped into different decades.
+% \textbf{Second}, we would like to look at the changes to ENSO
+% predictability during the noted changes in ENSO dynamics over the past
+% few decades.  The intensity in central Pacific El Ni\~no events has
+% increased at the expense of the canonical eastern Pacific-type event
+% \citep[e.g.,][]{Lee-McPhaden-2010:Increasing,Takahashi-Montecinos-2011:ENSO},
+% with unknown implications for forecast skill. We suggest that models
+% may be tuned to the wrong type of event, leading to a loss of skill
+% when attempting to predict ENSO in the 21st Century.
+
+\section{Deliverables}
+\label{sec:deliverables}
+
+The project aims to deliver improved estimates of temperature trends and to provide guidance in improving the ECCO reanalyses for future estimates. We also propose to extend the timeseries of ocean heat content and ocean mass content over the time interval of the ECCO reanalyses. 
+The indices will be decomposed into upper ($<700$ m), mid-depth ($700-2000$ m), and deep ($>2000$ m) layers. In addition, the steric height contributions from these layers will be produced.
+To address the mechanisms responsible for the adjustment of the subsurface ocean, we plan to diagnose the spatial patterns of ocean heat uptake. In particular, we will deliver basinwide-average diagnostics for the Atlantic, Pacific, Indian, and Southern Oceans at the vertical resolution of the ECCO grid. 
+
+%In addition, we will experiment with delivering spatial maps of temperature change on deep-ocean depth levels.
+
+
+%EXTENDED TIMESERIES OF OCEAN HEAT CONTENT AND OCEAN MASS CONTENT, BROKEN INTO THE UPPER AND DEEP OCEAN. IN ADDITION, WE WILL COMPUTE STERIC HEIGHT CONTRIBUTIONS FROM THESE TWO LAYERS.
+
+%TO ADDRESS THE 
+
+% The first expected deliverables are the scientific results in the form
+% of published papers that address the open scientific issues in ENSO
+% dynamics and data assimilation research discussed above that are a
+% integral part of the proposed effort.  In addition, the deliverables
+% to be produced by the proposed study will include a state-of-the-art
+% 4D-VAR variational assimilation system for the GFDL CM2.1 coupled
+% ocean-atmosphere model, based on the adjoint of the GFDL hybrid,
+% coupled model (including the MOM4 ocean model), for the prediction of
+% ENSO and its impact on global climate.  We will make the adjoint-based
+% initialization system available to the wider community and in
+% particular to operational centers for ENSO forecasting, in the hope
+% that it leads to an improved ENSO forecast (as it has for weather
+% prediction based on the ECMWF experience).  This deliverable is
+% especially relevant given that this same coupled model has already
+% been tested for routine operational ENSO prediction by the
+% International Research Institute (IRI) at Lamont-Doherty Earth
+% Observatory, and different versions of the GFDL coupled model have
+% also been used by the National Centers for Environmental Prediction
+% (NCEP) for operational ENSO prediction.  The dissemination will be
+% made via the WHOI public download site.
+
+
+\section{Project participants and resources}
+\label{sec:proj-management}
+
+The Principal Investigator is familiar with the ECCO reanalysis products through Ph.D. research on regional data assimilation with the MITgcm \citep{Gebbie-Heimbach-2006:Strategies}. This regional state estimate was used to decompose subduction in the North Atlantic subtropical gyre into largescale and mesoscale eddy components \citep{Gebbie--2007:Does}. While understanding the strengths and weaknesses of the algorithms used by the ECCO Consortium, the PI approaches this project as a end user who was not involved in the production of the reanalyses. This unique perspective would permit stringent, independent tests to be conducted on the ECCO suite of products. The PI will manage and work closely with a WHOI programmer and incoming MIT/WHOI Joint Program graduate student in order to complete the necessary technical work in the allotted time. The graduate student is envisioned to undertake the dynamical analysis of the ECCO reanalysis through diagnostics and offline simulations of the MITgcm. The interpretation and publication of the results will be carried out by the entire group.
+
+% PI Geoffrey Gebbie and co-I
+% Eli Tziperman have extensive experience working together for over 5
+% years, and also will continue to collaborate with the JPL ocean
+% circulation group, including Dr. Tong (Tony) Lee and the group head,
+% Ichiro Fukumori (both no-cost collaborators in this project).
+% Together, we form a balanced group that enables us to examine both
+% theoretical and modeling issues that may arise during the project, and
+% we have relevant experience in many areas of oceanography, coupled
+% ocean-atmosphere dynamics, and ENSO and the tropical Pacific region,
+% in particular.  Specifically, the JPL group is already running the
+% GFDL coupled model CM2.1 to be used for this project in a
+% seasonal-to-interannual prediction mode.  The JPL collaborators and
+% WHOI/Harvard PIs have significant experience collaborating on projects
+% related to the current proposal.
+
+% We have made a significant effort to coordinate this project between
+% all participants.  The timetable for the proposed work has been
+% planned between WHOI and Harvard PIs based on experience from our
+% continuing collaboration and is indicated in Table
+% \ref{table:time-table}.  The oversight of the technical plan to
+% incorporate the MOM4 adjoint into an assimilation and ENSO prediction
+% system will be done by the PI Geoffrey Gebbie, working in concert with
+% Harvard co-PI.  In particular, PI Gebbie will manage and work closely
+% with a WHOI programmer in order to make it feasible to complete the
+% necessary technical work in the allotted time.  The interpretation of
+% the results will be carried out by the entire group.  The WHOI and
+% Harvard PIs will continue to meet regularly on a monthly basis or more
+% often, and even more frequently during critical phases.
+
+
+This project will leverage the WHOI Climate Initiative that includes multiple climate scientists and community computational resources. The computational requirements of this project are satisfied through in-house resources at WHOI. The Poseidon Linux supercomputer at WHOI has 1440 Intel Skylake cores and 192 GB of RAM per node. Following the benchmarks published by the ECCO Consortium \citep{Forget-Campin-2015:ECCO}, a 20-year offline integration of the MIT GCM with ECCO forcing fields takes approximately 9 wall-clock hours on 96 processors.
+
+%Our no-cost JPL collaborators contribute significant experience in
+%data assimilation, in running the GFDL coupled model for ENSO
+%prediction and more, and will be consulted regularly.
+%
+% Finally, we have been in touch with Dr.~Tony Rosati from GFDL and he
+% expressed interest in following our progress.  GFDL has done
+% retrospective forecasts from 1980 to the present for all months using
+% the GFDL coupled model Ensemble Kalman filter.  Dr.~Rosati expressed
+% interest in making a comparison of the results of these two different
+% assimilation techniques based on the same model and data, as well as
+% in comparing different predictability statistics.  We are very
+% interested in maintaining this strong link to GFDL and see this as one
+% of our priorities.
+
+\newpage
+\subsection{Project milestones}
+
+% In addition to the applied assimilation research, a number of
+% potentially complex \textit{scientific and dynamical problems} will be
+% addressed in this study (section \ref{sec:basic-vs-applied} and below)
+% and are further discussed in the detailed work plan below.
+
+% In summary, the focus of the proposed research is to address the
+% relevant open scientific issues in climate dynamics and data
+% assimilation required to attempt, for the first time, to use the
+% 4D-VAR (adjoint) assimilation method for initializing ENSO predictions
+% with a latest-generation coupled ocean-atmosphere GCM.  The
+% anticipated result is an ENSO forecast initialization scheme that is
+% dynamically balanced throughout the atmosphere-ocean system, a
+% potential avenue to improve prediction skill.
+
+%The different stages of the proposed research are summarized in the Table, as described in detail in the preceding subsections.
+
+\begin{table}[!h]
+\caption{Key milestones for the proposed project for the following personnel: Principal Investigator (PI), Joint Program graduate student (JP), and computer programmer (CP).}
+\label{table:time-table} 
+\begin{center}
+  \begin{tabular}{llll}
+    \hline
+    Activity   & Section  & Period & Personnel \\
+    \hline
+Configuration of offline MIT GCM               & 4.1  & Year 1 & CP \\
+Diagnosing subsurface heat content from ECCO V4r4  & 4.1  & Year 1 & CP, PI \\
+Forcing analysis of ECCO subsurface trends  & 4.1 & Year 1 & CP, PI \\
+Submit and present forcing analysis of trends & 4.1 & Year 1 & PI \\
+Computation of ECCO boundary Green's functions & 4.2 & Year 2 & JP, CP \\
+Observational-constraint analysis of ECCO subsurface trends  & 4.2 & Year 2 & JP, PI \\
+Comparison of ECCO to GRACE, altimetry, and Argo data & 4.2 & Year 3 & JP, PI\\
+Comparison of ECCO and paleo-derived long-term trends & 4.3 & Year 3 & JP, PI \\
+Submit and present comparison analysis &   4.3  & Year 3 & JP, PI 
+    % Initializing with reanalysis products  & \ref{sec:init-with-reanalysis}             & Year 1 \\
+    % Satellite and in-situ observational constraints & \ref{sec:optimization-of-data-to-use}  & Year 2 \\
+    % Surface fluxes vs. statistical atm model& \ref{sec:atmosph-model-initialization}    & Year 2 \\
+    % Optimization of assimilation window    & \ref{sec:optimizing-init-window}           & Year 3 \\
+    % Retrospective forecasts for 1980-2005  & \ref{sec:retrospective-forec}              & Year 3 \\
+    % Dynamics of coupling shocks            & \ref{sec:dynamics-coupling-shocks}         & Year 4 \\
+    % Decadal change scenarios               & \ref{sec:global-warming}                   & Year 4 \\
+    % Outreach to Operational Centers        & \ref{sec:deliverables}                     & Year 4 \\
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\section{Data management plan}
+
+Our first objective is to ensure that during the project there is maintenance of adequate backups to insure against hardware failure or human error. During the course of the project, the interim working data sets, model forcing and configuration files and software will be stored and regularly backed up on computer systems at WHOI. The PI operates a RAID system for data storage and supports a computer technician, Ben Greenwood, who provides support for data management, software version control, and other related issues.
+
+% A publicly open Concurrent Version System (CVS) repository has been
+% created for the adjoint and tangent-linear branch at GFDL, which is
+% now also available to the wider community via the GFDL CVS tree. We
+% plan to use the same dissemination approach with our proposed research
+% so that the wider community can download and use the 4D-VAR
+% assimilation system as soon as it is developed. All software developed
+% as part of this project will be distributed under an open source
+% software license. Our team uses modern practices for development of
+% software including version control, testing of codes, support for
+% multiple platforms, and documentation.
+\section{Discussion}
+\label{sec:discussion}
+
+\begin{figure}%[htbp]
+\begin{center}
+%\includegraphics[scale=3]{figures/Palmer-fig13-mean-cropped.png}
+\caption{{\bf Depth-integrated temperature trend over 700-6000 meters depth for the interval, $1970-2009$, reproduced from Figure 13 of \citet{Palmer-Roberts-2017:Ocean}.} The result is calculated from an ensemble mean of ocean reanalysis products. The resulting units are kelvin meters per year and the colorscale saturates at $\pm 10$K*m/yr. Red indicates warming and blue indicates cooling.}
+\end{center} 
+\end{figure}
+
+WHY ARE THERE DIFFERENCES FROM GH19?
+WEAKNESSES IN GH19. Implicit in the \citet{Gebbie-Huybers-2019:Little}
+simulation is that temperature anomalies are transported according to
+a statistically-steady ocean circulation. Estimates of circulation
+strength over the Common Era, however, suggest variations by as much
+as $\pm 25\%$ for components of the Atlantic circulation
+\citep{Lund-Lynch-Stiegl-2006:Gulf,Rahmstorf-Box-2015:Exceptional}. If
+circulation rates are instead modified to covary with surface
+temperature anomalies such that advective and diffusive fluxes are
+changed by $\pm25\%$ in the Little Ice Age relative to the 1990s, the
+magnitude of the results are altered, but not the qualitative
+pattern. In a general circulation model not subject to such simplified
+assumptions, the centennial-scale subsurface temperature response is
+also well approximated by the transport of an unchanging circulation
+\citep{Marshall-Scott-2015:oceans}. Of course, it cannot be excluded
+that changes in deep circulation---for example, in response to altered
+deep water formation rates or winds
+\citep{Kawase--1987:Establishment}---counteract the basic pattern of
+temperature response expected from modern circulation. Only with a
+comparison to data should the simulation be trusted to accurately
+reflect the key dynamical processes.
+
+\subsection{HMS Challenger Observations}
+\label{sec:observations}
+
+Differences in the simulated timing and magnitude of temperature
+trends between the Atlantic and Pacific offer a fingerprint of
+historic changes in surface temperature.  To compare this fingerprint
+against observations, we review the deep-ocean temperature
+measurements from the HMS Challenger expedition at the beginning of
+the instrumental era, $1872-1876$. The data show 0.4$^\circ$C warming
+between the 1870s and 2000s in the upper 500 m of the ocean, tapering
+off to values indistinguishable from zero at 1800 m depth
+\citep{Roemmich-Gould-2012:135}.  Additional Challenger observations
+were recently quality-controlled, giving 5010 temperature observations
+including 4081 below the mixed layer and 760 observations from deeper
+than 2000 m \citep{Gebbie-Huybers-2019:Little}. The deeper data
+indicate basin-wide warming to 2800 m depth in the Atlantic that is
+significant at the 95\% confidence level when accounting for
+contamination by internal waves, mesoscale eddies, and wind
+variability (Figure 2). UPDATE THIS FIGURE TO HAVE ARGO, ECCO
+VALUES. In the deep Pacific, statisically-significant basinwide
+cooling of $0.1^\circ$C per century is found between 1600 and 2800 m
+depth. The basic pattern of Atlantic warming and Pacific cooling
+diagnosed from the observations is consistent with advective-diffusive
+processes.
+
+%\newpage
+\begin{figure}[htbp]
+\begin{center}
+%\includegraphics[scale=0.44]{Figure3.eps} 
+%\noindent
+  \caption{{\bf REMAKE THIS PLOT WITH TEMPERATURE TRENDS INSTEAD OF
+      DTHETA. Vertical profiles of temperature change from the 1870s
+      to the 1990s.} Difference between WOCE (1990s) and Challenger
+    (1870s) temperatures as a function of depth with 95\% confidence
+    intervals averaged over the Pacific (blue) and Atlantic (red).
+    Features of the WOCE$-$Challenger temperature difference are
+    reproduced in a model simulation ({\it dashed curves}) and an
+    inversion constrained by the observations ({\it solid curves}).
+    WOCE$-$Challenger temperature differences are made using a
+    weighted-average that accounts for the covariance of
+    high-frequency variability ({\it markers and error bars with
+      darker colors}) and for a simple average ({\it lighter
+      colors}).}
+%\end{caption}
+\end{center} 
+\end{figure}
+
+The HMS Challenger observations require careful interpretation in
+light of changes in observational techniques and potential
+depth-dependent biases. In particular, the Challenger temperatures
+must be adjusted to be 0.04$^\circ$C cooler per kilometer of depth to
+correct for the effects of compression in 19th-century thermometers
+\citep{Tait--1882:Pressure}.  Another concern is that the rope used
+for measurements may not have payed out entirely in the vertical,
+causing depths to be overestimated. But comparing Challenger reports
+of ocean depth against modern bathymetry
+\citep{Intergovernm--2008:BODC} indicates that, if anything, depths
+are underestimated, possibly because the hemp rope used aboard the
+Challenger stretched.  In light of these concerns, we stress that the
+difference between Atlantic and Pacific trends is particularly
+diagnostic because it is insensitive to choices regarding
+depth-dependent bias corrections.  The greater warming in the Atlantic
+relative to the Pacific is not subject to such errors and is highly
+significant around 2000 meters depth. The spatial pattern of the
+Challenger data is also strikingly similar to the independent
+information already presented from paleoceanographic constraints and
+advective-diffusive dynamics (Figure~3). THERE IS A DATA QUESTION
+HERE: DOES ECCO REPRODUCE THE REPEAT HYDROGRAPHY? IS THIS PAPER A
+DYNAMICAL EXPLORATION OR A DATA-MODEL COMPARISON?
+
+\begin{figure}[htbp]
+\label{fig:model_data}
+\begin{center}
+%\includegraphics[scale=0.62]{Figure2.eps} 
+\caption{{\bf Observed and simulated subsurface ocean temperature changes.} Observed ocean temperature changes are diagnosed by differencing WOCE and Challenger temperature measurements. WOCE temperatures are linearly interpolated to the location of Challenger temperatures, and differences are plotted after averaging between $1800-2600$ m depth (colored markers).  Simulated temperature changes for the same depth interval are diagnosed from OPT-0015. Color scaling is equivalent for observed and simulated temperature changes.}
+\end{center} 
+\end{figure}
+
+\subsection{Implications}
+\label{sec:implications}
+
+The impact of this study is potentially large, as the mid-depth
+Pacific temperature trends of \citet{Gebbie-Huybers-2019:Little} would
+require a 35\% revision to Earth's overall heat budget over the 20th
+Century. If the signal is corroborated by state-of-the-art ocean
+reanalyses, it will be the clearest demonstration of how climate over
+the last few centuries has modern-day implications. This proposal
+responds to focus \#1 of the Physical Oceanography program, the
+analysis of satellite and in-situ data and the ECCO reanalyses. In
+particular, we will aim to put the mid-depth ocean as reconstructed by
+the ECCO reanalyses into context. These disparate datasets
+independently show promise for constraining the mid-depth heat budget,
+an underappreciated process of global climate relevance.
+
+The pursuit of the scientific questions posed in this project will
+pose stringent tests on the ECCO reanalysis machinery. This project
+will highlight that the ECCO reanalyses are uniquely positioned to
+take satellite and in-situ data and to produce estimates of integral
+quantities. It is also likely that shortcomings in the deep
+circulation estimated by ECCO will be documented, leading to
+improvement in future ECCO versions. Next we document the major
+sources of information for the project.
+
+Satellite-based studies normally are restricted to the recent era when
+satellites were operational, but we expect that the deep ocean is
+undergoing slow adjustments on decadal and longer time periods. We aim
+to use the combination of satellites and in-situ data to see if these
+low frequency motions are detectable. If so, it would be a
+demonstration that satellite information is useful to address climatic
+problems on timescales that stretch back before the satellite era.
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+\subsection{Data availability}
+\label{sec:data-availability}
+
+For climate assimilation output that cannot be handled by national data
+archives, we intend to use archive resources available at the Woods
+Hole Oceanographic Institution. The Data Library and Archives (DLA) at
+WHOI is part of the joint library system jointly supported by the
+Marine Biological Laboratory (MBL). The mission of the DLA is to serve
+the Woods Hole scientific community, including those individuals
+directly affiliated with the Woods Hole Oceanographic Institution,
+Marine Biological Laboratory, National Marine Fisheries Service,
+U. S. Geological Survey, and National Deep Submergence Facility.
+Pre-computed quantities for end users are regularly updated at the PI's website.
+
+\cite[e.g.,][]{Gebbie--2019:Atlantica}
+\cite[]{Dickson--1995:XX}1
+
+\clearpage
+\newpage
+\addcontentsline{toc}{section}{8\ \ \ References}
+\footnotesize
+\addtocounter{section}{1}
+
+\bibliographystyle{ametsoc2014}
+\bibliography{ECCOtrendz}%,mypapers,mymisc,mychapters,myproceedings}
+\end{document}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
