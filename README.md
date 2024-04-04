@@ -33,6 +33,17 @@ Backspace to leave shell \
 # Directory structure
 - `scripts`: production-ready scripts (may require updating)
 - `src`: definitions of *poseidon-specific* variables and functions (other variables and functions belong in `ECCOtour.jl`)
+- `papers`: manuscripts
+
+Note that some manuscripts can originate from Overleaf. 
+Overleaf manuscripts are included here in git submodules that have been added with `git submodule add`. To extract these fiels, use the following git command:
+
+`git submodule update --init`
+
+In emacs/magit, use
+`o p` (`magit-submodule-populate`).
+
+Overleaf credentials encoded in the `.gitmodules` file may have to be updated to your own persona and you must have independent rights to access the Overleaf repository.
 
 # Running scripts
 
