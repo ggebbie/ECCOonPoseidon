@@ -4,7 +4,7 @@
 # 3. save to self-describing file.
 # 4. repeat with all fields.
 
-include("../src/intro.jl")
+include("../../src/intro.jl")
 
 using Revise
 using ECCOtour, ECCOonPoseidon
@@ -19,8 +19,15 @@ include(srcdir("config_exp.jl"))
 include(srcdir("config_regularpoles.jl"))
 tt = 0
 
+println("number of threads ",Threads.nthreads())
+
+# NetCDF is not thread-safe
+OI_lock = ReentrantLock()
+
 # Froot= Frootlist[1] # for interactive use
-for Froot in Frootlist
+Threads.@threads for Froot in Frootlist
+
+    println("Froot ", Froot, "\t Thread ID: ", Threads.threadid())
 
     filelist = searchdir(diagpath,Froot)
     filelist = searchdir(diagpath,Froot) 
@@ -28,7 +35,8 @@ for Froot in Frootlist
 
     global tt = 0
 
-    Threads.@threads for Fname in datafilelist
+    for Fname in datafilelist
+
         global tt += 1
         println("filename ",Fname)
 
@@ -45,9 +53,21 @@ for Froot in Frootlist
         filein = Fname[1:end-5]
         pathin = diagpath
 
-        @time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+        #@time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+        @time varsregpoles = regularpoles(pathin,filein,γ,rp_params)
 
-        @time writeregularpoles(varsregpoles,γ,pathout,filesuffix,filelog,λC,lonatts,ϕC,latatts,z,depthatts)
+        #@time writeregularpoles(varsregpoles,γ,pathout,filesuffix,filelog,λC,lonatts,ϕC,latatts,z,depthatts)
+        # write to NetCDF (not thread safe)
+        lock(OI_lock) do
+            @time ECCOtour.write(varsregpoles,
+                rp_params,
+                γ,
+                pathout,
+                filesuffix,
+                filelog,
+                gridatts)
+            #ncsla[:,:,n] = fi
+        end
 
     end
 end
