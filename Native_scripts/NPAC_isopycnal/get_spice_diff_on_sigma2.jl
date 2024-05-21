@@ -16,13 +16,12 @@ runpath,diagpath = listexperiments(exprootdir());
 tecco= 1992+1/24:1/12:2018 # ecco years
 E,F = trend_matrices(tecco)
 
-sig2grid = sigma2grid("NPAC")
-nσ = length(sig2grid)
+sig1grid = ECCOtour.sigma2grid()
+nσ = length(sig1grid)
 # σlvls = findall( σtop .<= sig1grid .<= σbot)
 
 θ_dict = Dict(); z_dict = Dict(); θσ_dict = Dict()
-vars = ["iter0_bulkformula", "iter129_bulkformula", "only_buoyancy", 
-"only_init", "only_kappa", "only_wind"]
+vars = ["iter0_bulkformula", "iter129_bulkformula"]
 
 for expname in vars
     Pσ = jldopen(datadir(expname * region * "_AVG_P_sigma2.jld2"))["P"]

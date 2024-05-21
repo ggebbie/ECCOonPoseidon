@@ -11,7 +11,6 @@ using ECCOtour, ECCOonPoseidon, PyCall
 sig2dirs = Dict()
 sig2dirs["iter0_bulkformula"] = vastrundir("iter0_bulkformula")*"sigma2/"
 sig2dirs["iter129_bulkformula"] = vastrundir("iter129_bulkformula")*"sigma2/"
-
 sig2dirs["only_init"] = vastrundir("nosfcadjust_exps", "run_adjust_init")*"sigma2/"
 sig2dirs["only_kappa"] = vastrundir("nosfcadjust_exps", "run_adjust_kappa")*"sigma2/"
 sig2dirs["only_sfc"] = vastrundir("nooceanadjust", "run_noadjusts")*"sigma2/"
@@ -31,11 +30,11 @@ sig2grid = ECCOtour.sigma2grid()
 TSroot = "state_3d_set1" # 1: θ, 2: S
 # RProot = ("trsp_3d_set2","trsp_3d_set3") # uvel, vvel, gm psix, gm psiy, rhoanoma, phihyd
 
-splorder = 3 # spline order
+splorder = 1 # spline order
 
 include(srcdir("plot_and_dir_config.jl"))
 searchdir(diagpath["iter129_bulkformula"],TSroot)
-for expt in keys(sig2dirs)
+for expt in ["iter129_bulkformula", "iter0_bulkformula"]
     # first filter for state_3d_set1
     filelist = searchdir(diagpath[expt],TSroot)
 

@@ -55,22 +55,30 @@ end
 using NLsolve, LsqFit
 
 expnams = ["only_init", "only_wind", "only_kappa"]
-coefs = zeros(3, 5)
+coefs = zeros(3, 3)
+
+tecco[2] - tecco[1]
 fits = []
 for (i, expt) in enumerate(expnams)
     data = low_pass(adjust_exps[expt])
     std_var = std(1  .* data)
     data = data ./ std_var
+    dt_data = (data[2] - data[1]) ./ 12; data_0 = data[1]
     t = collect(0:(length(data) - 1)) ./ 12
-    lb = [-Inf, -Inf, -Inf, -Inf, -Inf]
-    ub = [0, Inf, Inf, Inf, Inf]
+    lb = [-Inf, -Inf, -Inf]
+    ub = [0, Inf, Inf]
+    function model(x, p)
+        Ω = p[2]^2 - p[1]^2
+        prefac = inv(Ω) .* exp.(p[1])
+        a1 = data_0 .* Ω .* cos.(Ω .* t)
+        a2 = (dt_data + (p[1] * data_0)) .* sin.(Ω .* t)
 
-    # model(x, p) = p[4] .* exp.(p[1] .* x) .* cos.((x .* p[2]) .+ p[3]) .+ p[5]
-    
-    fit = curve_fit(model, t, data, [-0.01, 0.1, 0.1, 0.0, 0.001], lower=lb, upper=ub)
+        return prefac .* (a1 .+ a2) .+ p[3]
+    end    
+    fit = curve_fit(model, t, data, [-0.01, 0.001, 0.1], lower=lb, upper=ub)
     coefs[i, :] = fit.param
-    coefs[i, 4] = coefs[i, 4] .* std_var
-    coefs[i, end] = coefs[i, 5] .* std_var
+    println(fit.converged)
+    # coefs[i, 4] = coefs[i, 4] .* std_var
     push!(fits, fit)
 end
 coefs[:, 3] .= sign.(coefs[:, 2]) .* coefs[:, 3]
@@ -124,6 +132,7 @@ fig.subplots_adjust(hspace = 0.0, wspace = 0.27)
 axs[1].set_title("Projected Response of Mid-Depth North Pacific \n Temperature to ECCO Control Adjustments")
 axs[end].set_xlabel("Years since 1992")
 fig
+fig.savefig(plotsdir("native/paper_figures/Δθ_oscillator.png"), bbox_inches = "tight", dpi = 400)
 
 P = inv.(coefs[:, 2]) .* 2π #period of oscillation
 

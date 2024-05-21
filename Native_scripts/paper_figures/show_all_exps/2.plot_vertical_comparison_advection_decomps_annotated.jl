@@ -72,6 +72,7 @@ ax[1].set_title("Decomposition of Bottom Boundary\n Advective Heat Flux Response
 ax[2].set_title("Decomposition of Upper Boundary\nAdvective Heat Flux Response to Optimization\n" * L"\Delta\mathbf{A}_{\mathcal{U}}")
 fig
 var_name = [L"\mathbf{A}^\mathcal{B}", L"\mathbf{A}^\mathcal{U}"]
+MAE(x, y) = mean(abs.(y .- x))
 for (i, axs) in enumerate(ax)
     wθ_resid = wθ_resid_list[i]
     Δwθ = Δwθ_list[i]
@@ -99,10 +100,15 @@ for (i, axs) in enumerate(ax)
     axs.axhline(0, c = "k", linestyle = "--", alpha = 0.2)
     axs.grid()
     leg = axs.legend(frameon = false, ncols = 1, loc = "lower left", fontsize=12)
-
+    println("Var. Explained")
     println(var_explained(ΔA, ΔA_Δw))
     println(var_explained(ΔA, ΔA_Δθ))
     println(var_explained(ΔA, ΔA_Δw_Δθ))
+
+    println("MAE")
+    println(MAE(ΔA, ΔA_Δw))
+    println(MAE(ΔA, ΔA_Δθ))
+    println(MAE(ΔA, ΔA_Δw_Δθ))
 end
 ax[1].set_ylabel("[cK]", fontweight = "bold")
 fig_labs = uppercase.(["a", "b", "c", "d", "e", "f"])

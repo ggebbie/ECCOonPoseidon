@@ -128,10 +128,10 @@ extra_char = [L"^{\mathcal{U}}", L"^{\mathcal{B}}"]
 # end
 
 fig
-ax[3, 1].spines["bottom"].set_visible(true)
-ax[3, 2].spines["bottom"].set_visible(true)
-ax[3, 1].set_xticks(collect(1993:4:2017))
-ax[3, 2].set_xticks(collect(1993:4:2017))
+# ax[3, 1].spines["bottom"].set_visible(true)
+# ax[3, 2].spines["bottom"].set_visible(true)
+# ax[3, 1].set_xticks(collect(1993:4:2017))
+# ax[3, 2].set_xticks(collect(1993:4:2017))
 
 
 fig.subplots_adjust(hspace = 0.0, wspace = 0.27)
@@ -143,7 +143,7 @@ fig.savefig(plotsdir("native/paper_figures/ΔW_full_faces.png"), bbox_inches = "
 [WBol[expt] .-= WBol["iter0_bulkformula"] for expt in effect_exp]
 
 vars =  ["only_wind", "only_init", "only_kappa"]
-fig, ax = plt.subplots(3, 2, figsize = (15, 15))
+fig, ax = plt.subplots(3, 2, figsize = (17, 15), sharex = true)
 for (i, expname) in enumerate(vars)
     We = 1e-6 .* WEul[expname][1, :][:]
     Wb = 1e-6 .* WBol[expname][1, :][:]
@@ -159,8 +159,8 @@ for (i, expname) in enumerate(vars)
     linewidth = lw, color = exp_colors[expname])
 
     ax[i, 1].spines["top"].set_visible(false)
-    ax[i, 1].spines["bottom"].set_visible(false)
-    ax[i, 1].set_xticks([])
+    # ax[i, 1].spines["bottom"].set_visible(false)
+    # ax[i, 1].set_xticks([])
 
     We = 1e-6 .* WEul[expname][2, :][:]
     Wb = 1e-6 .* WBol[expname][2, :][:]
@@ -175,12 +175,12 @@ for (i, expname) in enumerate(vars)
     ax[i, 2].plot(tecco, Wres, label = L"W_{res}' |_{z = 3000}", 
     linewidth = lw, color = exp_colors[expname])
     ax[i, 2].spines["top"].set_visible(false)
-    ax[i, 2].spines["bottom"].set_visible(false)
+    # ax[i, 2].spines["bottom"].set_visible(false)
 
-    ax[i, 2].set_xticks([])
+    # ax[i, 2].set_xticks([])
 end
-
-extra_char = [L"^{\mathcal{U}}", L"^{\mathcal{B}}"]
+fig
+extra_char = [L"_{\mathcal{U}}^{res}", L"_{\mathcal{B}}^{res}"]
 for i in 1:2
     ax[2, i].set_ylabel(L"\Delta \mathcal{W}" * extra_char[i] *" [Sv]"); ax[2, i].set_ylim(-3.0, 3.0)
     ax[2, i].set_yticks(-2:1.0:2)
@@ -189,13 +189,13 @@ for i in 1:2
     ax[1, i].set_ylabel(L"\Delta \mathcal{W}" * extra_char[i] * " [Sv]"); ax[1, i].set_ylim(-3., 3.)
     ax[1, i].set_yticks(-2:1.0:2)
     ax[2, i].annotate("Initial Condition\nAdjustment Response", (0.7, 0.3), fontsize = 15, 
-    xycoords="axes fraction", ha="center", fontweight = "normal", color = exp_colors["only_init"])
+    xycoords="axes fraction", ha="center", fontweight = "bold", color = exp_colors["only_init"])
     
     ax[3, i].annotate("Mixing Parameter\nAdjustment Response", (0.25, 0.1), fontsize = 15, 
-    xycoords="axes fraction", ha="center", fontweight = "normal", color = exp_colors["only_kappa"])
+    xycoords="axes fraction", ha="center", fontweight = "bold", color = exp_colors["only_kappa"])
     
     ax[1, i].annotate("Wind Stress\nAdjustment Response", (0.25, 0.1), fontsize = 15, 
-    xycoords="axes fraction", ha="center", fontweight = "normal", color = exp_colors["only_wind"])
+    xycoords="axes fraction", ha="center", fontweight = "bold", color = exp_colors["only_wind"])
 
     # ax[1, i].set_xticks(collect(1993:4:2017)); ax[1, i].grid(); ax[1, i].set_xticks([])
     # ax[2, i].set_xticks(collect(1993:4:2017)); ax[2, i].grid(); ax[2, i].set_xticks([])
@@ -203,8 +203,11 @@ for i in 1:2
 
 
 end
+[a.grid(alpha = 0.5, linestyle = "--") for a in ax]
 
 fig
+ax[1, 1].spines["top"].set_visible(true)
+ax[1, 2].spines["top"].set_visible(true)
 ax[3, 1].spines["bottom"].set_visible(true)
 ax[3, 2].spines["bottom"].set_visible(true)
 ax[3, 1].set_xticks(collect(1993:4:2017))
@@ -213,4 +216,12 @@ ax[3, 2].set_xticks(collect(1993:4:2017))
 
 fig.subplots_adjust(hspace = 0.0, wspace = 0.27)
 fig
+
+fig_labs = uppercase.(["a", "b", "c", "d", "e", "f"])
+for (i, a) in enumerate(ax[:])
+    a.annotate(fig_labs[i], (0.94, 0.9), fontsize = 25, color = "black", 
+    xycoords="axes fraction", fontweight = "bold")
+end
+fig
+
 fig.savefig(plotsdir("native/paper_figures/ΔW_faces.png"), bbox_inches = "tight", dpi = 400)

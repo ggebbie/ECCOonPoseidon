@@ -4,17 +4,24 @@ include("GH19_helperfuncs.jl")
 using Revise, DrWatson, Statistics,ECCOonPoseidon, 
 NCDatasets, Printf, MeshArrays, MITgcmTools, 
 DataFrames, LaTeXStrings, Distances, JLD2, PyCall, Interpolations
+using TMI
 import PyPlot as plt
 
+using ECCOonPoseidon
 ds_EQ  = NCDataset("/home/ameza/GH19.jl/data/Theta_EQ-0015.nc")
 ds_OPT = NCDataset("/home/ameza/GH19.jl/data/Theta_OPT-0015.nc")
 
+regions = NCDataset("/home/ameza/ECCOonPoseidon/data/regions_180x90.nc")
+
+
 include(srcdir("config_exp.jl"))
+using ECCOonPoseidon
+
 (ϕ,λ) = ECCOonPoseidon.latlonC(γ)
 
 
 region = "PAC"
-PAC_msk = PAC_mask(Γ, basins, basin_list, ϕ, λ; 
+PAC_msk = ECCOonPoseidon.PAC_mask(Γ, basins, basin_list, ϕ, λ; 
 region)
 PAC_msk_arr = convert2array(PAC_msk);
 λ_arr = convert2array(λ);
@@ -43,31 +50,25 @@ LATS = lat .* ones(length(lon))'
 
 #check to see if I am plotting things correctly 
 
+
 fig, ax = plt.subplots()
 ax.contourf(lon, lat, theta_OPT[1, 1, :, :])
 fig
 wet_mask = (!isnan).(theta_OPT[1, :, :, :])
 
-PAC_msk = (-35 .<= LATS .<= 64) .&& (115 .<= LONS .<= 300)
-not_sel2 = Float32.((17 .<= LATS .<= 25) .&& (257 .<= LONS .<= 325)); not_sel2[isone.(not_sel2)] .= NaN
-not_sel = Float32.((0 .<= LATS .<= 60) .&& (280 .<= LONS .<= 325)); not_sel[isone.(not_sel)] .= NaN
-not_sel3 = Float32.((25 .<= LATS .<= 40) .&& (255 .<= LONS .<= 325)); not_sel3[isone.(not_sel3)] .= NaN
-not_sel4 = Float32.((-60 .<= LATS .<= -30) .&& (0 .<= LONS .<= 140)); not_sel4[isone.(not_sel4)] .= NaN
-
-PAC_msk = PAC_msk .+ not_sel .+ not_sel2 .+ not_sel3 .+ not_sel4
+PAC_msk = regions["NPAC"][:, :]' .+  regions["TROPPAC"][:, :]'
 PAC_msk[isnan.(PAC_msk)] .= 0
 
 fig, ax = plt.subplots()
 ax.contourf(lon, lat, theta_OPT[1, 1, :, :] .* PAC_msk)
 fig
-#volumes for each cell. volume = 0 if not in area of interst
 
 volumes = GH19_cell_volumes(depth, lon, lat)
 mask_volume = similar(volumes)
 [mask_volume[k, :, :] .= volumes[k, :, :] .* PAC_msk .* wet_mask[k, :, :] for k = 1:nz]
 
 fig, ax = plt.subplots()
-ax.contourf(lon, lat,  mask_volume[33, :, :])
+ax.contourf(lon, lat,  mask_volume[30, :, :])
 fig
 
 
@@ -76,11 +77,10 @@ fig
 WOCE_times = findall(1872 .< year .< 1876)[1]
 # WOCE_times = findall(1989 .< year .< 2017)[1]
 
-Challenger_times = findall(1989 .< year .< 2017)[end]
+Challenger_times = findall(1989 .< year .< 1993)[end]
 println(year[WOCE_times] - year[Challenger_times] )
 data_labels = ["EQ-0015", "OPT-0015"]
 E,F = ECCOonPoseidon.trend_matrices(year[WOCE_times:Challenger_times])
-
 
 for (i, data) in enumerate([theta_EQ, theta_OPT])
     filled_data = copy(data)

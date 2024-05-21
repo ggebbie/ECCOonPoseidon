@@ -7,7 +7,7 @@ include("../../../src/intro.jl")
 using Revise,ECCOonPoseidon, ECCOtour,
 MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, 
 Printf, LaTeXStrings, PyCall, GibbsSeaWater, Dierckx, Interpolations
-
+import PyPlot as plt
 
 import NaNMath as nm
 @pyimport seaborn as sns
@@ -29,11 +29,10 @@ region, extent = "full")
 cell_depths = get_cell_thickness(PAC_msk, ΔzF, Γ.hFacC); 
 cell_volumes = get_cell_volumes(area, cell_depths);
 
-fname = "/batou/eccodrive/files/Version4/Release4/input_init/xx_kapgm.0000000129.data";
-# fname = "/batou/eccodrive/files/Version4/Release4/input_init/total_kapgm_r009bit11.bin";
+# fname = "/batou/eccodrive/files/Version4/Release4/input_init/xx_kapgm.0000000129.data";
+fname = "/batou/eccodrive/files/Version4/Release4/input_init/total_kapgm_r009bit11.bin";
 
 # fname = "/batou/eccodrive/files/Version4/Release4/input_init/xx_kapredi.0000000129.data";
-
 
 κGM = read_bin(fname,Float32,γ)
 κGM_zonal = zonal_average(κGM, cell_volumes)
@@ -68,3 +67,82 @@ vmin = -0.1, vmax = 0.1)
 fig.colorbar(cb)
 axs.invert_yaxis()
 fig
+
+
+
+
+
+fname1 = "/batou/eccodrive/files/Version4/Release4/input_init/total_kapgm_r009bit11.bin";
+fname2 = "/batou/eccodrive/files/Version4/Release4/input_init/total_diffkr_r009bit11.bin";
+fname3 = "/batou/eccodrive/files/Version4/Release4/input_init/total_kapredi_r009bit11.bin";
+
+
+fig,axs= plt.subplots(1, 3, figsize = (25, 15))
+
+κGM_zonal =  zonal_average(read_bin(fname1,Float32,γ), cell_volumes)
+vmax = nm.maximum(κGM_zonal) 
+ϕ_avg = zonal_average(ϕ, PAC_msk .* area); wherenan = (!isnan).(ϕ_avg .* 1)
+
+cb = axs[1].pcolormesh(ϕ_avg[wherenan], z,  κGM_zonal[:, wherenan], cmap=cmo.delta, 
+vmin = -vmax, vmax = vmax)
+fig.colorbar(cb,ax = axs[1], orientation = "horizontal")
+
+
+κGM_zonal =  zonal_average(read_bin(fname2,Float32,γ), cell_volumes)
+vmax = nm.maximum(κGM_zonal) 
+ϕ_avg = zonal_average(ϕ, PAC_msk .* area); wherenan = (!isnan).(ϕ_avg .* 1)
+
+cb = axs[2].pcolormesh(ϕ_avg[wherenan], z,  κGM_zonal[:, wherenan], cmap=cmo.delta, 
+vmin = -vmax, vmax = vmax)
+fig.colorbar(cb,ax = axs[2], orientation = "horizontal")
+
+
+κGM_zonal =  zonal_average(read_bin(fname3,Float32,γ), cell_volumes)
+vmax = nm.maximum(κGM_zonal) 
+ϕ_avg = zonal_average(ϕ, PAC_msk .* area); wherenan = (!isnan).(ϕ_avg .* 1)
+
+cb = axs[3].pcolormesh(ϕ_avg[wherenan], z,  κGM_zonal[:, wherenan], cmap=cmo.delta, 
+vmin = -vmax, vmax = vmax)
+fig.colorbar(cb,ax = axs[3], orientation = "horizontal")
+fig
+
+[a.invert_yaxis() for a in axs]
+
+
+
+
+fname1 = "/batou/eccodrive/files/Version4/Release4/input_init/total_kapgm_r009bit11.bin";
+fname2 = "/batou/eccodrive/files/Version4/Release4/input_init/total_diffkr_r009bit11.bin";
+fname3 = "/batou/eccodrive/files/Version4/Release4/input_init/total_kapredi_r009bit11.bin";
+
+
+fig,axs= plt.subplots(1, 3, figsize = (25, 15))
+
+κGM_zonal =  zonal_average(read_bin(fname1,Float32,γ), cell_volumes)
+vmax = nm.maximum(κGM_zonal) 
+ϕ_avg = zonal_average(ϕ, PAC_msk .* area); wherenan = (!isnan).(ϕ_avg .* 1)
+
+cb = axs[1].pcolormesh(ϕ_avg[wherenan], z,  κGM_zonal[:, wherenan], cmap=cmo.delta, 
+vmin = -vmax, vmax = vmax)
+fig.colorbar(cb,ax = axs[1], orientation = "horizontal")
+
+
+κGM_zonal =  zonal_average(read_bin(fname2,Float32,γ), cell_volumes)
+vmax = nm.maximum(κGM_zonal) 
+ϕ_avg = zonal_average(ϕ, PAC_msk .* area); wherenan = (!isnan).(ϕ_avg .* 1)
+
+cb = axs[2].pcolormesh(ϕ_avg[wherenan], z,  κGM_zonal[:, wherenan], cmap=cmo.delta, 
+vmin = -vmax, vmax = vmax)
+fig.colorbar(cb,ax = axs[2], orientation = "horizontal")
+
+
+κGM_zonal =  zonal_average(read_bin(fname3,Float32,γ), cell_volumes)
+vmax = nm.maximum(κGM_zonal) 
+ϕ_avg = zonal_average(ϕ, PAC_msk .* area); wherenan = (!isnan).(ϕ_avg .* 1)
+
+cb = axs[3].pcolormesh(ϕ_avg[wherenan], z,  κGM_zonal[:, wherenan], cmap=cmo.delta, 
+vmin = -vmax, vmax = vmax)
+fig.colorbar(cb,ax = axs[3], orientation = "horizontal")
+fig
+
+[a.invert_yaxis() for a in axs]

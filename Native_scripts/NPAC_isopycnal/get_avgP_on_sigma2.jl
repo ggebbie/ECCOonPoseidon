@@ -32,7 +32,7 @@ sig2dirs["only_buoyancy"] = vastrundir("nooceanadjust", "run_noadjusts_nowind")*
 sig2dirs["only_wind"] = vastrundir("nooceanadjust", "run_noadjusts_nobuoyancy")*"sigma2/"
 #read in the first time step of S and θ
 
-for expname in keys(sig2dirs)
+for expname in ["iter0_bulkformula", "iter129_bulkformula"]
     println(expname)
     # Get list of files for salinity on sigma1
     

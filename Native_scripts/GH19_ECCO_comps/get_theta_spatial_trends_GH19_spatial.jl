@@ -13,7 +13,7 @@ zlevs = findall(2000 .<= depth .<= 3000)
 
 nt = length(year)
 WOCE_times = findall(1872 .< year .< 1876)[1]
-Challenger_times = findall(1989 .< year .< 2017)[end]
+Challenger_times = findall(1989 .< year .< 1993)[end]
 
 theta_OPT = reverse(ds_OPT["theta"][:, zlevs, :, :], dims =1) #reverse time for niceness
 # theta_OPT = theta_OPT[WOCE_times:Challenger_times, :, :, :]
