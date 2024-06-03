@@ -17,6 +17,10 @@ Frootlist = ("trsp_3d_set1","state_3d_set1","state_3d_set2","state_2d_set1","sta
 include(srcdir("config_exp.jl"))
 
 include(srcdir("config_regularpoles.jl"))
+gridatts = (lon = Dict("longname" => "Longitude", "units" => "degrees east"),
+    lat = Dict("longname" => "Latitude", "units" => "degrees north"),
+    depth = Dict("longname" => "Depth", "units" => "m"))
+
 tt = 0
 
 println("number of threads ",Threads.nthreads())
@@ -56,7 +60,9 @@ Threads.@threads for Froot in Frootlist
         #@time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
         @time varsregpoles = regularpoles(pathin,filein,γ,rp_params)
 
+        #lock(OI_lock) do
         #@time writeregularpoles(varsregpoles,γ,pathout,filesuffix,filelog,λC,lonatts,ϕC,latatts,z,depthatts)
+        #end
         # write to NetCDF (not thread safe)
         lock(OI_lock) do
             @time ECCOtour.write(varsregpoles,
@@ -64,8 +70,8 @@ Threads.@threads for Froot in Frootlist
                 γ,
                 pathout,
                 filesuffix,
-                filelog,
-                gridatts)
+               filelog,
+               gridatts)
             #ncsla[:,:,n] = fi
         end
 

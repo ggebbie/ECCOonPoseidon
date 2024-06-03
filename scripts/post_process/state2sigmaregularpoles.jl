@@ -1,7 +1,7 @@
 # map θ, S, p to sigma 1 surfaces.
 # This is a wrapper routine to read files on poseidon.
 # ggebbie, started 1-Apr-2021
-include("../src/intro.jl")
+include("../../src/intro.jl")
 
 using Revise # for interactive use
 using MITgcmTools
@@ -23,7 +23,7 @@ sig1grid = sigma1grid("mixed layer")
 TSroot = "state_3d_set1" # 1: θ, 2: S
 RProot = ("trsp_3d_set1","state_3d_set2") # uvel, vvel, gm psix, gm psiy, rhoanoma, phihyd
 
-splorder = 1 # spline order
+splorder = 3 # spline order
 eos_mitgcm = "JMD95"
 
 # first filter for state_3d_set1
@@ -71,7 +71,7 @@ Threads.@threads for datafile in datafilelist
         pstdz,
         sig1grid,
         splorder=splorder,
-        linearinterp=true,
+        linearinterp=false,
         eos=eos_mitgcm,
         writefiles = false)
 
