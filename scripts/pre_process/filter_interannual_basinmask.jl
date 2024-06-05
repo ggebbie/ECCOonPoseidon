@@ -5,7 +5,7 @@
 #  Script argument: region (must be defined in `src/ECCOonPoseidon.jl`)
 #  If no arguments are passed, then interannual variability is removed everywhere.
 
-include("../src/intro.jl")
+include("../../src/intro.jl")
 
 using Revise
 using ECCOtour
