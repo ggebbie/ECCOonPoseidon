@@ -1,7 +1,7 @@
 # map θ, S, p to sigma 1 surfaces.
 # This is a wrapper routine to read files on poseidon.
 # ggebbie, started 1-Apr-2021
-include("../../src/intro.jl")
+include("../src/intro.jl")
 
 using Revise # for interactive use
 using MITgcmTools

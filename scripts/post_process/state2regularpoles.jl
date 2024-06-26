@@ -1,10 +1,11 @@
+
 # transfer output from native to regularpoles grid
 # 1. read monthly-average fields
 # 2. interpolate to Cartesian grid
 # 3. save to self-describing file.
 # 4. repeat with all fields.
 
-include("../../src/intro.jl")
+include("../src/intro.jl")
 
 using Revise
 using ECCOtour, ECCOonPoseidon
