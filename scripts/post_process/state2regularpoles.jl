@@ -1,3 +1,4 @@
+
 # transfer output from native to regularpoles grid
 # 1. read monthly-average fields
 # 2. interpolate to Cartesian grid
@@ -17,10 +18,21 @@ Frootlist = ("trsp_3d_set1","state_3d_set1","state_3d_set2","state_2d_set1","sta
 include(srcdir("config_exp.jl"))
 
 include(srcdir("config_regularpoles.jl"))
+gridatts = (lon = Dict("longname" => "Longitude", "units" => "degrees east"),
+    lat = Dict("longname" => "Latitude", "units" => "degrees north"),
+    depth = Dict("longname" => "Depth", "units" => "m"))
+
 tt = 0
 
+println("number of threads ",Threads.nthreads())
+
+# NetCDF is not thread-safe
+OI_lock = ReentrantLock()
+
 # Froot= Frootlist[1] # for interactive use
-for Froot in Frootlist
+Threads.@threads for Froot in Frootlist
+
+    println("Froot ", Froot, "\t Thread ID: ", Threads.threadid())
 
     filelist = searchdir(diagpath,Froot)
     filelist = searchdir(diagpath,Froot) 
@@ -28,7 +40,8 @@ for Froot in Frootlist
 
     global tt = 0
 
-    Threads.@threads for Fname in datafilelist
+    for Fname in datafilelist
+
         global tt += 1
         println("filename ",Fname)
 
@@ -45,9 +58,23 @@ for Froot in Frootlist
         filein = Fname[1:end-5]
         pathin = diagpath
 
-        @time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+        #@time varsregpoles =  mdsio2regularpoles(pathin,filein,γ,nx,ny,nyarc,λarc,nyantarc,λantarc)
+        @time varsregpoles = regularpoles(pathin,filein,γ,rp_params)
 
-        @time writeregularpoles(varsregpoles,γ,pathout,filesuffix,filelog,λC,lonatts,ϕC,latatts,z,depthatts)
+        #lock(OI_lock) do
+        #@time writeregularpoles(varsregpoles,γ,pathout,filesuffix,filelog,λC,lonatts,ϕC,latatts,z,depthatts)
+        #end
+        # write to NetCDF (not thread safe)
+        lock(OI_lock) do
+            @time ECCOtour.write(varsregpoles,
+                rp_params,
+                γ,
+                pathout,
+                filesuffix,
+               filelog,
+               gridatts)
+            #ncsla[:,:,n] = fi
+        end
 
     end
 end
