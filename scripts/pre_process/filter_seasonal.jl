@@ -26,20 +26,6 @@ outputdir = fluxdir(expt)
 (ϕC,λC) = latlonC(γ)
 # on the vector (Staggered) grid
 (ϕG,λG) = latlonG(γ)
- 
-## Define region of interest where interannual fluxes are kept.
-region = "test"
-if keepregion
-    latrect, lonrect = rectangle(region)
-
-    # should dlat, dlon go into src?
-    dlat = 10
-    dlon = 10
-    
-    lonmid =  (lonrect[1]+lonrect[2])/2
-    centerlon!(λC,lonmid)
-    centerlon!(λG,lonmid)
-end
 
 if !isdir(outputdir)
     mkpath(outputdir)
