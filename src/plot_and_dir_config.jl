@@ -33,8 +33,15 @@ plot_labels_effects = ["Iteration 0", "INIT Effect", "MIXING Effect",
                         "FORCING Effect", "Iteration 129", "WIND Effect", "BUOYANCY Effect"]
 plot_labels_effects = Dict(exps_list[i] => plot_labels_effects[i] for i in 1:nexps)
 
-exp_colors = vcat(colors[1:4], ["k"], [colors[4]], [colors_muted[5]]) 
-exp_colors = Dict(exps_list[i] => exp_colors[i] for i in 1:nexps)
-exp_colors["iter129_bulkformula"] = deepcopy(exp_colors["only_wind"])
-exp_colors["only_wind"] = "#934B00"
+# exp_colors = vcat(colors[1:4], ["k"], [colors[4]], [colors_muted[5]]) 
+# exp_colors = Dict(exps_list[i] => exp_colors[i] for i in 1:nexps)
+# exp_colors["iter129_bulkformula"] = "#636363"
+
+exp_colors = Dict()
+exp_colors["iter0_bulkformula"] = "#D73027"
+exp_colors["iter129_bulkformula"] = "#9467BD"
+exp_colors["only_wind"] = "#377EB8"
+exp_colors["only_init"] = "#009E73"
+exp_colors["only_kappa"] = "#D55E00"
+exp_colors["only_buoyancy"] = "#FFBF00"
 

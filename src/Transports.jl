@@ -121,6 +121,54 @@ function extract_meridional_Ψ(expname::String,diagpath::Dict,
 
 end
 
+"""
+   compute_meridional_Ψ(expname, diagpath, Γ, γ, mask)
+
+This function reads multiple data files and calculates the 
+time-series of the stream function by integrating the meridional transport 
+(eulerian and bolus) through latitude circles. This is the streamfunction that 
+advects tracers.
+
+# Arguments
+- `expname`: The name of the experiment.
+- `diagpath`: The path to the diagnostic files.
+- `Γ`: The grid data structure containing necessary fields.
+- `γ`: An object representing the data format for reading files.
+- `mask`: A mask representing the region of interest.
+
+# Returns
+- `ψ̄`: The total stream function as a 3D (z, x, t) array with NaNs 
+representing non-ocean points.
+
+"""
+function compute_meridional_Ψ(u, v, 
+    Γ::NamedTuple, γ::gcmgrid, mask::MeshArray)
+    
+    (ϕ,λ) = latlonC(γ); area = Float32.(readarea(γ))
+    ϕ = Float32.(ϕ); ϕ_avg = zonal_average(ϕ, area .* mask)
+    ϕ_avg = ϕ_avg[isfinite.(ϕ_avg)]
+    
+    LC=LatitudeCircles(ϕ_avg,Γ)
+    nz=size(Γ.hFacC,2); nl=length(LC); nt = length(datafilelist)
+
+    ψ = zeros(nl,nz)
+    mskC, mskW, mskS = get_msk(Γ)
+
+
+    u = u .* mask; v = v .* mask; 
+    (Utr,Vtr)=UVtoTrsp(u,v,Γ, γ)
+    ov=Array{Float64,2}(undef,nl,nz)
+    for l=1:nl
+        ov[l,:] .=ThroughFlow(Utr, Vtr,LC[l])
+    end
+    ov= reverse(cumsum(reverse(ov,dims=2),dims=2),dims=2)
+    ψ̄ = -reverse(ov,dims=2); ψ̄[ψ̄.==0.0].=NaN
+    ψ̄ = reverse(ψ̄', dims = 1)
+
+    return ψ, ϕ_avg
+
+end
+
 
 """
     extract_meridional_Ψ(expname, diagpath, Γ, γ, mask)

@@ -1,4 +1,4 @@
-include("../../../../src/intro.jl")
+include("../../src/intro.jl")
 
 using Revise,ECCOonPoseidon, ECCOtour,
 MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, 
@@ -23,7 +23,7 @@ nσ = length(sig2grid)
 # σlvls = findall( σtop .<= sig1grid .<= σbot)
 
 θ_dict = Dict(); z_dict = Dict()
-for expname in ["iter0_bulkformula", "iter129_bulkformula"]
+for expname in ["iter0_bulkformula", "iter129_bulkformula", "only_wind"]
     Pσ = jldopen(datadir(expname * region * "_AVG_P_sigma2.jld2"))["P"]
     θσ = jldopen(datadir(expname * region * "_AVG_THETA_sigma2.jld2"))["θ"]
 
@@ -39,7 +39,7 @@ for expname in ["iter0_bulkformula", "iter129_bulkformula"]
 end
 
 θ_dict_new = Dict();
-for expname in ["iter0_bulkformula", "iter129_bulkformula"]
+for expname in ["iter0_bulkformula", "iter129_bulkformula", "only_wind"]
     println(expname)
     new_θ = zeros(length(z), 312)
     
@@ -52,7 +52,7 @@ for expname in ["iter0_bulkformula", "iter129_bulkformula"]
 end
 # θσ = jldopen(datadir("iter0_bulkformula" * region * "_AVG_P_sigma2.jld2"))["P"]
 # nm.maximum(θσ)
-jldsave(datadir(region * "_temp_sigma2_to_z_reference_middle.jld2"), θ_dict= θ_dict_new, z_dict = z_dict)
+jldsave(datadir(region * "_temp_sigma2_to_z_reference_middle_BRIN.jld2"), θ_dict= θ_dict_new, z_dict = z_dict)
 
 # [θ_dict[expname] .-= θ_dict["iter0_bulkformula"] for expname in ["only_init", "only_kappa", "only_sfc"]]
 # θ_dict["SUM"] = 1 .* θ_dict["iter0_bulkformula"]

@@ -3,7 +3,7 @@ NCDatasets, Printf,
 DataFrames, LaTeXStrings, Distances, ECCOonPoseidon, ECCOtour, JLD2
 include("GH19_helperfuncs.jl")
 
-ds_OPT = NCDataset("/home/ameza/GH19.jl/data/Theta_OPT-0015.nc")
+ds_OPT = NCDataset("/home/ameza/GH19.jl/data/Theta_anom_OPT-0015.nc")
 
 year  = reverse(ds_OPT["year"][:]); 
 lon = ds_OPT["longitude"][:]

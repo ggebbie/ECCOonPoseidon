@@ -1,9 +1,9 @@
 #analysis should complete within 4 minutes 
 #using 1 threads 
 # julia --threads=4 --project=@. ./extract_theta_native.jl
-
+using Pkg
+Pkg.activate(".")
 include("../src/intro.jl")
-include("../src/OHC_helper.jl")
 
 using Revise,ECCOonPoseidon, ECCOtour,
 MeshArrays, MITgcmTools, JLD2, DrWatson, Statistics, LaTeXStrings, 
@@ -25,12 +25,12 @@ for expname in vars
     τdatafilelist  = filter(x -> occursin("data",x),filelist) # second filter for "data"
     τx_dict[expname] = MeshArray(γ,Float32); fill!(τx_dict[expname], 0.0)
     τy_dict[expname] = MeshArray(γ,Float32); fill!(τy_dict[expname], 0.0)
-
+    nt = length(τdatafilelist)
     for tt = 1:nt
         println("year ",Int(floor(tecco[tt]))," month ",((tt-1)%12)+1)
-        Tname = τdatafilelist[tt]
+        τname = τdatafilelist[tt]
         
-        τx, τy = OHC_helper.extract_ocnTAU(diagpath, expname , τdatafilelist, tt, γ)
+        τx, τy = extract_ocnTAU(diagpath, expname , τname, γ)
 
         for ff = 1:5
             τx_dict[expname].f[ff] .+= τx.f[ff] ./ nt
@@ -43,6 +43,11 @@ end
 Δdict["oceTAUX"] = τx_dict["iter129_bulkformula"] .- τx_dict["iter0_bulkformula"]
 Δdict["oceTAUY"] = τy_dict["iter129_bulkformula"] .- τy_dict["iter0_bulkformula"]
 
-
 write(datadir("oceTAUX_i129_i0_diff.data"),Δdict["oceTAUX"])
 write(datadir("oceTAUY_i129_i0_diff.data"),Δdict["oceTAUY"])
+
+write(datadir("oceTAUx_i129_mean.data"), τx_dict["iter129_bulkformula"])
+write(datadir("oceTAUy_i129_mean.data"), τy_dict["iter129_bulkformula"])
+
+write(datadir("oceTAUx_i0_mean.data"), τx_dict["iter0_bulkformula"])
+write(datadir("oceTAUy_i0_mean.data"), τy_dict["iter0_bulkformula"])

@@ -1,12 +1,17 @@
-# map θ, S, p to sigma 1 surfaces.
-# This is a wrapper routine to read files on poseidon.
-# ggebbie, 1-Apr-2021
-#julia --project=@. scripts/state2sigma1.jl 
-include("../src/intro.jl")
+using Pkg
+Pkg.activate(".")
+include("../../../src/intro.jl")
 
 using Revise # for interactive use
 using MITgcmTools, MeshArrays, Statistics
 using ECCOtour, ECCOonPoseidon, PyCall
+import PyPlot as plt
+include(srcdir("config_exp.jl"))
+
+include(srcdir("plot_and_dir_config.jl"))
+
+diagpath["mean_tau_noadjust_redo_bf"] = vastdiagdir("seasonalclimatology", "run_only_clim_iter0_tau_bf")
+diagpath["mean_tau_yesadjust_redo_bf"] = vastdiagdir("seasonalclimatology", "run_only_clim_iter129_tau_bf2")
 
 sig2dirs = Dict()
 sig2dirs["iter0_bulkformula"] = vastrundir("iter0_bulkformula")*"sigma2/"
@@ -17,24 +22,34 @@ sig2dirs["only_sfc"] = vastrundir("nooceanadjust", "run_noadjusts")*"sigma2/"
 sig2dirs["only_buoyancy"] = vastrundir("nooceanadjust", "run_noadjusts_nowind")*"sigma2/"
 sig2dirs["only_wind"] = vastrundir("nooceanadjust", "run_noadjusts_nobuoyancy")*"sigma2/"
 
+sig2dirs["mean_tau_noadjust_redo_bf"] = vastdiagdir("seasonalclimatology", "run_only_clim_iter0_tau_bf")*"sigma2/"
+sig2dirs["mean_tau_yesadjust_redo_bf"] = vastdiagdir("seasonalclimatology", "run_only_clim_iter129_tau_bf2")*"sigma2/"
+
 sig2dir(expt::String) = sig2dirs[expt]
 # using JLD2, Dierckx, Interpolations
-include(srcdir("config_exp.jl"))
-runpath,diagpath = listexperiments(exprootdir())
 
 # define the sigma grid you wish to interpolate onto
 sig2grid = ECCOtour.sigma2grid()
 sig2grid[50:end]
+
 ## specific for state
 # the state_3d monthly-average diagnostic output
 TSroot = "state_3d_set1" # 1: θ, 2: S
 # RProot = ("trsp_3d_set2","trsp_3d_set3") # uvel, vvel, gm psix, gm psiy, rhoanoma, phihyd
 
-splorder = 1 # spline order
+splorder = 3 # spline order
 
-include(srcdir("plot_and_dir_config.jl"))
+# include(srcdir("plot_and_dir_config.jl"))
 searchdir(diagpath["iter129_bulkformula"],TSroot)
-for expt in ["iter129_bulkformula", "iter0_bulkformula"]
+
+vars =  ["iter0_bulkformula" "only_wind";
+         "mean_tau_noadjust_redo_bf" "mean_tau_yesadjust_redo_bf";
+         "only_buoyancy" "only_init"; 
+         "only_kappa" "iter129_bulkformula"][:]
+vars
+         
+vars =  ["only_wind", "only_init"]
+for expt in vars
     # first filter for state_3d_set1
     filelist = searchdir(diagpath[expt],TSroot)
 

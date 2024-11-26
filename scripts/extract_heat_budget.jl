@@ -20,22 +20,21 @@ cell_volumes = get_cell_volumes(area, cell_depths);
 H = OHC_helper.sum_vertical(cell_depths, γ); H[findall(H .== 0.0)] = Inf
 inv_H = 1 ./ H
 
-#get the geothermal heating term
-GTF = get_geothermalheating(Γ, γ)
-
 #define experimennt
 expname = "iter129_bulkformula"
-get_data_files(xx, expname) = filter(x -> occursin("data",x),searchdir(diagpath[expname],xx))  
-#define the file names
+get_data_files(xx, expname) = filter(x -> occursin("data",x),searchdir(diagpath[expname],xx))
 
+#define the file names
 datafilelist_H  = get_data_files("trsp_3d_set2", expname)
 datafilelist_R  = get_data_files("trsp_3d_set3", expname)
 datafilelist_θ  = get_data_files("state_3d_set1", expname)
 datafilelist_S  = get_data_files("state_2d_set1", expname)
 
+#get the geothermal heating term
+GTF = get_geothermalheating(Γ, γ)
+
 #specify time-step
 tt = 1
-
 fnameθ = datafilelist_θ[tt]
 fnameH = datafilelist_H[tt]
 fnameR = datafilelist_R[tt]

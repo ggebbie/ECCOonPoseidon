@@ -38,14 +38,7 @@ compute_depth_trends(x) = (100 * 100) .* (x * F[2, :])
 sns.set_theme(context = "poster", style = "ticks",
               palette = colors, rc = custom_params);
 
-fig = plt.figure(constrained_layout=true, figsize = (20, 12))
-gs = fig.add_gridspec(4, 3)
-obj(i,j) = get(gs, (i,j))
-slice(i,j) = pycall(pybuiltin("slice"), PyObject, i,j)
-f3_ax1 = fig.add_subplot(obj(slice(0, 4), 0))
-f3_ax2 = fig.add_subplot(obj(slice(0, 2) ,slice(1, 4)), projection=proj0)
-f3_ax3 = fig.add_subplot(obj(slice(2, 4) ,slice(1, 3)), projection=proj0)
-ax = f3_ax1
+fig, ax = plt.subplots(figsize = (8., 12))
 # fig, ax = plt.subplots(1, 1, figsize=(9,12))
 ax.vlines(0, 0, 5, color = "grey", alpha = 0.9)
 plot_exps = ["iter129_bulkformula"]
@@ -55,16 +48,18 @@ for (i, expt) in enumerate(plot_exps)
     ax.plot(compute_depth_trends(adjust_exps[expt]), z, label =  label[i], color = exp_colors[expt], linewidth = lw)
 end
 
-f =  jldopen(datadir("OPT-0015_GH19_PAC4.jld2"))
-ΔT_GH19 = (-100 * 100 * f["ΔT_GH19"]) 
+
+f =  jldopen(datadir("OPT-0015_GH19_PAC_FINAL.jld2"))
+ΔT_GH19 = (100 * 100 * f["ΔT_GH19"]) 
 ΔT_GH19 = ΔT_GH19 
 depth_GH19 = f["depth_GH19"]
-ax.plot(ΔT_GH19, depth_GH19, label = "OPT-15", color = "k", linewidth = 2)
+ax.plot(ΔT_GH19, depth_GH19, label = "GH19 Simulation\n(OPT-15)", color = "k", linewidth = 2)
 ax.grid()
+
 file = matopen(datadir("Challenger_WOCE_Temperature_basinwide_avg_FINAL.mat"))
 z_Challenger = read(file, "depthlist")[:]
-challenger_trend = -100. * 100 .* read(file, "mTpz_LS")[:] / 140
-err = 100. * 100 .* read(file, "mTpz_LSerr")[:] ./ 140
+challenger_trend = -100. * 100 .* read(file, "mTpz_LS")[:] / 115
+err = 100. * 100 .* read(file, "mTpz_LSerr")[:] ./ 115
 ax.errorbar(challenger_trend[:], z_Challenger[:], xerr = err[:],
 fmt ="o", label = "WOCE/Challenger", color = "darkblue", linewidth = 2)
 
@@ -77,8 +72,10 @@ ax.set_xlim(-1.5*10, 1.5*10)
 ax.set_ylim(1001, 3999); ax.invert_yaxis()
 ax.legend(frameon = true, fontsize = 18, loc = "lower right")
 fig
+fig.savefig(plotsdir("native/paper_figures/0.GH19_ECCO_Trend_Comparison.png"), dpi = 400, bbox_inches = "tight")
 
-axs = [f3_ax2, f3_ax3]
+fig, axs = plt.subplots(1, 2, figsize = (15, 12), subplot_kw=Dict("projection"=> proj0))
+
 for ax in axs
     ax.coastlines(resolution="110m")
     ax.set_extent((110, 295, -65, 65),crs=projPC)
@@ -118,22 +115,21 @@ fname = "modern_OPT-0015_θ_trends_2to3km_2.jld2"
 β = jldopen(datadir(fname))["β"]
 LONS = jldopen(datadir(fname))["λ"]
 LATS = jldopen(datadir(fname))["ϕ"]
-cbar = axs[2].contourf(LONS, LATS,  -((β .* 100 * 100) .- 0.5), transform=projPC, 
+cbar = axs[2].contourf(LONS, LATS,  -((β .* 100 * 100)), transform=projPC, 
     cmap = cmos.balance, vmin = -bounds, vmax = bounds, levels=levels, extend = "both")   
-axs[2].set_title("OPT-15")
-fig.subplots_adjust(wspace = 0.001)
+axs[2].set_title("GH19 Reconstruction (OPT-15)")
+# fig.subplots_adjust(wspace = 0.001)
 fig.colorbar(cbar, ax = axs[:], label = "cK per century",
 orientation = "horizontal", fraction = 0.03, pad = 0.07, extend = "both")
 CS = axs[2].contour(LONS, LATS,  (β .* 100 * 100) .- 0.5, transform=projPC,     
 c = "k", levels = [0])
 axs[2].clabel(CS, CS.levels, inline=true, fontsize=17, inline_spacing = 10)
-f3_ax1.annotate("A", (0.05, 0.92), fontsize = 40, 
-xycoords="axes fraction", fontweight = "bold")
 
-fig_labs = uppercase.(["b", "c", "d", "e"])
-for (i, a) in enumerate([f3_ax2, f3_ax3])
+
+fig_labs = uppercase.(["a", "b", "d", "e"])
+for (i, a) in enumerate(axs)
     a.annotate(fig_labs[i], (0.05, 0.85), fontsize = 40, 
     xycoords="axes fraction", fontweight = "bold")
 end
 fig
-fig.savefig(plotsdir("native/paper_figures/0.GH19_ECCO_Comparison.png"), dpi = 400)
+fig.savefig(plotsdir("native/paper_figures/0.GH19_ECCO_Comparison.png"), dpi = 400, bbox_inches = "tight")

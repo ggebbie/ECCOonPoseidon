@@ -60,10 +60,8 @@ end
 adjust_exps = Dict()
 
 adjust_exps["only_kappa"] = get_temperature(diagpath, "iter0_bulkformula", "only_kappa", γ, cell_volumes)
-
 adjust_exps["only_init"] = get_temperature(diagpath, "iter0_bulkformula", "only_init", γ, cell_volumes)
 adjust_exps["noinitadjust"] = get_temperature(diagpath, "iter129_bulkformula", "noinitadjust", γ, cell_volumes)
-
 adjust_exps["only_sfc"] = get_temperature(diagpath, "iter0_bulkformula", "only_sfc", γ, cell_volumes)
 adjust_exps["nosfcadjust"] = get_temperature(diagpath, "iter129_bulkformula", "nosfcadjust", γ, cell_volumes)
 

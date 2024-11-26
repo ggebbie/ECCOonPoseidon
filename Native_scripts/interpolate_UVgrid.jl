@@ -3,13 +3,11 @@
 # julia --threads=6 --project=@. ./extract_heat_budget_native.jl
 
 include("../src/intro.jl")
-include("../src/OHC_helper.jl")
 
 using Revise
 using ECCOonPoseidon, ECCOtour,
     MeshArrays, MITgcmTools, JLD2, DrWatson, 
     BenchmarkTools, LaTeXStrings, PyCall
-using .OHC_helper
 import NaNMath as nm
 include(srcdir("config_exp.jl"))
 
